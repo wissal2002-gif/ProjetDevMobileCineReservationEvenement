@@ -19,8 +19,10 @@ abstract class Faq implements _i1.SerializableModel {
     required this.reponse,
     String? categorie,
     int? ordre,
+    bool? actif,
   }) : categorie = categorie ?? 'general',
-       ordre = ordre ?? 0;
+       ordre = ordre ?? 0,
+       actif = actif ?? true;
 
   factory Faq({
     int? id,
@@ -28,6 +30,7 @@ abstract class Faq implements _i1.SerializableModel {
     required String reponse,
     String? categorie,
     int? ordre,
+    bool? actif,
   }) = _FaqImpl;
 
   factory Faq.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -37,6 +40,7 @@ abstract class Faq implements _i1.SerializableModel {
       reponse: jsonSerialization['reponse'] as String,
       categorie: jsonSerialization['categorie'] as String?,
       ordre: jsonSerialization['ordre'] as int?,
+      actif: jsonSerialization['actif'] as bool?,
     );
   }
 
@@ -53,6 +57,8 @@ abstract class Faq implements _i1.SerializableModel {
 
   int? ordre;
 
+  bool? actif;
+
   /// Returns a shallow copy of this [Faq]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -62,6 +68,7 @@ abstract class Faq implements _i1.SerializableModel {
     String? reponse,
     String? categorie,
     int? ordre,
+    bool? actif,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -72,6 +79,7 @@ abstract class Faq implements _i1.SerializableModel {
       'reponse': reponse,
       if (categorie != null) 'categorie': categorie,
       if (ordre != null) 'ordre': ordre,
+      if (actif != null) 'actif': actif,
     };
   }
 
@@ -90,12 +98,14 @@ class _FaqImpl extends Faq {
     required String reponse,
     String? categorie,
     int? ordre,
+    bool? actif,
   }) : super._(
          id: id,
          question: question,
          reponse: reponse,
          categorie: categorie,
          ordre: ordre,
+         actif: actif,
        );
 
   /// Returns a shallow copy of this [Faq]
@@ -108,6 +118,7 @@ class _FaqImpl extends Faq {
     String? reponse,
     Object? categorie = _Undefined,
     Object? ordre = _Undefined,
+    Object? actif = _Undefined,
   }) {
     return Faq(
       id: id is int? ? id : this.id,
@@ -115,6 +126,7 @@ class _FaqImpl extends Faq {
       reponse: reponse ?? this.reponse,
       categorie: categorie is String? ? categorie : this.categorie,
       ordre: ordre is int? ? ordre : this.ordre,
+      actif: actif is bool? ? actif : this.actif,
     );
   }
 }

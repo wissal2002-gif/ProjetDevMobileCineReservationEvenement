@@ -1,11 +1,14 @@
 class: Cinema
 table: cinemas
+managedMigration: true
+
 fields:
   nom: String
   adresse: String
   ville: String
+  telephone: String?
+  email: String?
   latitude: double?
   longitude: double?
-indexes:
-  cinema_nom_idx:
-    fields: nom
+  description: String?
+  photo: String?

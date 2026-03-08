@@ -1,5 +1,7 @@
 class: Utilisateur
 table: utilisateurs
+managedMigration: true
+
 fields:
   authUserId: String?
   nom: String
@@ -9,6 +11,9 @@ fields:
   preferences: List<String>?
   statut: String?, default='actif'
   role: String?, default='client'
+  pointsFidelite: int?, default=0
+  photoProfil: String?
+
 indexes:
   utilisateur_email_idx:
     fields: email

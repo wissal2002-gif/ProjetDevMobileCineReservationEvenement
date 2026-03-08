@@ -16,35 +16,46 @@ abstract class Billet implements _i1.SerializableModel {
   Billet._({
     this.id,
     required this.reservationId,
-    required this.siegeId,
+    this.siegeId,
+    String? typeReservation,
     required this.dateEmission,
     bool? estValide,
     String? typeBillet,
     this.qrCode,
-  }) : estValide = estValide ?? true,
+    this.dateValidation,
+  }) : typeReservation = typeReservation ?? 'cinema',
+       estValide = estValide ?? true,
        typeBillet = typeBillet ?? 'standard';
 
   factory Billet({
     int? id,
     required int reservationId,
-    required int siegeId,
+    int? siegeId,
+    String? typeReservation,
     required DateTime dateEmission,
     bool? estValide,
     String? typeBillet,
     String? qrCode,
+    DateTime? dateValidation,
   }) = _BilletImpl;
 
   factory Billet.fromJson(Map<String, dynamic> jsonSerialization) {
     return Billet(
       id: jsonSerialization['id'] as int?,
       reservationId: jsonSerialization['reservationId'] as int,
-      siegeId: jsonSerialization['siegeId'] as int,
+      siegeId: jsonSerialization['siegeId'] as int?,
+      typeReservation: jsonSerialization['typeReservation'] as String?,
       dateEmission: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['dateEmission'],
       ),
       estValide: jsonSerialization['estValide'] as bool?,
       typeBillet: jsonSerialization['typeBillet'] as String?,
       qrCode: jsonSerialization['qrCode'] as String?,
+      dateValidation: jsonSerialization['dateValidation'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['dateValidation'],
+            ),
     );
   }
 
@@ -55,7 +66,9 @@ abstract class Billet implements _i1.SerializableModel {
 
   int reservationId;
 
-  int siegeId;
+  int? siegeId;
+
+  String? typeReservation;
 
   DateTime dateEmission;
 
@@ -65,6 +78,8 @@ abstract class Billet implements _i1.SerializableModel {
 
   String? qrCode;
 
+  DateTime? dateValidation;
+
   /// Returns a shallow copy of this [Billet]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -72,10 +87,12 @@ abstract class Billet implements _i1.SerializableModel {
     int? id,
     int? reservationId,
     int? siegeId,
+    String? typeReservation,
     DateTime? dateEmission,
     bool? estValide,
     String? typeBillet,
     String? qrCode,
+    DateTime? dateValidation,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -83,11 +100,13 @@ abstract class Billet implements _i1.SerializableModel {
       '__className__': 'Billet',
       if (id != null) 'id': id,
       'reservationId': reservationId,
-      'siegeId': siegeId,
+      if (siegeId != null) 'siegeId': siegeId,
+      if (typeReservation != null) 'typeReservation': typeReservation,
       'dateEmission': dateEmission.toJson(),
       if (estValide != null) 'estValide': estValide,
       if (typeBillet != null) 'typeBillet': typeBillet,
       if (qrCode != null) 'qrCode': qrCode,
+      if (dateValidation != null) 'dateValidation': dateValidation?.toJson(),
     };
   }
 
@@ -103,19 +122,23 @@ class _BilletImpl extends Billet {
   _BilletImpl({
     int? id,
     required int reservationId,
-    required int siegeId,
+    int? siegeId,
+    String? typeReservation,
     required DateTime dateEmission,
     bool? estValide,
     String? typeBillet,
     String? qrCode,
+    DateTime? dateValidation,
   }) : super._(
          id: id,
          reservationId: reservationId,
          siegeId: siegeId,
+         typeReservation: typeReservation,
          dateEmission: dateEmission,
          estValide: estValide,
          typeBillet: typeBillet,
          qrCode: qrCode,
+         dateValidation: dateValidation,
        );
 
   /// Returns a shallow copy of this [Billet]
@@ -125,20 +148,28 @@ class _BilletImpl extends Billet {
   Billet copyWith({
     Object? id = _Undefined,
     int? reservationId,
-    int? siegeId,
+    Object? siegeId = _Undefined,
+    Object? typeReservation = _Undefined,
     DateTime? dateEmission,
     Object? estValide = _Undefined,
     Object? typeBillet = _Undefined,
     Object? qrCode = _Undefined,
+    Object? dateValidation = _Undefined,
   }) {
     return Billet(
       id: id is int? ? id : this.id,
       reservationId: reservationId ?? this.reservationId,
-      siegeId: siegeId ?? this.siegeId,
+      siegeId: siegeId is int? ? siegeId : this.siegeId,
+      typeReservation: typeReservation is String?
+          ? typeReservation
+          : this.typeReservation,
       dateEmission: dateEmission ?? this.dateEmission,
       estValide: estValide is bool? ? estValide : this.estValide,
       typeBillet: typeBillet is String? ? typeBillet : this.typeBillet,
       qrCode: qrCode is String? ? qrCode : this.qrCode,
+      dateValidation: dateValidation is DateTime?
+          ? dateValidation
+          : this.dateValidation,
     );
   }
 }

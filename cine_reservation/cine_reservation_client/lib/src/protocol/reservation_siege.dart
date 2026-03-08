@@ -17,12 +17,16 @@ abstract class ReservationSiege implements _i1.SerializableModel {
     this.id,
     required this.reservationId,
     required this.siegeId,
-  });
+    String? typeTarif,
+    this.prix,
+  }) : typeTarif = typeTarif ?? 'normal';
 
   factory ReservationSiege({
     int? id,
     required int reservationId,
     required int siegeId,
+    String? typeTarif,
+    double? prix,
   }) = _ReservationSiegeImpl;
 
   factory ReservationSiege.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -30,6 +34,8 @@ abstract class ReservationSiege implements _i1.SerializableModel {
       id: jsonSerialization['id'] as int?,
       reservationId: jsonSerialization['reservationId'] as int,
       siegeId: jsonSerialization['siegeId'] as int,
+      typeTarif: jsonSerialization['typeTarif'] as String?,
+      prix: (jsonSerialization['prix'] as num?)?.toDouble(),
     );
   }
 
@@ -42,6 +48,10 @@ abstract class ReservationSiege implements _i1.SerializableModel {
 
   int siegeId;
 
+  String? typeTarif;
+
+  double? prix;
+
   /// Returns a shallow copy of this [ReservationSiege]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -49,6 +59,8 @@ abstract class ReservationSiege implements _i1.SerializableModel {
     int? id,
     int? reservationId,
     int? siegeId,
+    String? typeTarif,
+    double? prix,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -57,6 +69,8 @@ abstract class ReservationSiege implements _i1.SerializableModel {
       if (id != null) 'id': id,
       'reservationId': reservationId,
       'siegeId': siegeId,
+      if (typeTarif != null) 'typeTarif': typeTarif,
+      if (prix != null) 'prix': prix,
     };
   }
 
@@ -73,10 +87,14 @@ class _ReservationSiegeImpl extends ReservationSiege {
     int? id,
     required int reservationId,
     required int siegeId,
+    String? typeTarif,
+    double? prix,
   }) : super._(
          id: id,
          reservationId: reservationId,
          siegeId: siegeId,
+         typeTarif: typeTarif,
+         prix: prix,
        );
 
   /// Returns a shallow copy of this [ReservationSiege]
@@ -87,11 +105,15 @@ class _ReservationSiegeImpl extends ReservationSiege {
     Object? id = _Undefined,
     int? reservationId,
     int? siegeId,
+    Object? typeTarif = _Undefined,
+    Object? prix = _Undefined,
   }) {
     return ReservationSiege(
       id: id is int? ? id : this.id,
       reservationId: reservationId ?? this.reservationId,
       siegeId: siegeId ?? this.siegeId,
+      typeTarif: typeTarif is String? ? typeTarif : this.typeTarif,
+      prix: prix is double? ? prix : this.prix,
     );
   }
 }

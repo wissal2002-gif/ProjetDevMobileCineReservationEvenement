@@ -1,7 +1,10 @@
 class: Faq
 table: faqs
+managedMigration: true
+
 fields:
   question: String
   reponse: String
   categorie: String?, default='general'
   ordre: int?, default=0
+  actif: bool?, default=true

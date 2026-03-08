@@ -21,6 +21,7 @@ abstract class Paiement
     String? methode,
     String? statut,
     this.stripePaymentId,
+    this.paypalOrderId,
     this.createdAt,
   }) : methode = methode ?? 'carte',
        statut = statut ?? 'en_attente';
@@ -32,6 +33,7 @@ abstract class Paiement
     String? methode,
     String? statut,
     String? stripePaymentId,
+    String? paypalOrderId,
     DateTime? createdAt,
   }) = _PaiementImpl;
 
@@ -43,6 +45,7 @@ abstract class Paiement
       methode: jsonSerialization['methode'] as String?,
       statut: jsonSerialization['statut'] as String?,
       stripePaymentId: jsonSerialization['stripePaymentId'] as String?,
+      paypalOrderId: jsonSerialization['paypalOrderId'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -66,6 +69,8 @@ abstract class Paiement
 
   String? stripePaymentId;
 
+  String? paypalOrderId;
+
   DateTime? createdAt;
 
   @override
@@ -81,6 +86,7 @@ abstract class Paiement
     String? methode,
     String? statut,
     String? stripePaymentId,
+    String? paypalOrderId,
     DateTime? createdAt,
   });
   @override
@@ -93,6 +99,7 @@ abstract class Paiement
       if (methode != null) 'methode': methode,
       if (statut != null) 'statut': statut,
       if (stripePaymentId != null) 'stripePaymentId': stripePaymentId,
+      if (paypalOrderId != null) 'paypalOrderId': paypalOrderId,
       if (createdAt != null) 'createdAt': createdAt?.toJson(),
     };
   }
@@ -107,6 +114,7 @@ abstract class Paiement
       if (methode != null) 'methode': methode,
       if (statut != null) 'statut': statut,
       if (stripePaymentId != null) 'stripePaymentId': stripePaymentId,
+      if (paypalOrderId != null) 'paypalOrderId': paypalOrderId,
       if (createdAt != null) 'createdAt': createdAt?.toJson(),
     };
   }
@@ -151,6 +159,7 @@ class _PaiementImpl extends Paiement {
     String? methode,
     String? statut,
     String? stripePaymentId,
+    String? paypalOrderId,
     DateTime? createdAt,
   }) : super._(
          id: id,
@@ -159,6 +168,7 @@ class _PaiementImpl extends Paiement {
          methode: methode,
          statut: statut,
          stripePaymentId: stripePaymentId,
+         paypalOrderId: paypalOrderId,
          createdAt: createdAt,
        );
 
@@ -173,6 +183,7 @@ class _PaiementImpl extends Paiement {
     Object? methode = _Undefined,
     Object? statut = _Undefined,
     Object? stripePaymentId = _Undefined,
+    Object? paypalOrderId = _Undefined,
     Object? createdAt = _Undefined,
   }) {
     return Paiement(
@@ -184,6 +195,9 @@ class _PaiementImpl extends Paiement {
       stripePaymentId: stripePaymentId is String?
           ? stripePaymentId
           : this.stripePaymentId,
+      paypalOrderId: paypalOrderId is String?
+          ? paypalOrderId
+          : this.paypalOrderId,
       createdAt: createdAt is DateTime? ? createdAt : this.createdAt,
     );
   }
@@ -215,6 +229,12 @@ class PaiementUpdateTable extends _i1.UpdateTable<PaiementTable> {
   _i1.ColumnValue<String, String> stripePaymentId(String? value) =>
       _i1.ColumnValue(
         table.stripePaymentId,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> paypalOrderId(String? value) =>
+      _i1.ColumnValue(
+        table.paypalOrderId,
         value,
       );
 
@@ -250,6 +270,10 @@ class PaiementTable extends _i1.Table<int?> {
       'stripePaymentId',
       this,
     );
+    paypalOrderId = _i1.ColumnString(
+      'paypalOrderId',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -268,6 +292,8 @@ class PaiementTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString stripePaymentId;
 
+  late final _i1.ColumnString paypalOrderId;
+
   late final _i1.ColumnDateTime createdAt;
 
   @override
@@ -278,6 +304,7 @@ class PaiementTable extends _i1.Table<int?> {
     methode,
     statut,
     stripePaymentId,
+    paypalOrderId,
     createdAt,
   ];
 }

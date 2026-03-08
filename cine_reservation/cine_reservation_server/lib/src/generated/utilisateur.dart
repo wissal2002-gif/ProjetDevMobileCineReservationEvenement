@@ -25,8 +25,11 @@ abstract class Utilisateur
     this.preferences,
     String? statut,
     String? role,
+    int? pointsFidelite,
+    this.photoProfil,
   }) : statut = statut ?? 'actif',
-       role = role ?? 'client';
+       role = role ?? 'client',
+       pointsFidelite = pointsFidelite ?? 0;
 
   factory Utilisateur({
     int? id,
@@ -38,6 +41,8 @@ abstract class Utilisateur
     List<String>? preferences,
     String? statut,
     String? role,
+    int? pointsFidelite,
+    String? photoProfil,
   }) = _UtilisateurImpl;
 
   factory Utilisateur.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -59,6 +64,8 @@ abstract class Utilisateur
             ),
       statut: jsonSerialization['statut'] as String?,
       role: jsonSerialization['role'] as String?,
+      pointsFidelite: jsonSerialization['pointsFidelite'] as int?,
+      photoProfil: jsonSerialization['photoProfil'] as String?,
     );
   }
 
@@ -85,6 +92,10 @@ abstract class Utilisateur
 
   String? role;
 
+  int? pointsFidelite;
+
+  String? photoProfil;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -101,6 +112,8 @@ abstract class Utilisateur
     List<String>? preferences,
     String? statut,
     String? role,
+    int? pointsFidelite,
+    String? photoProfil,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -115,6 +128,8 @@ abstract class Utilisateur
       if (preferences != null) 'preferences': preferences?.toJson(),
       if (statut != null) 'statut': statut,
       if (role != null) 'role': role,
+      if (pointsFidelite != null) 'pointsFidelite': pointsFidelite,
+      if (photoProfil != null) 'photoProfil': photoProfil,
     };
   }
 
@@ -131,6 +146,8 @@ abstract class Utilisateur
       if (preferences != null) 'preferences': preferences?.toJson(),
       if (statut != null) 'statut': statut,
       if (role != null) 'role': role,
+      if (pointsFidelite != null) 'pointsFidelite': pointsFidelite,
+      if (photoProfil != null) 'photoProfil': photoProfil,
     };
   }
 
@@ -177,6 +194,8 @@ class _UtilisateurImpl extends Utilisateur {
     List<String>? preferences,
     String? statut,
     String? role,
+    int? pointsFidelite,
+    String? photoProfil,
   }) : super._(
          id: id,
          authUserId: authUserId,
@@ -187,6 +206,8 @@ class _UtilisateurImpl extends Utilisateur {
          preferences: preferences,
          statut: statut,
          role: role,
+         pointsFidelite: pointsFidelite,
+         photoProfil: photoProfil,
        );
 
   /// Returns a shallow copy of this [Utilisateur]
@@ -203,6 +224,8 @@ class _UtilisateurImpl extends Utilisateur {
     Object? preferences = _Undefined,
     Object? statut = _Undefined,
     Object? role = _Undefined,
+    Object? pointsFidelite = _Undefined,
+    Object? photoProfil = _Undefined,
   }) {
     return Utilisateur(
       id: id is int? ? id : this.id,
@@ -218,6 +241,10 @@ class _UtilisateurImpl extends Utilisateur {
           : this.preferences?.map((e0) => e0).toList(),
       statut: statut is String? ? statut : this.statut,
       role: role is String? ? role : this.role,
+      pointsFidelite: pointsFidelite is int?
+          ? pointsFidelite
+          : this.pointsFidelite,
+      photoProfil: photoProfil is String? ? photoProfil : this.photoProfil,
     );
   }
 }
@@ -267,6 +294,16 @@ class UtilisateurUpdateTable extends _i1.UpdateTable<UtilisateurTable> {
     table.role,
     value,
   );
+
+  _i1.ColumnValue<int, int> pointsFidelite(int? value) => _i1.ColumnValue(
+    table.pointsFidelite,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> photoProfil(String? value) => _i1.ColumnValue(
+    table.photoProfil,
+    value,
+  );
 }
 
 class UtilisateurTable extends _i1.Table<int?> {
@@ -306,6 +343,15 @@ class UtilisateurTable extends _i1.Table<int?> {
       this,
       hasDefault: true,
     );
+    pointsFidelite = _i1.ColumnInt(
+      'pointsFidelite',
+      this,
+      hasDefault: true,
+    );
+    photoProfil = _i1.ColumnString(
+      'photoProfil',
+      this,
+    );
   }
 
   late final UtilisateurUpdateTable updateTable;
@@ -326,6 +372,10 @@ class UtilisateurTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString role;
 
+  late final _i1.ColumnInt pointsFidelite;
+
+  late final _i1.ColumnString photoProfil;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -337,6 +387,8 @@ class UtilisateurTable extends _i1.Table<int?> {
     preferences,
     statut,
     role,
+    pointsFidelite,
+    photoProfil,
   ];
 }
 

@@ -16,35 +16,46 @@ abstract class Billet implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   Billet._({
     this.id,
     required this.reservationId,
-    required this.siegeId,
+    this.siegeId,
+    String? typeReservation,
     required this.dateEmission,
     bool? estValide,
     String? typeBillet,
     this.qrCode,
-  }) : estValide = estValide ?? true,
+    this.dateValidation,
+  }) : typeReservation = typeReservation ?? 'cinema',
+       estValide = estValide ?? true,
        typeBillet = typeBillet ?? 'standard';
 
   factory Billet({
     int? id,
     required int reservationId,
-    required int siegeId,
+    int? siegeId,
+    String? typeReservation,
     required DateTime dateEmission,
     bool? estValide,
     String? typeBillet,
     String? qrCode,
+    DateTime? dateValidation,
   }) = _BilletImpl;
 
   factory Billet.fromJson(Map<String, dynamic> jsonSerialization) {
     return Billet(
       id: jsonSerialization['id'] as int?,
       reservationId: jsonSerialization['reservationId'] as int,
-      siegeId: jsonSerialization['siegeId'] as int,
+      siegeId: jsonSerialization['siegeId'] as int?,
+      typeReservation: jsonSerialization['typeReservation'] as String?,
       dateEmission: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['dateEmission'],
       ),
       estValide: jsonSerialization['estValide'] as bool?,
       typeBillet: jsonSerialization['typeBillet'] as String?,
       qrCode: jsonSerialization['qrCode'] as String?,
+      dateValidation: jsonSerialization['dateValidation'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['dateValidation'],
+            ),
     );
   }
 
@@ -57,7 +68,9 @@ abstract class Billet implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   int reservationId;
 
-  int siegeId;
+  int? siegeId;
+
+  String? typeReservation;
 
   DateTime dateEmission;
 
@@ -66,6 +79,8 @@ abstract class Billet implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   String? typeBillet;
 
   String? qrCode;
+
+  DateTime? dateValidation;
 
   @override
   _i1.Table<int?> get table => t;
@@ -77,10 +92,12 @@ abstract class Billet implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     int? id,
     int? reservationId,
     int? siegeId,
+    String? typeReservation,
     DateTime? dateEmission,
     bool? estValide,
     String? typeBillet,
     String? qrCode,
+    DateTime? dateValidation,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -88,11 +105,13 @@ abstract class Billet implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       '__className__': 'Billet',
       if (id != null) 'id': id,
       'reservationId': reservationId,
-      'siegeId': siegeId,
+      if (siegeId != null) 'siegeId': siegeId,
+      if (typeReservation != null) 'typeReservation': typeReservation,
       'dateEmission': dateEmission.toJson(),
       if (estValide != null) 'estValide': estValide,
       if (typeBillet != null) 'typeBillet': typeBillet,
       if (qrCode != null) 'qrCode': qrCode,
+      if (dateValidation != null) 'dateValidation': dateValidation?.toJson(),
     };
   }
 
@@ -102,11 +121,13 @@ abstract class Billet implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       '__className__': 'Billet',
       if (id != null) 'id': id,
       'reservationId': reservationId,
-      'siegeId': siegeId,
+      if (siegeId != null) 'siegeId': siegeId,
+      if (typeReservation != null) 'typeReservation': typeReservation,
       'dateEmission': dateEmission.toJson(),
       if (estValide != null) 'estValide': estValide,
       if (typeBillet != null) 'typeBillet': typeBillet,
       if (qrCode != null) 'qrCode': qrCode,
+      if (dateValidation != null) 'dateValidation': dateValidation?.toJson(),
     };
   }
 
@@ -146,19 +167,23 @@ class _BilletImpl extends Billet {
   _BilletImpl({
     int? id,
     required int reservationId,
-    required int siegeId,
+    int? siegeId,
+    String? typeReservation,
     required DateTime dateEmission,
     bool? estValide,
     String? typeBillet,
     String? qrCode,
+    DateTime? dateValidation,
   }) : super._(
          id: id,
          reservationId: reservationId,
          siegeId: siegeId,
+         typeReservation: typeReservation,
          dateEmission: dateEmission,
          estValide: estValide,
          typeBillet: typeBillet,
          qrCode: qrCode,
+         dateValidation: dateValidation,
        );
 
   /// Returns a shallow copy of this [Billet]
@@ -168,20 +193,28 @@ class _BilletImpl extends Billet {
   Billet copyWith({
     Object? id = _Undefined,
     int? reservationId,
-    int? siegeId,
+    Object? siegeId = _Undefined,
+    Object? typeReservation = _Undefined,
     DateTime? dateEmission,
     Object? estValide = _Undefined,
     Object? typeBillet = _Undefined,
     Object? qrCode = _Undefined,
+    Object? dateValidation = _Undefined,
   }) {
     return Billet(
       id: id is int? ? id : this.id,
       reservationId: reservationId ?? this.reservationId,
-      siegeId: siegeId ?? this.siegeId,
+      siegeId: siegeId is int? ? siegeId : this.siegeId,
+      typeReservation: typeReservation is String?
+          ? typeReservation
+          : this.typeReservation,
       dateEmission: dateEmission ?? this.dateEmission,
       estValide: estValide is bool? ? estValide : this.estValide,
       typeBillet: typeBillet is String? ? typeBillet : this.typeBillet,
       qrCode: qrCode is String? ? qrCode : this.qrCode,
+      dateValidation: dateValidation is DateTime?
+          ? dateValidation
+          : this.dateValidation,
     );
   }
 }
@@ -194,10 +227,16 @@ class BilletUpdateTable extends _i1.UpdateTable<BilletTable> {
     value,
   );
 
-  _i1.ColumnValue<int, int> siegeId(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<int, int> siegeId(int? value) => _i1.ColumnValue(
     table.siegeId,
     value,
   );
+
+  _i1.ColumnValue<String, String> typeReservation(String? value) =>
+      _i1.ColumnValue(
+        table.typeReservation,
+        value,
+      );
 
   _i1.ColumnValue<DateTime, DateTime> dateEmission(DateTime value) =>
       _i1.ColumnValue(
@@ -219,6 +258,12 @@ class BilletUpdateTable extends _i1.UpdateTable<BilletTable> {
     table.qrCode,
     value,
   );
+
+  _i1.ColumnValue<DateTime, DateTime> dateValidation(DateTime? value) =>
+      _i1.ColumnValue(
+        table.dateValidation,
+        value,
+      );
 }
 
 class BilletTable extends _i1.Table<int?> {
@@ -231,6 +276,11 @@ class BilletTable extends _i1.Table<int?> {
     siegeId = _i1.ColumnInt(
       'siegeId',
       this,
+    );
+    typeReservation = _i1.ColumnString(
+      'typeReservation',
+      this,
+      hasDefault: true,
     );
     dateEmission = _i1.ColumnDateTime(
       'dateEmission',
@@ -250,6 +300,10 @@ class BilletTable extends _i1.Table<int?> {
       'qrCode',
       this,
     );
+    dateValidation = _i1.ColumnDateTime(
+      'dateValidation',
+      this,
+    );
   }
 
   late final BilletUpdateTable updateTable;
@@ -257,6 +311,8 @@ class BilletTable extends _i1.Table<int?> {
   late final _i1.ColumnInt reservationId;
 
   late final _i1.ColumnInt siegeId;
+
+  late final _i1.ColumnString typeReservation;
 
   late final _i1.ColumnDateTime dateEmission;
 
@@ -266,15 +322,19 @@ class BilletTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString qrCode;
 
+  late final _i1.ColumnDateTime dateValidation;
+
   @override
   List<_i1.Column> get columns => [
     id,
     reservationId,
     siegeId,
+    typeReservation,
     dateEmission,
     estValide,
     typeBillet,
     qrCode,
+    dateValidation,
   ];
 }
 

@@ -1,13 +1,21 @@
 class: Seance
 table: seances
+managedMigration: true
+
 fields:
   filmId: int
   salleId: int
   dateHeure: DateTime
   langue: String?, default='VF'
   typeProjection: String?, default='2D'
+  typeSeance: String?, default='standard'
   placesDisponibles: int
-  prix: double
+  prixNormal: double
+  prixReduit: double?
+  prixSenior: double?
+  prixEnfant: double?
+  prixVip: double?
+
 indexes:
   seance_film_idx:
     fields: filmId

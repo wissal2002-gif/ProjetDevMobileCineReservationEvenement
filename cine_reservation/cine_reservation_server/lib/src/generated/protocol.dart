@@ -16,30 +16,42 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'billet.dart' as _i5;
-import 'cinema.dart' as _i6;
-import 'code_promo.dart' as _i7;
-import 'demande_support.dart' as _i8;
-import 'faq.dart' as _i9;
-import 'favori.dart' as _i10;
-import 'film.dart' as _i11;
-import 'greetings/greeting.dart' as _i12;
-import 'paiement.dart' as _i13;
-import 'reservation.dart' as _i14;
-import 'reservation_siege.dart' as _i15;
-import 'salle.dart' as _i16;
-import 'seance.dart' as _i17;
-import 'siege.dart' as _i18;
-import 'utilisateur.dart' as _i19;
+import 'avis.dart' as _i5;
+import 'billet.dart' as _i6;
+import 'cinema.dart' as _i7;
+import 'code_promo.dart' as _i8;
+import 'demande_support.dart' as _i9;
+import 'evenement.dart' as _i10;
+import 'faq.dart' as _i11;
+import 'favori.dart' as _i12;
+import 'fidelite.dart' as _i13;
+import 'film.dart' as _i14;
+import 'greetings/greeting.dart' as _i15;
+import 'option supplementaire.dart' as _i16;
+import 'paiement.dart' as _i17;
+import 'remboursement.dart' as _i18;
+import 'reservation option.dart' as _i19;
+import 'reservation.dart' as _i20;
+import 'reservation_siege.dart' as _i21;
+import 'salle.dart' as _i22;
+import 'seance.dart' as _i23;
+import 'siege.dart' as _i24;
+import 'utilisateur.dart' as _i25;
+export 'avis.dart';
 export 'billet.dart';
 export 'cinema.dart';
 export 'code_promo.dart';
 export 'demande_support.dart';
+export 'evenement.dart';
 export 'faq.dart';
 export 'favori.dart';
+export 'fidelite.dart';
 export 'film.dart';
 export 'greetings/greeting.dart';
+export 'option supplementaire.dart';
 export 'paiement.dart';
+export 'remboursement.dart';
+export 'reservation option.dart';
 export 'reservation.dart';
 export 'reservation_siege.dart';
 export 'salle.dart';
@@ -55,6 +67,92 @@ class Protocol extends _i1.SerializationManagerServer {
   static final Protocol _instance = Protocol._();
 
   static final List<_i2.TableDefinition> targetTableDefinitions = [
+    _i2.TableDefinition(
+      name: 'avis',
+      dartName: 'Avis',
+      schema: 'public',
+      module: 'cine_reservation',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'avis_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'utilisateurId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'filmId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'note',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'dateAvis',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'avis_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'avis_film_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'filmId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'avis_utilisateur_film_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'utilisateurId',
+            ),
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'filmId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     _i2.TableDefinition(
       name: 'billets',
       dartName: 'Billet',
@@ -77,8 +175,15 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'siegeId',
           columnType: _i2.ColumnType.bigint,
-          isNullable: false,
-          dartType: 'int',
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'typeReservation',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'cinema\'::text',
         ),
         _i2.ColumnDefinition(
           name: 'dateEmission',
@@ -105,6 +210,12 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'dateValidation',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
       ],
       foreignKeys: [],
@@ -170,6 +281,18 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String',
         ),
         _i2.ColumnDefinition(
+          name: 'telephone',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'email',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
           name: 'latitude',
           columnType: _i2.ColumnType.doublePrecision,
           isNullable: true,
@@ -180,6 +303,18 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.doublePrecision,
           isNullable: true,
           dartType: 'double?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'description',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'photo',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
         ),
       ],
       foreignKeys: [],
@@ -196,19 +331,6 @@ class Protocol extends _i1.SerializationManagerServer {
           type: 'btree',
           isUnique: true,
           isPrimary: true,
-        ),
-        _i2.IndexDefinition(
-          indexName: 'cinema_nom_idx',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'nom',
-            ),
-          ],
-          type: 'btree',
-          isUnique: false,
-          isPrimary: false,
         ),
       ],
       managed: true,
@@ -233,6 +355,12 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String',
         ),
         _i2.ColumnDefinition(
+          name: 'description',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
           name: 'reduction',
           columnType: _i2.ColumnType.doublePrecision,
           isNullable: false,
@@ -244,6 +372,13 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: true,
           dartType: 'String?',
           columnDefault: '\'pourcentage\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'montantMinimum',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+          columnDefault: '0.0',
         ),
         _i2.ColumnDefinition(
           name: 'dateExpiration',
@@ -377,12 +512,187 @@ class Protocol extends _i1.SerializationManagerServer {
           isPrimary: true,
         ),
         _i2.IndexDefinition(
-          indexName: 'demande_support_utilisateur_idx',
+          indexName: 'support_utilisateur_idx',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
               definition: 'utilisateurId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'evenements',
+      dartName: 'Evenement',
+      schema: 'public',
+      module: 'cine_reservation',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'evenements_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'titre',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'description',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'type',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'concert\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'cinemaId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'lieu',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'ville',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'dateDebut',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _i2.ColumnDefinition(
+          name: 'dateFin',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'affiche',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'bandeAnnonce',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prix',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+          columnDefault: '0.0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'placesDisponibles',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+          columnDefault: '0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'placesTotales',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+          columnDefault: '0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'organisateur',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'noteMoyenne',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+          columnDefault: '0.0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'nombreAvis',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+          columnDefault: '0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'statut',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'actif\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'annulationGratuite',
+          columnType: _i2.ColumnType.boolean,
+          isNullable: true,
+          dartType: 'bool?',
+          columnDefault: 'true',
+        ),
+        _i2.ColumnDefinition(
+          name: 'delaiAnnulation',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+          columnDefault: '48',
+        ),
+        _i2.ColumnDefinition(
+          name: 'fraisAnnulation',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+          columnDefault: '0.0',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'evenements_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'evenement_cinema_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'cinemaId',
             ),
           ],
           type: 'btree',
@@ -430,6 +740,13 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: true,
           dartType: 'int?',
           columnDefault: '0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'actif',
+          columnType: _i2.ColumnType.boolean,
+          isNullable: true,
+          dartType: 'bool?',
+          columnDefault: 'true',
         ),
       ],
       foreignKeys: [],
@@ -502,6 +819,84 @@ class Protocol extends _i1.SerializationManagerServer {
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
               definition: 'cinemaId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'fidelite',
+      dartName: 'Fidelite',
+      schema: 'public',
+      module: 'cine_reservation',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'fidelite_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'utilisateurId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'points',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+          columnDefault: '0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'niveau',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'bronze\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'totalDepense',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+          columnDefault: '0.0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'dateAdhesion',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'fidelite_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'fidelite_utilisateur_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'utilisateurId',
             ),
           ],
           type: 'btree',
@@ -586,6 +981,13 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: '0.0',
         ),
         _i2.ColumnDefinition(
+          name: 'nombreAvis',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+          columnDefault: '0',
+        ),
+        _i2.ColumnDefinition(
           name: 'dateDebut',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
@@ -596,6 +998,13 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
           dartType: 'DateTime?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'langue',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'VF\'::text',
         ),
       ],
       foreignKeys: [],
@@ -613,18 +1022,76 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: true,
           isPrimary: true,
         ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'options_supplementaires',
+      dartName: 'OptionSupplementaire',
+      schema: 'public',
+      module: 'cine_reservation',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault:
+              'nextval(\'options_supplementaires_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'nom',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'description',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prix',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'categorie',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'snack\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'disponible',
+          columnType: _i2.ColumnType.boolean,
+          isNullable: true,
+          dartType: 'bool?',
+          columnDefault: 'true',
+        ),
+        _i2.ColumnDefinition(
+          name: 'image',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
         _i2.IndexDefinition(
-          indexName: 'film_titre_idx',
+          indexName: 'options_supplementaires_pkey',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'titre',
+              definition: 'id',
             ),
           ],
           type: 'btree',
-          isUnique: false,
-          isPrimary: false,
+          isUnique: true,
+          isPrimary: true,
         ),
       ],
       managed: true,
@@ -675,6 +1142,12 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String?',
         ),
         _i2.ColumnDefinition(
+          name: 'paypalOrderId',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
           name: 'createdAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
@@ -713,6 +1186,208 @@ class Protocol extends _i1.SerializationManagerServer {
       managed: true,
     ),
     _i2.TableDefinition(
+      name: 'remboursements',
+      dartName: 'Remboursement',
+      schema: 'public',
+      module: 'cine_reservation',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'remboursements_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'paiementId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'reservationId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'utilisateurId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'montant',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'raison',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'statut',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'en_attente\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'stripeRefundId',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'dateDemandeRemboursement',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _i2.ColumnDefinition(
+          name: 'dateRemboursement',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'traitePar',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'remboursements_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'remboursement_paiement_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'paiementId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'remboursement_reservation_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'reservationId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'remboursement_utilisateur_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'utilisateurId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'reservation_options',
+      dartName: 'ReservationOption',
+      schema: 'public',
+      module: 'cine_reservation',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'reservation_options_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'reservationId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'optionId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'quantite',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+          columnDefault: '1',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prixUnitaire',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'reservation_options_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'reservation_option_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'reservationId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
       name: 'reservation_sieges',
       dartName: 'ReservationSiege',
       schema: 'public',
@@ -736,6 +1411,19 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'typeTarif',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'normal\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prix',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
         ),
       ],
       foreignKeys: [],
@@ -795,8 +1483,21 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'seanceId',
           columnType: _i2.ColumnType.bigint,
-          isNullable: false,
-          dartType: 'int',
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'evenementId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'typeReservation',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'cinema\'::text',
         ),
         _i2.ColumnDefinition(
           name: 'dateReservation',
@@ -811,11 +1512,23 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'double',
         ),
         _i2.ColumnDefinition(
+          name: 'montantApresReduction',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+        ),
+        _i2.ColumnDefinition(
           name: 'statut',
           columnType: _i2.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
           columnDefault: '\'en_attente\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'codePromoId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
         ),
       ],
       foreignKeys: [],
@@ -853,6 +1566,19 @@ class Protocol extends _i1.SerializationManagerServer {
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
               definition: 'seanceId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'reservation_evenement_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'evenementId',
             ),
           ],
           type: 'btree',
@@ -898,6 +1624,13 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'typeProjection',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'2D\'::text',
         ),
       ],
       foreignKeys: [],
@@ -977,16 +1710,47 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: '\'2D\'::text',
         ),
         _i2.ColumnDefinition(
+          name: 'typeSeance',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+          columnDefault: '\'standard\'::text',
+        ),
+        _i2.ColumnDefinition(
           name: 'placesDisponibles',
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
         ),
         _i2.ColumnDefinition(
-          name: 'prix',
+          name: 'prixNormal',
           columnType: _i2.ColumnType.doublePrecision,
           isNullable: false,
           dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prixReduit',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prixSenior',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prixEnfant',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prixVip',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
         ),
       ],
       foreignKeys: [],
@@ -1057,6 +1821,12 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'rangee',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
         ),
         _i2.ColumnDefinition(
           name: 'type',
@@ -1177,6 +1947,19 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String?',
           columnDefault: '\'client\'::text',
         ),
+        _i2.ColumnDefinition(
+          name: 'pointsFidelite',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+          columnDefault: '0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'photoProfil',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
       ],
       foreignKeys: [],
       indexes: [
@@ -1254,95 +2037,132 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
 
-    if (t == _i5.Billet) {
-      return _i5.Billet.fromJson(data) as T;
+    if (t == _i5.Avis) {
+      return _i5.Avis.fromJson(data) as T;
     }
-    if (t == _i6.Cinema) {
-      return _i6.Cinema.fromJson(data) as T;
+    if (t == _i6.Billet) {
+      return _i6.Billet.fromJson(data) as T;
     }
-    if (t == _i7.CodePromo) {
-      return _i7.CodePromo.fromJson(data) as T;
+    if (t == _i7.Cinema) {
+      return _i7.Cinema.fromJson(data) as T;
     }
-    if (t == _i8.DemandeSupport) {
-      return _i8.DemandeSupport.fromJson(data) as T;
+    if (t == _i8.CodePromo) {
+      return _i8.CodePromo.fromJson(data) as T;
     }
-    if (t == _i9.Faq) {
-      return _i9.Faq.fromJson(data) as T;
+    if (t == _i9.DemandeSupport) {
+      return _i9.DemandeSupport.fromJson(data) as T;
     }
-    if (t == _i10.Favori) {
-      return _i10.Favori.fromJson(data) as T;
+    if (t == _i10.Evenement) {
+      return _i10.Evenement.fromJson(data) as T;
     }
-    if (t == _i11.Film) {
-      return _i11.Film.fromJson(data) as T;
+    if (t == _i11.Faq) {
+      return _i11.Faq.fromJson(data) as T;
     }
-    if (t == _i12.Greeting) {
-      return _i12.Greeting.fromJson(data) as T;
+    if (t == _i12.Favori) {
+      return _i12.Favori.fromJson(data) as T;
     }
-    if (t == _i13.Paiement) {
-      return _i13.Paiement.fromJson(data) as T;
+    if (t == _i13.Fidelite) {
+      return _i13.Fidelite.fromJson(data) as T;
     }
-    if (t == _i14.Reservation) {
-      return _i14.Reservation.fromJson(data) as T;
+    if (t == _i14.Film) {
+      return _i14.Film.fromJson(data) as T;
     }
-    if (t == _i15.ReservationSiege) {
-      return _i15.ReservationSiege.fromJson(data) as T;
+    if (t == _i15.Greeting) {
+      return _i15.Greeting.fromJson(data) as T;
     }
-    if (t == _i16.Salle) {
-      return _i16.Salle.fromJson(data) as T;
+    if (t == _i16.OptionSupplementaire) {
+      return _i16.OptionSupplementaire.fromJson(data) as T;
     }
-    if (t == _i17.Seance) {
-      return _i17.Seance.fromJson(data) as T;
+    if (t == _i17.Paiement) {
+      return _i17.Paiement.fromJson(data) as T;
     }
-    if (t == _i18.Siege) {
-      return _i18.Siege.fromJson(data) as T;
+    if (t == _i18.Remboursement) {
+      return _i18.Remboursement.fromJson(data) as T;
     }
-    if (t == _i19.Utilisateur) {
-      return _i19.Utilisateur.fromJson(data) as T;
+    if (t == _i19.ReservationOption) {
+      return _i19.ReservationOption.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i5.Billet?>()) {
-      return (data != null ? _i5.Billet.fromJson(data) : null) as T;
+    if (t == _i20.Reservation) {
+      return _i20.Reservation.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i6.Cinema?>()) {
-      return (data != null ? _i6.Cinema.fromJson(data) : null) as T;
+    if (t == _i21.ReservationSiege) {
+      return _i21.ReservationSiege.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i7.CodePromo?>()) {
-      return (data != null ? _i7.CodePromo.fromJson(data) : null) as T;
+    if (t == _i22.Salle) {
+      return _i22.Salle.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i8.DemandeSupport?>()) {
-      return (data != null ? _i8.DemandeSupport.fromJson(data) : null) as T;
+    if (t == _i23.Seance) {
+      return _i23.Seance.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i9.Faq?>()) {
-      return (data != null ? _i9.Faq.fromJson(data) : null) as T;
+    if (t == _i24.Siege) {
+      return _i24.Siege.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i10.Favori?>()) {
-      return (data != null ? _i10.Favori.fromJson(data) : null) as T;
+    if (t == _i25.Utilisateur) {
+      return _i25.Utilisateur.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i11.Film?>()) {
-      return (data != null ? _i11.Film.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i5.Avis?>()) {
+      return (data != null ? _i5.Avis.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i12.Greeting?>()) {
-      return (data != null ? _i12.Greeting.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i6.Billet?>()) {
+      return (data != null ? _i6.Billet.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i13.Paiement?>()) {
-      return (data != null ? _i13.Paiement.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i7.Cinema?>()) {
+      return (data != null ? _i7.Cinema.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i14.Reservation?>()) {
-      return (data != null ? _i14.Reservation.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i8.CodePromo?>()) {
+      return (data != null ? _i8.CodePromo.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i15.ReservationSiege?>()) {
-      return (data != null ? _i15.ReservationSiege.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i9.DemandeSupport?>()) {
+      return (data != null ? _i9.DemandeSupport.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i16.Salle?>()) {
-      return (data != null ? _i16.Salle.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i10.Evenement?>()) {
+      return (data != null ? _i10.Evenement.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i17.Seance?>()) {
-      return (data != null ? _i17.Seance.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.Faq?>()) {
+      return (data != null ? _i11.Faq.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i18.Siege?>()) {
-      return (data != null ? _i18.Siege.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i12.Favori?>()) {
+      return (data != null ? _i12.Favori.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i19.Utilisateur?>()) {
-      return (data != null ? _i19.Utilisateur.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i13.Fidelite?>()) {
+      return (data != null ? _i13.Fidelite.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i14.Film?>()) {
+      return (data != null ? _i14.Film.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i15.Greeting?>()) {
+      return (data != null ? _i15.Greeting.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i16.OptionSupplementaire?>()) {
+      return (data != null ? _i16.OptionSupplementaire.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i17.Paiement?>()) {
+      return (data != null ? _i17.Paiement.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i18.Remboursement?>()) {
+      return (data != null ? _i18.Remboursement.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i19.ReservationOption?>()) {
+      return (data != null ? _i19.ReservationOption.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i20.Reservation?>()) {
+      return (data != null ? _i20.Reservation.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i21.ReservationSiege?>()) {
+      return (data != null ? _i21.ReservationSiege.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i22.Salle?>()) {
+      return (data != null ? _i22.Salle.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i23.Seance?>()) {
+      return (data != null ? _i23.Seance.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i24.Siege?>()) {
+      return (data != null ? _i24.Siege.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i25.Utilisateur?>()) {
+      return (data != null ? _i25.Utilisateur.fromJson(data) : null) as T;
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
@@ -1367,21 +2187,27 @@ class Protocol extends _i1.SerializationManagerServer {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i5.Billet => 'Billet',
-      _i6.Cinema => 'Cinema',
-      _i7.CodePromo => 'CodePromo',
-      _i8.DemandeSupport => 'DemandeSupport',
-      _i9.Faq => 'Faq',
-      _i10.Favori => 'Favori',
-      _i11.Film => 'Film',
-      _i12.Greeting => 'Greeting',
-      _i13.Paiement => 'Paiement',
-      _i14.Reservation => 'Reservation',
-      _i15.ReservationSiege => 'ReservationSiege',
-      _i16.Salle => 'Salle',
-      _i17.Seance => 'Seance',
-      _i18.Siege => 'Siege',
-      _i19.Utilisateur => 'Utilisateur',
+      _i5.Avis => 'Avis',
+      _i6.Billet => 'Billet',
+      _i7.Cinema => 'Cinema',
+      _i8.CodePromo => 'CodePromo',
+      _i9.DemandeSupport => 'DemandeSupport',
+      _i10.Evenement => 'Evenement',
+      _i11.Faq => 'Faq',
+      _i12.Favori => 'Favori',
+      _i13.Fidelite => 'Fidelite',
+      _i14.Film => 'Film',
+      _i15.Greeting => 'Greeting',
+      _i16.OptionSupplementaire => 'OptionSupplementaire',
+      _i17.Paiement => 'Paiement',
+      _i18.Remboursement => 'Remboursement',
+      _i19.ReservationOption => 'ReservationOption',
+      _i20.Reservation => 'Reservation',
+      _i21.ReservationSiege => 'ReservationSiege',
+      _i22.Salle => 'Salle',
+      _i23.Seance => 'Seance',
+      _i24.Siege => 'Siege',
+      _i25.Utilisateur => 'Utilisateur',
       _ => null,
     };
   }
@@ -1399,35 +2225,47 @@ class Protocol extends _i1.SerializationManagerServer {
     }
 
     switch (data) {
-      case _i5.Billet():
+      case _i5.Avis():
+        return 'Avis';
+      case _i6.Billet():
         return 'Billet';
-      case _i6.Cinema():
+      case _i7.Cinema():
         return 'Cinema';
-      case _i7.CodePromo():
+      case _i8.CodePromo():
         return 'CodePromo';
-      case _i8.DemandeSupport():
+      case _i9.DemandeSupport():
         return 'DemandeSupport';
-      case _i9.Faq():
+      case _i10.Evenement():
+        return 'Evenement';
+      case _i11.Faq():
         return 'Faq';
-      case _i10.Favori():
+      case _i12.Favori():
         return 'Favori';
-      case _i11.Film():
+      case _i13.Fidelite():
+        return 'Fidelite';
+      case _i14.Film():
         return 'Film';
-      case _i12.Greeting():
+      case _i15.Greeting():
         return 'Greeting';
-      case _i13.Paiement():
+      case _i16.OptionSupplementaire():
+        return 'OptionSupplementaire';
+      case _i17.Paiement():
         return 'Paiement';
-      case _i14.Reservation():
+      case _i18.Remboursement():
+        return 'Remboursement';
+      case _i19.ReservationOption():
+        return 'ReservationOption';
+      case _i20.Reservation():
         return 'Reservation';
-      case _i15.ReservationSiege():
+      case _i21.ReservationSiege():
         return 'ReservationSiege';
-      case _i16.Salle():
+      case _i22.Salle():
         return 'Salle';
-      case _i17.Seance():
+      case _i23.Seance():
         return 'Seance';
-      case _i18.Siege():
+      case _i24.Siege():
         return 'Siege';
-      case _i19.Utilisateur():
+      case _i25.Utilisateur():
         return 'Utilisateur';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -1451,50 +2289,68 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'Avis') {
+      return deserialize<_i5.Avis>(data['data']);
+    }
     if (dataClassName == 'Billet') {
-      return deserialize<_i5.Billet>(data['data']);
+      return deserialize<_i6.Billet>(data['data']);
     }
     if (dataClassName == 'Cinema') {
-      return deserialize<_i6.Cinema>(data['data']);
+      return deserialize<_i7.Cinema>(data['data']);
     }
     if (dataClassName == 'CodePromo') {
-      return deserialize<_i7.CodePromo>(data['data']);
+      return deserialize<_i8.CodePromo>(data['data']);
     }
     if (dataClassName == 'DemandeSupport') {
-      return deserialize<_i8.DemandeSupport>(data['data']);
+      return deserialize<_i9.DemandeSupport>(data['data']);
+    }
+    if (dataClassName == 'Evenement') {
+      return deserialize<_i10.Evenement>(data['data']);
     }
     if (dataClassName == 'Faq') {
-      return deserialize<_i9.Faq>(data['data']);
+      return deserialize<_i11.Faq>(data['data']);
     }
     if (dataClassName == 'Favori') {
-      return deserialize<_i10.Favori>(data['data']);
+      return deserialize<_i12.Favori>(data['data']);
+    }
+    if (dataClassName == 'Fidelite') {
+      return deserialize<_i13.Fidelite>(data['data']);
     }
     if (dataClassName == 'Film') {
-      return deserialize<_i11.Film>(data['data']);
+      return deserialize<_i14.Film>(data['data']);
     }
     if (dataClassName == 'Greeting') {
-      return deserialize<_i12.Greeting>(data['data']);
+      return deserialize<_i15.Greeting>(data['data']);
+    }
+    if (dataClassName == 'OptionSupplementaire') {
+      return deserialize<_i16.OptionSupplementaire>(data['data']);
     }
     if (dataClassName == 'Paiement') {
-      return deserialize<_i13.Paiement>(data['data']);
+      return deserialize<_i17.Paiement>(data['data']);
+    }
+    if (dataClassName == 'Remboursement') {
+      return deserialize<_i18.Remboursement>(data['data']);
+    }
+    if (dataClassName == 'ReservationOption') {
+      return deserialize<_i19.ReservationOption>(data['data']);
     }
     if (dataClassName == 'Reservation') {
-      return deserialize<_i14.Reservation>(data['data']);
+      return deserialize<_i20.Reservation>(data['data']);
     }
     if (dataClassName == 'ReservationSiege') {
-      return deserialize<_i15.ReservationSiege>(data['data']);
+      return deserialize<_i21.ReservationSiege>(data['data']);
     }
     if (dataClassName == 'Salle') {
-      return deserialize<_i16.Salle>(data['data']);
+      return deserialize<_i22.Salle>(data['data']);
     }
     if (dataClassName == 'Seance') {
-      return deserialize<_i17.Seance>(data['data']);
+      return deserialize<_i23.Seance>(data['data']);
     }
     if (dataClassName == 'Siege') {
-      return deserialize<_i18.Siege>(data['data']);
+      return deserialize<_i24.Siege>(data['data']);
     }
     if (dataClassName == 'Utilisateur') {
-      return deserialize<_i19.Utilisateur>(data['data']);
+      return deserialize<_i25.Utilisateur>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -1532,34 +2388,46 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
     switch (t) {
-      case _i5.Billet:
-        return _i5.Billet.t;
-      case _i6.Cinema:
-        return _i6.Cinema.t;
-      case _i7.CodePromo:
-        return _i7.CodePromo.t;
-      case _i8.DemandeSupport:
-        return _i8.DemandeSupport.t;
-      case _i9.Faq:
-        return _i9.Faq.t;
-      case _i10.Favori:
-        return _i10.Favori.t;
-      case _i11.Film:
-        return _i11.Film.t;
-      case _i13.Paiement:
-        return _i13.Paiement.t;
-      case _i14.Reservation:
-        return _i14.Reservation.t;
-      case _i15.ReservationSiege:
-        return _i15.ReservationSiege.t;
-      case _i16.Salle:
-        return _i16.Salle.t;
-      case _i17.Seance:
-        return _i17.Seance.t;
-      case _i18.Siege:
-        return _i18.Siege.t;
-      case _i19.Utilisateur:
-        return _i19.Utilisateur.t;
+      case _i5.Avis:
+        return _i5.Avis.t;
+      case _i6.Billet:
+        return _i6.Billet.t;
+      case _i7.Cinema:
+        return _i7.Cinema.t;
+      case _i8.CodePromo:
+        return _i8.CodePromo.t;
+      case _i9.DemandeSupport:
+        return _i9.DemandeSupport.t;
+      case _i10.Evenement:
+        return _i10.Evenement.t;
+      case _i11.Faq:
+        return _i11.Faq.t;
+      case _i12.Favori:
+        return _i12.Favori.t;
+      case _i13.Fidelite:
+        return _i13.Fidelite.t;
+      case _i14.Film:
+        return _i14.Film.t;
+      case _i16.OptionSupplementaire:
+        return _i16.OptionSupplementaire.t;
+      case _i17.Paiement:
+        return _i17.Paiement.t;
+      case _i18.Remboursement:
+        return _i18.Remboursement.t;
+      case _i19.ReservationOption:
+        return _i19.ReservationOption.t;
+      case _i20.Reservation:
+        return _i20.Reservation.t;
+      case _i21.ReservationSiege:
+        return _i21.ReservationSiege.t;
+      case _i22.Salle:
+        return _i22.Salle.t;
+      case _i23.Seance:
+        return _i23.Seance.t;
+      case _i24.Siege:
+        return _i24.Siege.t;
+      case _i25.Utilisateur:
+        return _i25.Utilisateur.t;
     }
     return null;
   }

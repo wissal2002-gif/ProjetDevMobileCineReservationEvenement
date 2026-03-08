@@ -1,12 +1,16 @@
 class: Paiement
 table: paiements
+managedMigration: true
+
 fields:
   reservationId: int
   montant: double
   methode: String?, default='carte'
   statut: String?, default='en_attente'
   stripePaymentId: String?
+  paypalOrderId: String?
   createdAt: DateTime?
+
 indexes:
   paiement_reservation_idx:
     fields: reservationId

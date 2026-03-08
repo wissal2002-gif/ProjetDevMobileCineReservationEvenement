@@ -19,8 +19,10 @@ abstract class Faq implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     required this.reponse,
     String? categorie,
     int? ordre,
+    bool? actif,
   }) : categorie = categorie ?? 'general',
-       ordre = ordre ?? 0;
+       ordre = ordre ?? 0,
+       actif = actif ?? true;
 
   factory Faq({
     int? id,
@@ -28,6 +30,7 @@ abstract class Faq implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     required String reponse,
     String? categorie,
     int? ordre,
+    bool? actif,
   }) = _FaqImpl;
 
   factory Faq.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -37,6 +40,7 @@ abstract class Faq implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       reponse: jsonSerialization['reponse'] as String,
       categorie: jsonSerialization['categorie'] as String?,
       ordre: jsonSerialization['ordre'] as int?,
+      actif: jsonSerialization['actif'] as bool?,
     );
   }
 
@@ -55,6 +59,8 @@ abstract class Faq implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   int? ordre;
 
+  bool? actif;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -67,6 +73,7 @@ abstract class Faq implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     String? reponse,
     String? categorie,
     int? ordre,
+    bool? actif,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -77,6 +84,7 @@ abstract class Faq implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       'reponse': reponse,
       if (categorie != null) 'categorie': categorie,
       if (ordre != null) 'ordre': ordre,
+      if (actif != null) 'actif': actif,
     };
   }
 
@@ -89,6 +97,7 @@ abstract class Faq implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       'reponse': reponse,
       if (categorie != null) 'categorie': categorie,
       if (ordre != null) 'ordre': ordre,
+      if (actif != null) 'actif': actif,
     };
   }
 
@@ -131,12 +140,14 @@ class _FaqImpl extends Faq {
     required String reponse,
     String? categorie,
     int? ordre,
+    bool? actif,
   }) : super._(
          id: id,
          question: question,
          reponse: reponse,
          categorie: categorie,
          ordre: ordre,
+         actif: actif,
        );
 
   /// Returns a shallow copy of this [Faq]
@@ -149,6 +160,7 @@ class _FaqImpl extends Faq {
     String? reponse,
     Object? categorie = _Undefined,
     Object? ordre = _Undefined,
+    Object? actif = _Undefined,
   }) {
     return Faq(
       id: id is int? ? id : this.id,
@@ -156,6 +168,7 @@ class _FaqImpl extends Faq {
       reponse: reponse ?? this.reponse,
       categorie: categorie is String? ? categorie : this.categorie,
       ordre: ordre is int? ? ordre : this.ordre,
+      actif: actif is bool? ? actif : this.actif,
     );
   }
 }
@@ -182,6 +195,11 @@ class FaqUpdateTable extends _i1.UpdateTable<FaqTable> {
     table.ordre,
     value,
   );
+
+  _i1.ColumnValue<bool, bool> actif(bool? value) => _i1.ColumnValue(
+    table.actif,
+    value,
+  );
 }
 
 class FaqTable extends _i1.Table<int?> {
@@ -205,6 +223,11 @@ class FaqTable extends _i1.Table<int?> {
       this,
       hasDefault: true,
     );
+    actif = _i1.ColumnBool(
+      'actif',
+      this,
+      hasDefault: true,
+    );
   }
 
   late final FaqUpdateTable updateTable;
@@ -217,6 +240,8 @@ class FaqTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt ordre;
 
+  late final _i1.ColumnBool actif;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -224,6 +249,7 @@ class FaqTable extends _i1.Table<int?> {
     reponse,
     categorie,
     ordre,
+    actif,
   ];
 }
 

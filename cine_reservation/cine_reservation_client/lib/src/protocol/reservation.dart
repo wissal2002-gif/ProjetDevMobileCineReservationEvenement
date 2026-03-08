@@ -16,31 +16,45 @@ abstract class Reservation implements _i1.SerializableModel {
   Reservation._({
     this.id,
     required this.utilisateurId,
-    required this.seanceId,
+    this.seanceId,
+    this.evenementId,
+    String? typeReservation,
     required this.dateReservation,
     required this.montantTotal,
+    this.montantApresReduction,
     String? statut,
-  }) : statut = statut ?? 'en_attente';
+    this.codePromoId,
+  }) : typeReservation = typeReservation ?? 'cinema',
+       statut = statut ?? 'en_attente';
 
   factory Reservation({
     int? id,
     required int utilisateurId,
-    required int seanceId,
+    int? seanceId,
+    int? evenementId,
+    String? typeReservation,
     required DateTime dateReservation,
     required double montantTotal,
+    double? montantApresReduction,
     String? statut,
+    int? codePromoId,
   }) = _ReservationImpl;
 
   factory Reservation.fromJson(Map<String, dynamic> jsonSerialization) {
     return Reservation(
       id: jsonSerialization['id'] as int?,
       utilisateurId: jsonSerialization['utilisateurId'] as int,
-      seanceId: jsonSerialization['seanceId'] as int,
+      seanceId: jsonSerialization['seanceId'] as int?,
+      evenementId: jsonSerialization['evenementId'] as int?,
+      typeReservation: jsonSerialization['typeReservation'] as String?,
       dateReservation: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['dateReservation'],
       ),
       montantTotal: (jsonSerialization['montantTotal'] as num).toDouble(),
+      montantApresReduction:
+          (jsonSerialization['montantApresReduction'] as num?)?.toDouble(),
       statut: jsonSerialization['statut'] as String?,
+      codePromoId: jsonSerialization['codePromoId'] as int?,
     );
   }
 
@@ -51,13 +65,21 @@ abstract class Reservation implements _i1.SerializableModel {
 
   int utilisateurId;
 
-  int seanceId;
+  int? seanceId;
+
+  int? evenementId;
+
+  String? typeReservation;
 
   DateTime dateReservation;
 
   double montantTotal;
 
+  double? montantApresReduction;
+
   String? statut;
+
+  int? codePromoId;
 
   /// Returns a shallow copy of this [Reservation]
   /// with some or all fields replaced by the given arguments.
@@ -66,9 +88,13 @@ abstract class Reservation implements _i1.SerializableModel {
     int? id,
     int? utilisateurId,
     int? seanceId,
+    int? evenementId,
+    String? typeReservation,
     DateTime? dateReservation,
     double? montantTotal,
+    double? montantApresReduction,
     String? statut,
+    int? codePromoId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -76,10 +102,15 @@ abstract class Reservation implements _i1.SerializableModel {
       '__className__': 'Reservation',
       if (id != null) 'id': id,
       'utilisateurId': utilisateurId,
-      'seanceId': seanceId,
+      if (seanceId != null) 'seanceId': seanceId,
+      if (evenementId != null) 'evenementId': evenementId,
+      if (typeReservation != null) 'typeReservation': typeReservation,
       'dateReservation': dateReservation.toJson(),
       'montantTotal': montantTotal,
+      if (montantApresReduction != null)
+        'montantApresReduction': montantApresReduction,
       if (statut != null) 'statut': statut,
+      if (codePromoId != null) 'codePromoId': codePromoId,
     };
   }
 
@@ -95,17 +126,25 @@ class _ReservationImpl extends Reservation {
   _ReservationImpl({
     int? id,
     required int utilisateurId,
-    required int seanceId,
+    int? seanceId,
+    int? evenementId,
+    String? typeReservation,
     required DateTime dateReservation,
     required double montantTotal,
+    double? montantApresReduction,
     String? statut,
+    int? codePromoId,
   }) : super._(
          id: id,
          utilisateurId: utilisateurId,
          seanceId: seanceId,
+         evenementId: evenementId,
+         typeReservation: typeReservation,
          dateReservation: dateReservation,
          montantTotal: montantTotal,
+         montantApresReduction: montantApresReduction,
          statut: statut,
+         codePromoId: codePromoId,
        );
 
   /// Returns a shallow copy of this [Reservation]
@@ -115,18 +154,30 @@ class _ReservationImpl extends Reservation {
   Reservation copyWith({
     Object? id = _Undefined,
     int? utilisateurId,
-    int? seanceId,
+    Object? seanceId = _Undefined,
+    Object? evenementId = _Undefined,
+    Object? typeReservation = _Undefined,
     DateTime? dateReservation,
     double? montantTotal,
+    Object? montantApresReduction = _Undefined,
     Object? statut = _Undefined,
+    Object? codePromoId = _Undefined,
   }) {
     return Reservation(
       id: id is int? ? id : this.id,
       utilisateurId: utilisateurId ?? this.utilisateurId,
-      seanceId: seanceId ?? this.seanceId,
+      seanceId: seanceId is int? ? seanceId : this.seanceId,
+      evenementId: evenementId is int? ? evenementId : this.evenementId,
+      typeReservation: typeReservation is String?
+          ? typeReservation
+          : this.typeReservation,
       dateReservation: dateReservation ?? this.dateReservation,
       montantTotal: montantTotal ?? this.montantTotal,
+      montantApresReduction: montantApresReduction is double?
+          ? montantApresReduction
+          : this.montantApresReduction,
       statut: statut is String? ? statut : this.statut,
+      codePromoId: codePromoId is int? ? codePromoId : this.codePromoId,
     );
   }
 }

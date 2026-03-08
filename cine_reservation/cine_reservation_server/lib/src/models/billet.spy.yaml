@@ -1,12 +1,17 @@
 class: Billet
 table: billets
+managedMigration: true
+
 fields:
   reservationId: int
-  siegeId: int
+  siegeId: int?
+  typeReservation: String?, default='cinema'
   dateEmission: DateTime
   estValide: bool?, default=true
   typeBillet: String?, default='standard'
   qrCode: String?
+  dateValidation: DateTime?
+
 indexes:
   billet_reservation_idx:
     fields: reservationId

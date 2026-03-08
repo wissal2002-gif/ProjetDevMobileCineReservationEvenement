@@ -1,8 +1,13 @@
 class: ReservationSiege
 table: reservation_sieges
+managedMigration: true
+
 fields:
   reservationId: int
   siegeId: int
+  typeTarif: String?, default='normal'
+  prix: double?
+
 indexes:
   reservation_siege_unique_idx:
     fields: reservationId, siegeId

@@ -1,0 +1,15 @@
+class: Fidelite
+table: fidelite
+managedMigration: true
+
+fields:
+  utilisateurId: int
+  points: int?, default=0
+  niveau: String?, default='bronze'
+  totalDepense: double?, default=0.0
+  dateAdhesion: DateTime?
+
+indexes:
+  fidelite_utilisateur_idx:
+    fields: utilisateurId
+    unique: true

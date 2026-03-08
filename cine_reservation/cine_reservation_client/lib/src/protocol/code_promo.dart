@@ -16,13 +16,16 @@ abstract class CodePromo implements _i1.SerializableModel {
   CodePromo._({
     this.id,
     required this.code,
+    this.description,
     required this.reduction,
     String? typeReduction,
+    double? montantMinimum,
     this.dateExpiration,
     int? utilisationsMax,
     int? utilisationsActuelles,
     bool? actif,
   }) : typeReduction = typeReduction ?? 'pourcentage',
+       montantMinimum = montantMinimum ?? 0.0,
        utilisationsMax = utilisationsMax ?? 100,
        utilisationsActuelles = utilisationsActuelles ?? 0,
        actif = actif ?? true;
@@ -30,8 +33,10 @@ abstract class CodePromo implements _i1.SerializableModel {
   factory CodePromo({
     int? id,
     required String code,
+    String? description,
     required double reduction,
     String? typeReduction,
+    double? montantMinimum,
     DateTime? dateExpiration,
     int? utilisationsMax,
     int? utilisationsActuelles,
@@ -42,8 +47,10 @@ abstract class CodePromo implements _i1.SerializableModel {
     return CodePromo(
       id: jsonSerialization['id'] as int?,
       code: jsonSerialization['code'] as String,
+      description: jsonSerialization['description'] as String?,
       reduction: (jsonSerialization['reduction'] as num).toDouble(),
       typeReduction: jsonSerialization['typeReduction'] as String?,
+      montantMinimum: (jsonSerialization['montantMinimum'] as num?)?.toDouble(),
       dateExpiration: jsonSerialization['dateExpiration'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
@@ -62,9 +69,13 @@ abstract class CodePromo implements _i1.SerializableModel {
 
   String code;
 
+  String? description;
+
   double reduction;
 
   String? typeReduction;
+
+  double? montantMinimum;
 
   DateTime? dateExpiration;
 
@@ -80,8 +91,10 @@ abstract class CodePromo implements _i1.SerializableModel {
   CodePromo copyWith({
     int? id,
     String? code,
+    String? description,
     double? reduction,
     String? typeReduction,
+    double? montantMinimum,
     DateTime? dateExpiration,
     int? utilisationsMax,
     int? utilisationsActuelles,
@@ -93,8 +106,10 @@ abstract class CodePromo implements _i1.SerializableModel {
       '__className__': 'CodePromo',
       if (id != null) 'id': id,
       'code': code,
+      if (description != null) 'description': description,
       'reduction': reduction,
       if (typeReduction != null) 'typeReduction': typeReduction,
+      if (montantMinimum != null) 'montantMinimum': montantMinimum,
       if (dateExpiration != null) 'dateExpiration': dateExpiration?.toJson(),
       if (utilisationsMax != null) 'utilisationsMax': utilisationsMax,
       if (utilisationsActuelles != null)
@@ -115,8 +130,10 @@ class _CodePromoImpl extends CodePromo {
   _CodePromoImpl({
     int? id,
     required String code,
+    String? description,
     required double reduction,
     String? typeReduction,
+    double? montantMinimum,
     DateTime? dateExpiration,
     int? utilisationsMax,
     int? utilisationsActuelles,
@@ -124,8 +141,10 @@ class _CodePromoImpl extends CodePromo {
   }) : super._(
          id: id,
          code: code,
+         description: description,
          reduction: reduction,
          typeReduction: typeReduction,
+         montantMinimum: montantMinimum,
          dateExpiration: dateExpiration,
          utilisationsMax: utilisationsMax,
          utilisationsActuelles: utilisationsActuelles,
@@ -139,8 +158,10 @@ class _CodePromoImpl extends CodePromo {
   CodePromo copyWith({
     Object? id = _Undefined,
     String? code,
+    Object? description = _Undefined,
     double? reduction,
     Object? typeReduction = _Undefined,
+    Object? montantMinimum = _Undefined,
     Object? dateExpiration = _Undefined,
     Object? utilisationsMax = _Undefined,
     Object? utilisationsActuelles = _Undefined,
@@ -149,10 +170,14 @@ class _CodePromoImpl extends CodePromo {
     return CodePromo(
       id: id is int? ? id : this.id,
       code: code ?? this.code,
+      description: description is String? ? description : this.description,
       reduction: reduction ?? this.reduction,
       typeReduction: typeReduction is String?
           ? typeReduction
           : this.typeReduction,
+      montantMinimum: montantMinimum is double?
+          ? montantMinimum
+          : this.montantMinimum,
       dateExpiration: dateExpiration is DateTime?
           ? dateExpiration
           : this.dateExpiration,

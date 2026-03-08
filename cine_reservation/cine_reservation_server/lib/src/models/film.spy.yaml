@@ -1,5 +1,7 @@
 class: Film
 table: films
+managedMigration: true
+
 fields:
   titre: String
   synopsis: String?
@@ -11,8 +13,7 @@ fields:
   bandeAnnonce: String?
   classification: String?
   noteMoyenne: double?, default=0.0
+  nombreAvis: int?, default=0
   dateDebut: DateTime?
   dateFin: DateTime?
-indexes:
-  film_titre_idx:
-    fields: titre
+  langue: String?, default='VF'

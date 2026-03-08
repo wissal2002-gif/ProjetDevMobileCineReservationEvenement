@@ -19,7 +19,8 @@ abstract class Salle implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     required this.codeSalle,
     required this.capacite,
     this.equipements,
-  });
+    String? typeProjection,
+  }) : typeProjection = typeProjection ?? '2D';
 
   factory Salle({
     int? id,
@@ -27,6 +28,7 @@ abstract class Salle implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     required String codeSalle,
     required int capacite,
     String? equipements,
+    String? typeProjection,
   }) = _SalleImpl;
 
   factory Salle.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -36,6 +38,7 @@ abstract class Salle implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       codeSalle: jsonSerialization['codeSalle'] as String,
       capacite: jsonSerialization['capacite'] as int,
       equipements: jsonSerialization['equipements'] as String?,
+      typeProjection: jsonSerialization['typeProjection'] as String?,
     );
   }
 
@@ -54,6 +57,8 @@ abstract class Salle implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   String? equipements;
 
+  String? typeProjection;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -66,6 +71,7 @@ abstract class Salle implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     String? codeSalle,
     int? capacite,
     String? equipements,
+    String? typeProjection,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -76,6 +82,7 @@ abstract class Salle implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       'codeSalle': codeSalle,
       'capacite': capacite,
       if (equipements != null) 'equipements': equipements,
+      if (typeProjection != null) 'typeProjection': typeProjection,
     };
   }
 
@@ -88,6 +95,7 @@ abstract class Salle implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       'codeSalle': codeSalle,
       'capacite': capacite,
       if (equipements != null) 'equipements': equipements,
+      if (typeProjection != null) 'typeProjection': typeProjection,
     };
   }
 
@@ -130,12 +138,14 @@ class _SalleImpl extends Salle {
     required String codeSalle,
     required int capacite,
     String? equipements,
+    String? typeProjection,
   }) : super._(
          id: id,
          cinemaId: cinemaId,
          codeSalle: codeSalle,
          capacite: capacite,
          equipements: equipements,
+         typeProjection: typeProjection,
        );
 
   /// Returns a shallow copy of this [Salle]
@@ -148,6 +158,7 @@ class _SalleImpl extends Salle {
     String? codeSalle,
     int? capacite,
     Object? equipements = _Undefined,
+    Object? typeProjection = _Undefined,
   }) {
     return Salle(
       id: id is int? ? id : this.id,
@@ -155,6 +166,9 @@ class _SalleImpl extends Salle {
       codeSalle: codeSalle ?? this.codeSalle,
       capacite: capacite ?? this.capacite,
       equipements: equipements is String? ? equipements : this.equipements,
+      typeProjection: typeProjection is String?
+          ? typeProjection
+          : this.typeProjection,
     );
   }
 }
@@ -181,6 +195,12 @@ class SalleUpdateTable extends _i1.UpdateTable<SalleTable> {
     table.equipements,
     value,
   );
+
+  _i1.ColumnValue<String, String> typeProjection(String? value) =>
+      _i1.ColumnValue(
+        table.typeProjection,
+        value,
+      );
 }
 
 class SalleTable extends _i1.Table<int?> {
@@ -202,6 +222,11 @@ class SalleTable extends _i1.Table<int?> {
       'equipements',
       this,
     );
+    typeProjection = _i1.ColumnString(
+      'typeProjection',
+      this,
+      hasDefault: true,
+    );
   }
 
   late final SalleUpdateTable updateTable;
@@ -214,6 +239,8 @@ class SalleTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString equipements;
 
+  late final _i1.ColumnString typeProjection;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -221,6 +248,7 @@ class SalleTable extends _i1.Table<int?> {
     codeSalle,
     capacite,
     equipements,
+    typeProjection,
   ];
 }
 

@@ -18,12 +18,16 @@ abstract class ReservationSiege
     this.id,
     required this.reservationId,
     required this.siegeId,
-  });
+    String? typeTarif,
+    this.prix,
+  }) : typeTarif = typeTarif ?? 'normal';
 
   factory ReservationSiege({
     int? id,
     required int reservationId,
     required int siegeId,
+    String? typeTarif,
+    double? prix,
   }) = _ReservationSiegeImpl;
 
   factory ReservationSiege.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -31,6 +35,8 @@ abstract class ReservationSiege
       id: jsonSerialization['id'] as int?,
       reservationId: jsonSerialization['reservationId'] as int,
       siegeId: jsonSerialization['siegeId'] as int,
+      typeTarif: jsonSerialization['typeTarif'] as String?,
+      prix: (jsonSerialization['prix'] as num?)?.toDouble(),
     );
   }
 
@@ -45,6 +51,10 @@ abstract class ReservationSiege
 
   int siegeId;
 
+  String? typeTarif;
+
+  double? prix;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -55,6 +65,8 @@ abstract class ReservationSiege
     int? id,
     int? reservationId,
     int? siegeId,
+    String? typeTarif,
+    double? prix,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -63,6 +75,8 @@ abstract class ReservationSiege
       if (id != null) 'id': id,
       'reservationId': reservationId,
       'siegeId': siegeId,
+      if (typeTarif != null) 'typeTarif': typeTarif,
+      if (prix != null) 'prix': prix,
     };
   }
 
@@ -73,6 +87,8 @@ abstract class ReservationSiege
       if (id != null) 'id': id,
       'reservationId': reservationId,
       'siegeId': siegeId,
+      if (typeTarif != null) 'typeTarif': typeTarif,
+      if (prix != null) 'prix': prix,
     };
   }
 
@@ -113,10 +129,14 @@ class _ReservationSiegeImpl extends ReservationSiege {
     int? id,
     required int reservationId,
     required int siegeId,
+    String? typeTarif,
+    double? prix,
   }) : super._(
          id: id,
          reservationId: reservationId,
          siegeId: siegeId,
+         typeTarif: typeTarif,
+         prix: prix,
        );
 
   /// Returns a shallow copy of this [ReservationSiege]
@@ -127,11 +147,15 @@ class _ReservationSiegeImpl extends ReservationSiege {
     Object? id = _Undefined,
     int? reservationId,
     int? siegeId,
+    Object? typeTarif = _Undefined,
+    Object? prix = _Undefined,
   }) {
     return ReservationSiege(
       id: id is int? ? id : this.id,
       reservationId: reservationId ?? this.reservationId,
       siegeId: siegeId ?? this.siegeId,
+      typeTarif: typeTarif is String? ? typeTarif : this.typeTarif,
+      prix: prix is double? ? prix : this.prix,
     );
   }
 }
@@ -149,6 +173,16 @@ class ReservationSiegeUpdateTable
     table.siegeId,
     value,
   );
+
+  _i1.ColumnValue<String, String> typeTarif(String? value) => _i1.ColumnValue(
+    table.typeTarif,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> prix(double? value) => _i1.ColumnValue(
+    table.prix,
+    value,
+  );
 }
 
 class ReservationSiegeTable extends _i1.Table<int?> {
@@ -163,6 +197,15 @@ class ReservationSiegeTable extends _i1.Table<int?> {
       'siegeId',
       this,
     );
+    typeTarif = _i1.ColumnString(
+      'typeTarif',
+      this,
+      hasDefault: true,
+    );
+    prix = _i1.ColumnDouble(
+      'prix',
+      this,
+    );
   }
 
   late final ReservationSiegeUpdateTable updateTable;
@@ -171,11 +214,17 @@ class ReservationSiegeTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt siegeId;
 
+  late final _i1.ColumnString typeTarif;
+
+  late final _i1.ColumnDouble prix;
+
   @override
   List<_i1.Column> get columns => [
     id,
     reservationId,
     siegeId,
+    typeTarif,
+    prix,
   ];
 }
 

@@ -1,13 +1,18 @@
 class: CodePromo
 table: codes_promo
+managedMigration: true
+
 fields:
   code: String
+  description: String?
   reduction: double
   typeReduction: String?, default='pourcentage'
+  montantMinimum: double?, default=0.0
   dateExpiration: DateTime?
   utilisationsMax: int?, default=100
   utilisationsActuelles: int?, default=0
   actif: bool?, default=true
+
 indexes:
   code_promo_unique_idx:
     fields: code

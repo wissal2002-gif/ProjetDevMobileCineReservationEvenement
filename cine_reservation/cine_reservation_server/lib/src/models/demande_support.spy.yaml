@@ -1,5 +1,7 @@
 class: DemandeSupport
 table: demandes_support
+managedMigration: true
+
 fields:
   utilisateurId: int
   sujet: String
@@ -8,6 +10,7 @@ fields:
   reponse: String?
   createdAt: DateTime?
   updatedAt: DateTime?
+
 indexes:
-  demande_support_utilisateur_idx:
+  support_utilisateur_idx:
     fields: utilisateurId

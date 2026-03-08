@@ -1,0 +1,11 @@
+class: OptionSupplementaire
+table: options_supplementaires
+managedMigration: true
+
+fields:
+  nom: String
+  description: String?
+  prix: double
+  categorie: String?, default='snack'
+  disponible: bool?, default=true
+  image: String?

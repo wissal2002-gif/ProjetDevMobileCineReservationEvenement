@@ -24,8 +24,11 @@ abstract class Utilisateur implements _i1.SerializableModel {
     this.preferences,
     String? statut,
     String? role,
+    int? pointsFidelite,
+    this.photoProfil,
   }) : statut = statut ?? 'actif',
-       role = role ?? 'client';
+       role = role ?? 'client',
+       pointsFidelite = pointsFidelite ?? 0;
 
   factory Utilisateur({
     int? id,
@@ -37,6 +40,8 @@ abstract class Utilisateur implements _i1.SerializableModel {
     List<String>? preferences,
     String? statut,
     String? role,
+    int? pointsFidelite,
+    String? photoProfil,
   }) = _UtilisateurImpl;
 
   factory Utilisateur.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -58,6 +63,8 @@ abstract class Utilisateur implements _i1.SerializableModel {
             ),
       statut: jsonSerialization['statut'] as String?,
       role: jsonSerialization['role'] as String?,
+      pointsFidelite: jsonSerialization['pointsFidelite'] as int?,
+      photoProfil: jsonSerialization['photoProfil'] as String?,
     );
   }
 
@@ -82,6 +89,10 @@ abstract class Utilisateur implements _i1.SerializableModel {
 
   String? role;
 
+  int? pointsFidelite;
+
+  String? photoProfil;
+
   /// Returns a shallow copy of this [Utilisateur]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -95,6 +106,8 @@ abstract class Utilisateur implements _i1.SerializableModel {
     List<String>? preferences,
     String? statut,
     String? role,
+    int? pointsFidelite,
+    String? photoProfil,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -109,6 +122,8 @@ abstract class Utilisateur implements _i1.SerializableModel {
       if (preferences != null) 'preferences': preferences?.toJson(),
       if (statut != null) 'statut': statut,
       if (role != null) 'role': role,
+      if (pointsFidelite != null) 'pointsFidelite': pointsFidelite,
+      if (photoProfil != null) 'photoProfil': photoProfil,
     };
   }
 
@@ -131,6 +146,8 @@ class _UtilisateurImpl extends Utilisateur {
     List<String>? preferences,
     String? statut,
     String? role,
+    int? pointsFidelite,
+    String? photoProfil,
   }) : super._(
          id: id,
          authUserId: authUserId,
@@ -141,6 +158,8 @@ class _UtilisateurImpl extends Utilisateur {
          preferences: preferences,
          statut: statut,
          role: role,
+         pointsFidelite: pointsFidelite,
+         photoProfil: photoProfil,
        );
 
   /// Returns a shallow copy of this [Utilisateur]
@@ -157,6 +176,8 @@ class _UtilisateurImpl extends Utilisateur {
     Object? preferences = _Undefined,
     Object? statut = _Undefined,
     Object? role = _Undefined,
+    Object? pointsFidelite = _Undefined,
+    Object? photoProfil = _Undefined,
   }) {
     return Utilisateur(
       id: id is int? ? id : this.id,
@@ -172,6 +193,10 @@ class _UtilisateurImpl extends Utilisateur {
           : this.preferences?.map((e0) => e0).toList(),
       statut: statut is String? ? statut : this.statut,
       role: role is String? ? role : this.role,
+      pointsFidelite: pointsFidelite is int?
+          ? pointsFidelite
+          : this.pointsFidelite,
+      photoProfil: photoProfil is String? ? photoProfil : this.photoProfil,
     );
   }
 }

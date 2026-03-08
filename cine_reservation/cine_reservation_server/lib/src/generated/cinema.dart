@@ -18,8 +18,12 @@ abstract class Cinema implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     required this.nom,
     required this.adresse,
     required this.ville,
+    this.telephone,
+    this.email,
     this.latitude,
     this.longitude,
+    this.description,
+    this.photo,
   });
 
   factory Cinema({
@@ -27,8 +31,12 @@ abstract class Cinema implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     required String nom,
     required String adresse,
     required String ville,
+    String? telephone,
+    String? email,
     double? latitude,
     double? longitude,
+    String? description,
+    String? photo,
   }) = _CinemaImpl;
 
   factory Cinema.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -37,8 +45,12 @@ abstract class Cinema implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       nom: jsonSerialization['nom'] as String,
       adresse: jsonSerialization['adresse'] as String,
       ville: jsonSerialization['ville'] as String,
+      telephone: jsonSerialization['telephone'] as String?,
+      email: jsonSerialization['email'] as String?,
       latitude: (jsonSerialization['latitude'] as num?)?.toDouble(),
       longitude: (jsonSerialization['longitude'] as num?)?.toDouble(),
+      description: jsonSerialization['description'] as String?,
+      photo: jsonSerialization['photo'] as String?,
     );
   }
 
@@ -55,9 +67,17 @@ abstract class Cinema implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   String ville;
 
+  String? telephone;
+
+  String? email;
+
   double? latitude;
 
   double? longitude;
+
+  String? description;
+
+  String? photo;
 
   @override
   _i1.Table<int?> get table => t;
@@ -70,8 +90,12 @@ abstract class Cinema implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     String? nom,
     String? adresse,
     String? ville,
+    String? telephone,
+    String? email,
     double? latitude,
     double? longitude,
+    String? description,
+    String? photo,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -81,8 +105,12 @@ abstract class Cinema implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       'nom': nom,
       'adresse': adresse,
       'ville': ville,
+      if (telephone != null) 'telephone': telephone,
+      if (email != null) 'email': email,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
+      if (description != null) 'description': description,
+      if (photo != null) 'photo': photo,
     };
   }
 
@@ -94,8 +122,12 @@ abstract class Cinema implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       'nom': nom,
       'adresse': adresse,
       'ville': ville,
+      if (telephone != null) 'telephone': telephone,
+      if (email != null) 'email': email,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
+      if (description != null) 'description': description,
+      if (photo != null) 'photo': photo,
     };
   }
 
@@ -137,15 +169,23 @@ class _CinemaImpl extends Cinema {
     required String nom,
     required String adresse,
     required String ville,
+    String? telephone,
+    String? email,
     double? latitude,
     double? longitude,
+    String? description,
+    String? photo,
   }) : super._(
          id: id,
          nom: nom,
          adresse: adresse,
          ville: ville,
+         telephone: telephone,
+         email: email,
          latitude: latitude,
          longitude: longitude,
+         description: description,
+         photo: photo,
        );
 
   /// Returns a shallow copy of this [Cinema]
@@ -157,16 +197,24 @@ class _CinemaImpl extends Cinema {
     String? nom,
     String? adresse,
     String? ville,
+    Object? telephone = _Undefined,
+    Object? email = _Undefined,
     Object? latitude = _Undefined,
     Object? longitude = _Undefined,
+    Object? description = _Undefined,
+    Object? photo = _Undefined,
   }) {
     return Cinema(
       id: id is int? ? id : this.id,
       nom: nom ?? this.nom,
       adresse: adresse ?? this.adresse,
       ville: ville ?? this.ville,
+      telephone: telephone is String? ? telephone : this.telephone,
+      email: email is String? ? email : this.email,
       latitude: latitude is double? ? latitude : this.latitude,
       longitude: longitude is double? ? longitude : this.longitude,
+      description: description is String? ? description : this.description,
+      photo: photo is String? ? photo : this.photo,
     );
   }
 }
@@ -189,6 +237,16 @@ class CinemaUpdateTable extends _i1.UpdateTable<CinemaTable> {
     value,
   );
 
+  _i1.ColumnValue<String, String> telephone(String? value) => _i1.ColumnValue(
+    table.telephone,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> email(String? value) => _i1.ColumnValue(
+    table.email,
+    value,
+  );
+
   _i1.ColumnValue<double, double> latitude(double? value) => _i1.ColumnValue(
     table.latitude,
     value,
@@ -196,6 +254,16 @@ class CinemaUpdateTable extends _i1.UpdateTable<CinemaTable> {
 
   _i1.ColumnValue<double, double> longitude(double? value) => _i1.ColumnValue(
     table.longitude,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> description(String? value) => _i1.ColumnValue(
+    table.description,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> photo(String? value) => _i1.ColumnValue(
+    table.photo,
     value,
   );
 }
@@ -215,12 +283,28 @@ class CinemaTable extends _i1.Table<int?> {
       'ville',
       this,
     );
+    telephone = _i1.ColumnString(
+      'telephone',
+      this,
+    );
+    email = _i1.ColumnString(
+      'email',
+      this,
+    );
     latitude = _i1.ColumnDouble(
       'latitude',
       this,
     );
     longitude = _i1.ColumnDouble(
       'longitude',
+      this,
+    );
+    description = _i1.ColumnString(
+      'description',
+      this,
+    );
+    photo = _i1.ColumnString(
+      'photo',
       this,
     );
   }
@@ -233,9 +317,17 @@ class CinemaTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString ville;
 
+  late final _i1.ColumnString telephone;
+
+  late final _i1.ColumnString email;
+
   late final _i1.ColumnDouble latitude;
 
   late final _i1.ColumnDouble longitude;
+
+  late final _i1.ColumnString description;
+
+  late final _i1.ColumnString photo;
 
   @override
   List<_i1.Column> get columns => [
@@ -243,8 +335,12 @@ class CinemaTable extends _i1.Table<int?> {
     nom,
     adresse,
     ville,
+    telephone,
+    email,
     latitude,
     longitude,
+    description,
+    photo,
   ];
 }
 

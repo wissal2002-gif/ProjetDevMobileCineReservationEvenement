@@ -17,6 +17,7 @@ abstract class Siege implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     this.id,
     required this.salleId,
     required this.numero,
+    this.rangee,
     String? type,
   }) : type = type ?? 'standard';
 
@@ -24,6 +25,7 @@ abstract class Siege implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     int? id,
     required int salleId,
     required String numero,
+    String? rangee,
     String? type,
   }) = _SiegeImpl;
 
@@ -32,6 +34,7 @@ abstract class Siege implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       id: jsonSerialization['id'] as int?,
       salleId: jsonSerialization['salleId'] as int,
       numero: jsonSerialization['numero'] as String,
+      rangee: jsonSerialization['rangee'] as String?,
       type: jsonSerialization['type'] as String?,
     );
   }
@@ -47,6 +50,8 @@ abstract class Siege implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   String numero;
 
+  String? rangee;
+
   String? type;
 
   @override
@@ -59,6 +64,7 @@ abstract class Siege implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     int? id,
     int? salleId,
     String? numero,
+    String? rangee,
     String? type,
   });
   @override
@@ -68,6 +74,7 @@ abstract class Siege implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (id != null) 'id': id,
       'salleId': salleId,
       'numero': numero,
+      if (rangee != null) 'rangee': rangee,
       if (type != null) 'type': type,
     };
   }
@@ -79,6 +86,7 @@ abstract class Siege implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (id != null) 'id': id,
       'salleId': salleId,
       'numero': numero,
+      if (rangee != null) 'rangee': rangee,
       if (type != null) 'type': type,
     };
   }
@@ -120,11 +128,13 @@ class _SiegeImpl extends Siege {
     int? id,
     required int salleId,
     required String numero,
+    String? rangee,
     String? type,
   }) : super._(
          id: id,
          salleId: salleId,
          numero: numero,
+         rangee: rangee,
          type: type,
        );
 
@@ -136,12 +146,14 @@ class _SiegeImpl extends Siege {
     Object? id = _Undefined,
     int? salleId,
     String? numero,
+    Object? rangee = _Undefined,
     Object? type = _Undefined,
   }) {
     return Siege(
       id: id is int? ? id : this.id,
       salleId: salleId ?? this.salleId,
       numero: numero ?? this.numero,
+      rangee: rangee is String? ? rangee : this.rangee,
       type: type is String? ? type : this.type,
     );
   }
@@ -157,6 +169,11 @@ class SiegeUpdateTable extends _i1.UpdateTable<SiegeTable> {
 
   _i1.ColumnValue<String, String> numero(String value) => _i1.ColumnValue(
     table.numero,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> rangee(String? value) => _i1.ColumnValue(
+    table.rangee,
     value,
   );
 
@@ -177,6 +194,10 @@ class SiegeTable extends _i1.Table<int?> {
       'numero',
       this,
     );
+    rangee = _i1.ColumnString(
+      'rangee',
+      this,
+    );
     type = _i1.ColumnString(
       'type',
       this,
@@ -190,6 +211,8 @@ class SiegeTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString numero;
 
+  late final _i1.ColumnString rangee;
+
   late final _i1.ColumnString type;
 
   @override
@@ -197,6 +220,7 @@ class SiegeTable extends _i1.Table<int?> {
     id,
     salleId,
     numero,
+    rangee,
     type,
   ];
 }

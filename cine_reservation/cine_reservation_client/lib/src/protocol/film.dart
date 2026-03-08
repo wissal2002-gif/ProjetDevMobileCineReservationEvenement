@@ -25,9 +25,13 @@ abstract class Film implements _i1.SerializableModel {
     this.bandeAnnonce,
     this.classification,
     double? noteMoyenne,
+    int? nombreAvis,
     this.dateDebut,
     this.dateFin,
-  }) : noteMoyenne = noteMoyenne ?? 0.0;
+    String? langue,
+  }) : noteMoyenne = noteMoyenne ?? 0.0,
+       nombreAvis = nombreAvis ?? 0,
+       langue = langue ?? 'VF';
 
   factory Film({
     int? id,
@@ -41,8 +45,10 @@ abstract class Film implements _i1.SerializableModel {
     String? bandeAnnonce,
     String? classification,
     double? noteMoyenne,
+    int? nombreAvis,
     DateTime? dateDebut,
     DateTime? dateFin,
+    String? langue,
   }) = _FilmImpl;
 
   factory Film.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -58,12 +64,14 @@ abstract class Film implements _i1.SerializableModel {
       bandeAnnonce: jsonSerialization['bandeAnnonce'] as String?,
       classification: jsonSerialization['classification'] as String?,
       noteMoyenne: (jsonSerialization['noteMoyenne'] as num?)?.toDouble(),
+      nombreAvis: jsonSerialization['nombreAvis'] as int?,
       dateDebut: jsonSerialization['dateDebut'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['dateDebut']),
       dateFin: jsonSerialization['dateFin'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['dateFin']),
+      langue: jsonSerialization['langue'] as String?,
     );
   }
 
@@ -92,9 +100,13 @@ abstract class Film implements _i1.SerializableModel {
 
   double? noteMoyenne;
 
+  int? nombreAvis;
+
   DateTime? dateDebut;
 
   DateTime? dateFin;
+
+  String? langue;
 
   /// Returns a shallow copy of this [Film]
   /// with some or all fields replaced by the given arguments.
@@ -111,8 +123,10 @@ abstract class Film implements _i1.SerializableModel {
     String? bandeAnnonce,
     String? classification,
     double? noteMoyenne,
+    int? nombreAvis,
     DateTime? dateDebut,
     DateTime? dateFin,
+    String? langue,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -129,8 +143,10 @@ abstract class Film implements _i1.SerializableModel {
       if (bandeAnnonce != null) 'bandeAnnonce': bandeAnnonce,
       if (classification != null) 'classification': classification,
       if (noteMoyenne != null) 'noteMoyenne': noteMoyenne,
+      if (nombreAvis != null) 'nombreAvis': nombreAvis,
       if (dateDebut != null) 'dateDebut': dateDebut?.toJson(),
       if (dateFin != null) 'dateFin': dateFin?.toJson(),
+      if (langue != null) 'langue': langue,
     };
   }
 
@@ -155,8 +171,10 @@ class _FilmImpl extends Film {
     String? bandeAnnonce,
     String? classification,
     double? noteMoyenne,
+    int? nombreAvis,
     DateTime? dateDebut,
     DateTime? dateFin,
+    String? langue,
   }) : super._(
          id: id,
          titre: titre,
@@ -169,8 +187,10 @@ class _FilmImpl extends Film {
          bandeAnnonce: bandeAnnonce,
          classification: classification,
          noteMoyenne: noteMoyenne,
+         nombreAvis: nombreAvis,
          dateDebut: dateDebut,
          dateFin: dateFin,
+         langue: langue,
        );
 
   /// Returns a shallow copy of this [Film]
@@ -189,8 +209,10 @@ class _FilmImpl extends Film {
     Object? bandeAnnonce = _Undefined,
     Object? classification = _Undefined,
     Object? noteMoyenne = _Undefined,
+    Object? nombreAvis = _Undefined,
     Object? dateDebut = _Undefined,
     Object? dateFin = _Undefined,
+    Object? langue = _Undefined,
   }) {
     return Film(
       id: id is int? ? id : this.id,
@@ -206,8 +228,10 @@ class _FilmImpl extends Film {
           ? classification
           : this.classification,
       noteMoyenne: noteMoyenne is double? ? noteMoyenne : this.noteMoyenne,
+      nombreAvis: nombreAvis is int? ? nombreAvis : this.nombreAvis,
       dateDebut: dateDebut is DateTime? ? dateDebut : this.dateDebut,
       dateFin: dateFin is DateTime? ? dateFin : this.dateFin,
+      langue: langue is String? ? langue : this.langue,
     );
   }
 }

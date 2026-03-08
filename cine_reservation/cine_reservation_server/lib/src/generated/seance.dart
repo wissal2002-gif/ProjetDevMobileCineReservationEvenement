@@ -20,10 +20,16 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     required this.dateHeure,
     String? langue,
     String? typeProjection,
+    String? typeSeance,
     required this.placesDisponibles,
-    required this.prix,
+    required this.prixNormal,
+    this.prixReduit,
+    this.prixSenior,
+    this.prixEnfant,
+    this.prixVip,
   }) : langue = langue ?? 'VF',
-       typeProjection = typeProjection ?? '2D';
+       typeProjection = typeProjection ?? '2D',
+       typeSeance = typeSeance ?? 'standard';
 
   factory Seance({
     int? id,
@@ -32,8 +38,13 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     required DateTime dateHeure,
     String? langue,
     String? typeProjection,
+    String? typeSeance,
     required int placesDisponibles,
-    required double prix,
+    required double prixNormal,
+    double? prixReduit,
+    double? prixSenior,
+    double? prixEnfant,
+    double? prixVip,
   }) = _SeanceImpl;
 
   factory Seance.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -46,8 +57,13 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       ),
       langue: jsonSerialization['langue'] as String?,
       typeProjection: jsonSerialization['typeProjection'] as String?,
+      typeSeance: jsonSerialization['typeSeance'] as String?,
       placesDisponibles: jsonSerialization['placesDisponibles'] as int,
-      prix: (jsonSerialization['prix'] as num).toDouble(),
+      prixNormal: (jsonSerialization['prixNormal'] as num).toDouble(),
+      prixReduit: (jsonSerialization['prixReduit'] as num?)?.toDouble(),
+      prixSenior: (jsonSerialization['prixSenior'] as num?)?.toDouble(),
+      prixEnfant: (jsonSerialization['prixEnfant'] as num?)?.toDouble(),
+      prixVip: (jsonSerialization['prixVip'] as num?)?.toDouble(),
     );
   }
 
@@ -68,9 +84,19 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   String? typeProjection;
 
+  String? typeSeance;
+
   int placesDisponibles;
 
-  double prix;
+  double prixNormal;
+
+  double? prixReduit;
+
+  double? prixSenior;
+
+  double? prixEnfant;
+
+  double? prixVip;
 
   @override
   _i1.Table<int?> get table => t;
@@ -85,8 +111,13 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     DateTime? dateHeure,
     String? langue,
     String? typeProjection,
+    String? typeSeance,
     int? placesDisponibles,
-    double? prix,
+    double? prixNormal,
+    double? prixReduit,
+    double? prixSenior,
+    double? prixEnfant,
+    double? prixVip,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -98,8 +129,13 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       'dateHeure': dateHeure.toJson(),
       if (langue != null) 'langue': langue,
       if (typeProjection != null) 'typeProjection': typeProjection,
+      if (typeSeance != null) 'typeSeance': typeSeance,
       'placesDisponibles': placesDisponibles,
-      'prix': prix,
+      'prixNormal': prixNormal,
+      if (prixReduit != null) 'prixReduit': prixReduit,
+      if (prixSenior != null) 'prixSenior': prixSenior,
+      if (prixEnfant != null) 'prixEnfant': prixEnfant,
+      if (prixVip != null) 'prixVip': prixVip,
     };
   }
 
@@ -113,8 +149,13 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       'dateHeure': dateHeure.toJson(),
       if (langue != null) 'langue': langue,
       if (typeProjection != null) 'typeProjection': typeProjection,
+      if (typeSeance != null) 'typeSeance': typeSeance,
       'placesDisponibles': placesDisponibles,
-      'prix': prix,
+      'prixNormal': prixNormal,
+      if (prixReduit != null) 'prixReduit': prixReduit,
+      if (prixSenior != null) 'prixSenior': prixSenior,
+      if (prixEnfant != null) 'prixEnfant': prixEnfant,
+      if (prixVip != null) 'prixVip': prixVip,
     };
   }
 
@@ -158,8 +199,13 @@ class _SeanceImpl extends Seance {
     required DateTime dateHeure,
     String? langue,
     String? typeProjection,
+    String? typeSeance,
     required int placesDisponibles,
-    required double prix,
+    required double prixNormal,
+    double? prixReduit,
+    double? prixSenior,
+    double? prixEnfant,
+    double? prixVip,
   }) : super._(
          id: id,
          filmId: filmId,
@@ -167,8 +213,13 @@ class _SeanceImpl extends Seance {
          dateHeure: dateHeure,
          langue: langue,
          typeProjection: typeProjection,
+         typeSeance: typeSeance,
          placesDisponibles: placesDisponibles,
-         prix: prix,
+         prixNormal: prixNormal,
+         prixReduit: prixReduit,
+         prixSenior: prixSenior,
+         prixEnfant: prixEnfant,
+         prixVip: prixVip,
        );
 
   /// Returns a shallow copy of this [Seance]
@@ -182,8 +233,13 @@ class _SeanceImpl extends Seance {
     DateTime? dateHeure,
     Object? langue = _Undefined,
     Object? typeProjection = _Undefined,
+    Object? typeSeance = _Undefined,
     int? placesDisponibles,
-    double? prix,
+    double? prixNormal,
+    Object? prixReduit = _Undefined,
+    Object? prixSenior = _Undefined,
+    Object? prixEnfant = _Undefined,
+    Object? prixVip = _Undefined,
   }) {
     return Seance(
       id: id is int? ? id : this.id,
@@ -194,8 +250,13 @@ class _SeanceImpl extends Seance {
       typeProjection: typeProjection is String?
           ? typeProjection
           : this.typeProjection,
+      typeSeance: typeSeance is String? ? typeSeance : this.typeSeance,
       placesDisponibles: placesDisponibles ?? this.placesDisponibles,
-      prix: prix ?? this.prix,
+      prixNormal: prixNormal ?? this.prixNormal,
+      prixReduit: prixReduit is double? ? prixReduit : this.prixReduit,
+      prixSenior: prixSenior is double? ? prixSenior : this.prixSenior,
+      prixEnfant: prixEnfant is double? ? prixEnfant : this.prixEnfant,
+      prixVip: prixVip is double? ? prixVip : this.prixVip,
     );
   }
 }
@@ -230,13 +291,38 @@ class SeanceUpdateTable extends _i1.UpdateTable<SeanceTable> {
         value,
       );
 
+  _i1.ColumnValue<String, String> typeSeance(String? value) => _i1.ColumnValue(
+    table.typeSeance,
+    value,
+  );
+
   _i1.ColumnValue<int, int> placesDisponibles(int value) => _i1.ColumnValue(
     table.placesDisponibles,
     value,
   );
 
-  _i1.ColumnValue<double, double> prix(double value) => _i1.ColumnValue(
-    table.prix,
+  _i1.ColumnValue<double, double> prixNormal(double value) => _i1.ColumnValue(
+    table.prixNormal,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> prixReduit(double? value) => _i1.ColumnValue(
+    table.prixReduit,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> prixSenior(double? value) => _i1.ColumnValue(
+    table.prixSenior,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> prixEnfant(double? value) => _i1.ColumnValue(
+    table.prixEnfant,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> prixVip(double? value) => _i1.ColumnValue(
+    table.prixVip,
     value,
   );
 }
@@ -266,12 +352,33 @@ class SeanceTable extends _i1.Table<int?> {
       this,
       hasDefault: true,
     );
+    typeSeance = _i1.ColumnString(
+      'typeSeance',
+      this,
+      hasDefault: true,
+    );
     placesDisponibles = _i1.ColumnInt(
       'placesDisponibles',
       this,
     );
-    prix = _i1.ColumnDouble(
-      'prix',
+    prixNormal = _i1.ColumnDouble(
+      'prixNormal',
+      this,
+    );
+    prixReduit = _i1.ColumnDouble(
+      'prixReduit',
+      this,
+    );
+    prixSenior = _i1.ColumnDouble(
+      'prixSenior',
+      this,
+    );
+    prixEnfant = _i1.ColumnDouble(
+      'prixEnfant',
+      this,
+    );
+    prixVip = _i1.ColumnDouble(
+      'prixVip',
       this,
     );
   }
@@ -288,9 +395,19 @@ class SeanceTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString typeProjection;
 
+  late final _i1.ColumnString typeSeance;
+
   late final _i1.ColumnInt placesDisponibles;
 
-  late final _i1.ColumnDouble prix;
+  late final _i1.ColumnDouble prixNormal;
+
+  late final _i1.ColumnDouble prixReduit;
+
+  late final _i1.ColumnDouble prixSenior;
+
+  late final _i1.ColumnDouble prixEnfant;
+
+  late final _i1.ColumnDouble prixVip;
 
   @override
   List<_i1.Column> get columns => [
@@ -300,8 +417,13 @@ class SeanceTable extends _i1.Table<int?> {
     dateHeure,
     langue,
     typeProjection,
+    typeSeance,
     placesDisponibles,
-    prix,
+    prixNormal,
+    prixReduit,
+    prixSenior,
+    prixEnfant,
+    prixVip,
   ];
 }
 
