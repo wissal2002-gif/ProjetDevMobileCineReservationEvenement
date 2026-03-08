@@ -24,8 +24,6 @@ environment:
 resolution: workspace
 
 dependencies:
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5
   flutter:
     sdk: flutter
@@ -33,6 +31,10 @@ dependencies:
     path: ../cine_reservation_client
   serverpod_flutter: 3.3.1
   serverpod_auth_idp_flutter: 3.3.1
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.6.2
+  flutter_secure_storage: ^10.0.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
