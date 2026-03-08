@@ -1,0 +1,13 @@
+name: _
+publish_to: none
+
+environment:
+  sdk: '^3.8.0'
+
+workspace:
+  - cine_reservation_client
+  - cine_reservation_server
+  - cine_reservation_flutter
+dependency_overrides:
+  flutter_secure_storage: ^10.0.0
+

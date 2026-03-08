@@ -1,0 +1,7 @@
+class: Faq
+table: faqs
+fields:
+  question: String
+  reponse: String
+  categorie: String?, default='general'
+  ordre: int?, default=0

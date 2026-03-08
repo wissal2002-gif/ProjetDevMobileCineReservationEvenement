@@ -1,0 +1,15 @@
+class: Seance
+table: seances
+fields:
+  filmId: int
+  salleId: int
+  dateHeure: DateTime
+  langue: String?, default='VF'
+  typeProjection: String?, default='2D'
+  placesDisponibles: int
+  prix: double
+indexes:
+  seance_film_idx:
+    fields: filmId
+  seance_salle_idx:
+    fields: salleId

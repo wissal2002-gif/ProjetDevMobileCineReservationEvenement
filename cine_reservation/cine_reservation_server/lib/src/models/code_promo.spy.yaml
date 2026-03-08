@@ -1,0 +1,14 @@
+class: CodePromo
+table: codes_promo
+fields:
+  code: String
+  reduction: double
+  typeReduction: String?, default='pourcentage'
+  dateExpiration: DateTime?
+  utilisationsMax: int?, default=100
+  utilisationsActuelles: int?, default=0
+  actif: bool?, default=true
+indexes:
+  code_promo_unique_idx:
+    fields: code
+    unique: true

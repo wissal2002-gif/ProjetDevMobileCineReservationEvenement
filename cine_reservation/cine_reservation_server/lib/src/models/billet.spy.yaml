@@ -1,0 +1,12 @@
+class: Billet
+table: billets
+fields:
+  reservationId: int
+  siegeId: int
+  dateEmission: DateTime
+  estValide: bool?, default=true
+  typeBillet: String?, default='standard'
+  qrCode: String?
+indexes:
+  billet_reservation_idx:
+    fields: reservationId

@@ -1,0 +1,18 @@
+class: Film
+table: films
+fields:
+  titre: String
+  synopsis: String?
+  genre: String?
+  duree: int?
+  realisateur: String?
+  casting: String?
+  affiche: String?
+  bandeAnnonce: String?
+  classification: String?
+  noteMoyenne: double?, default=0.0
+  dateDebut: DateTime?
+  dateFin: DateTime?
+indexes:
+  film_titre_idx:
+    fields: titre

@@ -1,0 +1,10 @@
+class: Salle
+table: salles
+fields:
+  cinemaId: int
+  codeSalle: String
+  capacite: int
+  equipements: String?
+indexes:
+  salle_cinema_idx:
+    fields: cinemaId

@@ -1,0 +1,9 @@
+class: ReservationSiege
+table: reservation_sieges
+fields:
+  reservationId: int
+  siegeId: int
+indexes:
+  reservation_siege_unique_idx:
+    fields: reservationId, siegeId
+    unique: true

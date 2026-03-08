@@ -1,0 +1,13 @@
+class: Reservation
+table: reservations
+fields:
+  utilisateurId: int
+  seanceId: int
+  dateReservation: DateTime
+  montantTotal: double
+  statut: String?, default='en_attente'
+indexes:
+  reservation_utilisateur_idx:
+    fields: utilisateurId
+  reservation_seance_idx:
+    fields: seanceId
