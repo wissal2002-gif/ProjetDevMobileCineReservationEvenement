@@ -13,11 +13,17 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../auth/email_idp_endpoint.dart' as _i2;
 import '../auth/jwt_refresh_endpoint.dart' as _i3;
-import '../greetings/greeting_endpoint.dart' as _i4;
+import '../endpoints/cinemas_endpoint.dart' as _i4;
+import '../endpoints/evenements_endpoint.dart' as _i5;
+import '../endpoints/films_endpoint.dart' as _i6;
+import '../endpoints/options_endpoint.dart' as _i7;
+import '../endpoints/salles_endpoint.dart' as _i8;
+import '../endpoints/seances_endpoint.dart' as _i9;
+import '../greetings/greeting_endpoint.dart' as _i10;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i5;
+    as _i11;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
-    as _i6;
+    as _i12;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -35,7 +41,43 @@ class Endpoints extends _i1.EndpointDispatch {
           'jwtRefresh',
           null,
         ),
-      'greeting': _i4.GreetingEndpoint()
+      'cinemas': _i4.CinemasEndpoint()
+        ..initialize(
+          server,
+          'cinemas',
+          null,
+        ),
+      'evenements': _i5.EvenementsEndpoint()
+        ..initialize(
+          server,
+          'evenements',
+          null,
+        ),
+      'films': _i6.FilmsEndpoint()
+        ..initialize(
+          server,
+          'films',
+          null,
+        ),
+      'options': _i7.OptionsEndpoint()
+        ..initialize(
+          server,
+          'options',
+          null,
+        ),
+      'salles': _i8.SallesEndpoint()
+        ..initialize(
+          server,
+          'salles',
+          null,
+        ),
+      'seances': _i9.SeancesEndpoint()
+        ..initialize(
+          server,
+          'seances',
+          null,
+        ),
+      'greeting': _i10.GreetingEndpoint()
         ..initialize(
           server,
           'greeting',
@@ -246,6 +288,205 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['cinemas'] = _i1.EndpointConnector(
+      name: 'cinemas',
+      endpoint: endpoints['cinemas']!,
+      methodConnectors: {
+        'getCinemas': _i1.MethodConnector(
+          name: 'getCinemas',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['cinemas'] as _i4.CinemasEndpoint)
+                  .getCinemas(session),
+        ),
+        'getCinemaById': _i1.MethodConnector(
+          name: 'getCinemaById',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['cinemas'] as _i4.CinemasEndpoint).getCinemaById(
+                    session,
+                    params['id'],
+                  ),
+        ),
+      },
+    );
+    connectors['evenements'] = _i1.EndpointConnector(
+      name: 'evenements',
+      endpoint: endpoints['evenements']!,
+      methodConnectors: {
+        'getEvenements': _i1.MethodConnector(
+          name: 'getEvenements',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['evenements'] as _i5.EvenementsEndpoint)
+                  .getEvenements(session),
+        ),
+        'getEvenementById': _i1.MethodConnector(
+          name: 'getEvenementById',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['evenements'] as _i5.EvenementsEndpoint)
+                  .getEvenementById(
+                    session,
+                    params['id'],
+                  ),
+        ),
+        'searchEvenements': _i1.MethodConnector(
+          name: 'searchEvenements',
+          params: {
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['evenements'] as _i5.EvenementsEndpoint)
+                  .searchEvenements(
+                    session,
+                    params['query'],
+                  ),
+        ),
+      },
+    );
+    connectors['films'] = _i1.EndpointConnector(
+      name: 'films',
+      endpoint: endpoints['films']!,
+      methodConnectors: {
+        'getFilms': _i1.MethodConnector(
+          name: 'getFilms',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['films'] as _i6.FilmsEndpoint).getFilms(session),
+        ),
+        'getFilmById': _i1.MethodConnector(
+          name: 'getFilmById',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['films'] as _i6.FilmsEndpoint).getFilmById(
+                session,
+                params['id'],
+              ),
+        ),
+        'searchFilms': _i1.MethodConnector(
+          name: 'searchFilms',
+          params: {
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['films'] as _i6.FilmsEndpoint).searchFilms(
+                session,
+                params['query'],
+              ),
+        ),
+      },
+    );
+    connectors['options'] = _i1.EndpointConnector(
+      name: 'options',
+      endpoint: endpoints['options']!,
+      methodConnectors: {
+        'getOptions': _i1.MethodConnector(
+          name: 'getOptions',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['options'] as _i7.OptionsEndpoint)
+                  .getOptions(session),
+        ),
+      },
+    );
+    connectors['salles'] = _i1.EndpointConnector(
+      name: 'salles',
+      endpoint: endpoints['salles']!,
+      methodConnectors: {
+        'getSalles': _i1.MethodConnector(
+          name: 'getSalles',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['salles'] as _i8.SallesEndpoint).getSalles(
+                session,
+              ),
+        ),
+      },
+    );
+    connectors['seances'] = _i1.EndpointConnector(
+      name: 'seances',
+      endpoint: endpoints['seances']!,
+      methodConnectors: {
+        'getSeancesByFilm': _i1.MethodConnector(
+          name: 'getSeancesByFilm',
+          params: {
+            'filmId': _i1.ParameterDescription(
+              name: 'filmId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['seances'] as _i9.SeancesEndpoint)
+                  .getSeancesByFilm(
+                    session,
+                    params['filmId'],
+                  ),
+        ),
+      },
+    );
     connectors['greeting'] = _i1.EndpointConnector(
       name: 'greeting',
       endpoint: endpoints['greeting']!,
@@ -263,16 +504,16 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['greeting'] as _i4.GreetingEndpoint).hello(
+              ) async => (endpoints['greeting'] as _i10.GreetingEndpoint).hello(
                 session,
                 params['name'],
               ),
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i5.Endpoints()
+    modules['serverpod_auth_idp'] = _i11.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i6.Endpoints()
+    modules['serverpod_auth_core'] = _i12.Endpoints()
       ..initializeEndpoints(server);
   }
 }

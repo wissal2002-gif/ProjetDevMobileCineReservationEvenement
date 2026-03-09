@@ -16,9 +16,16 @@ import 'package:serverpod_client/serverpod_client.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
+import 'package:cine_reservation_client/src/protocol/cinema.dart' as _i5;
+import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i6;
+import 'package:cine_reservation_client/src/protocol/film.dart' as _i7;
+import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dart'
+    as _i8;
+import 'package:cine_reservation_client/src/protocol/salle.dart' as _i9;
+import 'package:cine_reservation_client/src/protocol/seance.dart' as _i10;
 import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
-    as _i5;
-import 'protocol.dart' as _i6;
+    as _i11;
+import 'protocol.dart' as _i12;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -241,6 +248,131 @@ class EndpointJwtRefresh extends _i4.EndpointRefreshJwtTokens {
   );
 }
 
+/// {@category Endpoint}
+class EndpointCinemas extends _i2.EndpointRef {
+  EndpointCinemas(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'cinemas';
+
+  _i3.Future<List<_i5.Cinema>> getCinemas() =>
+      caller.callServerEndpoint<List<_i5.Cinema>>(
+        'cinemas',
+        'getCinemas',
+        {},
+      );
+
+  _i3.Future<_i5.Cinema?> getCinemaById(int id) =>
+      caller.callServerEndpoint<_i5.Cinema?>(
+        'cinemas',
+        'getCinemaById',
+        {'id': id},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointEvenements extends _i2.EndpointRef {
+  EndpointEvenements(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'evenements';
+
+  _i3.Future<List<_i6.Evenement>> getEvenements() =>
+      caller.callServerEndpoint<List<_i6.Evenement>>(
+        'evenements',
+        'getEvenements',
+        {},
+      );
+
+  _i3.Future<_i6.Evenement?> getEvenementById(int id) =>
+      caller.callServerEndpoint<_i6.Evenement?>(
+        'evenements',
+        'getEvenementById',
+        {'id': id},
+      );
+
+  _i3.Future<List<_i6.Evenement>> searchEvenements(String query) =>
+      caller.callServerEndpoint<List<_i6.Evenement>>(
+        'evenements',
+        'searchEvenements',
+        {'query': query},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointFilms extends _i2.EndpointRef {
+  EndpointFilms(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'films';
+
+  _i3.Future<List<_i7.Film>> getFilms() =>
+      caller.callServerEndpoint<List<_i7.Film>>(
+        'films',
+        'getFilms',
+        {},
+      );
+
+  _i3.Future<_i7.Film?> getFilmById(int id) =>
+      caller.callServerEndpoint<_i7.Film?>(
+        'films',
+        'getFilmById',
+        {'id': id},
+      );
+
+  _i3.Future<List<_i7.Film>> searchFilms(String query) =>
+      caller.callServerEndpoint<List<_i7.Film>>(
+        'films',
+        'searchFilms',
+        {'query': query},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointOptions extends _i2.EndpointRef {
+  EndpointOptions(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'options';
+
+  _i3.Future<List<_i8.OptionSupplementaire>> getOptions() =>
+      caller.callServerEndpoint<List<_i8.OptionSupplementaire>>(
+        'options',
+        'getOptions',
+        {},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointSalles extends _i2.EndpointRef {
+  EndpointSalles(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'salles';
+
+  _i3.Future<List<_i9.Salle>> getSalles() =>
+      caller.callServerEndpoint<List<_i9.Salle>>(
+        'salles',
+        'getSalles',
+        {},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointSeances extends _i2.EndpointRef {
+  EndpointSeances(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'seances';
+
+  _i3.Future<List<_i10.Seance>> getSeancesByFilm(int filmId) =>
+      caller.callServerEndpoint<List<_i10.Seance>>(
+        'seances',
+        'getSeancesByFilm',
+        {'filmId': filmId},
+      );
+}
+
 /// This is an example endpoint that returns a greeting message through
 /// its [hello] method.
 /// {@category Endpoint}
@@ -251,8 +383,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i5.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i5.Greeting>(
+  _i3.Future<_i11.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i11.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -290,7 +422,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i6.Protocol(),
+         _i12.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -301,6 +433,12 @@ class Client extends _i2.ServerpodClientShared {
        ) {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
+    cinemas = EndpointCinemas(this);
+    evenements = EndpointEvenements(this);
+    films = EndpointFilms(this);
+    options = EndpointOptions(this);
+    salles = EndpointSalles(this);
+    seances = EndpointSeances(this);
     greeting = EndpointGreeting(this);
     modules = Modules(this);
   }
@@ -308,6 +446,18 @@ class Client extends _i2.ServerpodClientShared {
   late final EndpointEmailIdp emailIdp;
 
   late final EndpointJwtRefresh jwtRefresh;
+
+  late final EndpointCinemas cinemas;
+
+  late final EndpointEvenements evenements;
+
+  late final EndpointFilms films;
+
+  late final EndpointOptions options;
+
+  late final EndpointSalles salles;
+
+  late final EndpointSeances seances;
 
   late final EndpointGreeting greeting;
 
@@ -317,6 +467,12 @@ class Client extends _i2.ServerpodClientShared {
   Map<String, _i2.EndpointRef> get endpointRefLookup => {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
+    'cinemas': cinemas,
+    'evenements': evenements,
+    'films': films,
+    'options': options,
+    'salles': salles,
+    'seances': seances,
     'greeting': greeting,
   };
 

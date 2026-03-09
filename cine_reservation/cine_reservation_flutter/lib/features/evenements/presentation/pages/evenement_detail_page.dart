@@ -1,0 +1,227 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../providers/evenement_provider.dart';
+import '../../../programmation/presentation/providers/programmation_provider.dart'; // Pour les cinémas
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cine_reservation_client/cine_reservation_client.dart';
+import 'package:intl/intl.dart';
+
+class EvenementDetailPage extends ConsumerWidget {
+  final int evenementId;
+  const EvenementDetailPage({super.key, required this.evenementId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventAsync = ref.watch(evenementsProvider);
+    final cinemasAsync = ref.watch(allCinemasProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: eventAsync.when(
+        data: (events) {
+          final event = events.firstWhere((e) => e.id == evenementId);
+          return _buildContent(context, event, cinemasAsync);
+        },
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
+        error: (e, s) => Center(child: Text("Erreur: $e", style: const TextStyle(color: Colors.red))),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, Evenement event, AsyncValue<List<Cinema>> cinemasAsync) {
+    final dateFormat = DateFormat('EEEE d MMMM yyyy', 'fr_FR');
+    final timeFormat = DateFormat('HH:mm');
+
+    // Trouver le nom du cinéma si cinemaId est présent
+    String cinemaInfo = event.lieu ?? "Lieu non spécifié";
+    cinemasAsync.whenData((list) {
+      if (event.cinemaId != null) {
+        final cinema = list.firstWhere((c) => c.id == event.cinemaId, orElse: () => list.first);
+        cinemaInfo = "${cinema.nom} (${cinema.ville})";
+      }
+    });
+
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 400,
+          pinned: true,
+          backgroundColor: AppColors.background,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Stack(
+              fit: StackFit.expand,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: event.affiche ?? "",
+                  fit: BoxFit.cover,
+                  errorWidget: (c, u, e) => Container(color: AppColors.cardBg, child: const Icon(Icons.event, size: 100)),
+                ),
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, AppColors.background],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildTypeBadge(event.type ?? "Événement"),
+                    if (event.annulationGratuite ?? false)
+                      _buildCancelBadge("Annulation gratuite"),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                Text(event.titre, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white)),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 20),
+                    const SizedBox(width: 5),
+                    Text("${event.noteMoyenne ?? 0.0} (${event.nombreAvis ?? 0} avis)", style: const TextStyle(color: AppColors.textLight)),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+                _buildInfoSection(Icons.calendar_today, "DATE ET HEURE",
+                    "${dateFormat.format(event.dateDebut)} à ${timeFormat.format(event.dateDebut)}"),
+
+                _buildInfoSection(Icons.location_on, "LIEU / CINÉMA", cinemaInfo),
+
+                _buildInfoSection(Icons.person, "ORGANISATEUR",
+                    event.organisateur ?? "Non spécifié"),
+
+                if (event.annulationGratuite ?? false)
+                  _buildInfoSection(Icons.history, "DÉLAI D'ANNULATION",
+                      "Jusqu'à ${event.delaiAnnulation ?? 48} heures avant l'événement"),
+
+                const SizedBox(height: 30),
+                const Text("À PROPOS DE CET ÉVÉNEMENT", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                Text(event.description ?? "Pas de description disponible.",
+                    style: const TextStyle(color: Colors.white70, height: 1.6)),
+
+                const SizedBox(height: 30),
+                _buildStatusSection(event),
+
+                const SizedBox(height: 40),
+                _buildPriceAndBooking(event),
+
+                const SizedBox(height: 30),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTypeBadge(String type) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(color: Colors.pink.withOpacity(0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.pink)),
+      child: Text(type.toUpperCase(), style: const TextStyle(color: Colors.pink, fontSize: 10, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildCancelBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(color: Colors.green.withOpacity(0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.green)),
+      child: Text(text.toUpperCase(), style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildInfoSection(IconData icon, String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.accent, size: 24),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: AppColors.textLight, fontSize: 10, fontWeight: FontWeight.bold)),
+                Text(value, style: const TextStyle(color: Colors.white, fontSize: 15)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusSection(Evenement event) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(12)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildStatItem(Icons.event_seat, "${event.placesDisponibles ?? 0}", "Places dispo"),
+          _buildStatItem(Icons.groups, "${event.placesTotales ?? 0}", "Capacité"),
+          _buildStatItem(Icons.euro, "${event.fraisAnnulation ?? 0.0}", "Frais annulation"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, String label) {
+    return Column(
+      children: [
+        Icon(icon, color: AppColors.accent, size: 20),
+        const SizedBox(height: 5),
+        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: AppColors.textLight, fontSize: 10)),
+      ],
+    );
+  }
+
+  Widget _buildPriceAndBooking(Evenement event) {
+    final bool isFull = (event.placesDisponibles ?? 0) <= 0;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [AppColors.accent.withOpacity(0.2), AppColors.background]),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("PRIX À PARTIR DE", style: TextStyle(color: AppColors.textLight, fontSize: 10)),
+              Text("${event.prix ?? 0.0} €", style: const TextStyle(color: AppColors.accent, fontSize: 26, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          ElevatedButton(
+            onPressed: isFull ? null : () {},
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(140, 50),
+              backgroundColor: isFull ? Colors.grey : AppColors.accent,
+            ),
+            child: Text(isFull ? "COMPLET" : "Réserver"),
+          ),
+        ],
+      ),
+    );
+  }
+}

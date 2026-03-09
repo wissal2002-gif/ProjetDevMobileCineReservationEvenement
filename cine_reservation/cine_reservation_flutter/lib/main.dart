@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 
@@ -10,6 +11,8 @@ late final Client client;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  await initializeDateFormatting('fr_FR', null);
 
   final serverUrl = await getServerUrl();
 
