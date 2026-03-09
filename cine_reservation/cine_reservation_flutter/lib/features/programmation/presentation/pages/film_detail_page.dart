@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/programmation_provider.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FilmDetailPage extends ConsumerWidget {
   final int filmId;
@@ -46,12 +47,36 @@ class FilmDetailPage extends ConsumerWidget {
             background: Stack(
               fit: StackFit.expand,
               children: [
-                CachedNetworkImage(imageUrl: film.affiche ?? "", fit: BoxFit.cover, errorWidget: (c,u,e) => const Icon(Icons.movie)),
-                const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, AppColors.background]))),
-                if (film.bandeAnnonce != null)
+                CachedNetworkImage(
+                    imageUrl: film.affiche ?? "",
+                    fit: BoxFit.cover,
+                    errorWidget: (c,u,e) => const Icon(Icons.movie, size: 50)
+                ),
+                const DecoratedBox(
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, AppColors.background]
+                        )
+                    )
+                ),
+                // Section Bande Annonce Corrigée
+                if (film.bandeAnnonce != null && film.bandeAnnonce!.isNotEmpty)
                   Center(
                     child: FloatingActionButton.extended(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final Uri url = Uri.parse(film.bandeAnnonce!);
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Lien de la bande annonce invalide")),
+                            );
+                          }
+                        }
+                      },
                       label: const Text("BANDE ANNONCE"),
                       icon: const Icon(Icons.play_arrow),
                       backgroundColor: Colors.white.withOpacity(0.8),
@@ -117,7 +142,7 @@ class FilmDetailPage extends ConsumerWidget {
                 const Text("SÉANCES & CINÉMAS", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 15),
                 seances.when(
-                  data: (list) => Column(children: list.map((s) => _buildSeanceItem(s, film.duree ?? 0, cinemas, salles)).toList()),
+                  data: (list) => Column(children: list.map((s) => _buildSeanceItem(context, s, film.duree ?? 0, cinemas, salles)).toList()),
                   loading: () => const CircularProgressIndicator(),
                   error: (e, s) => const SizedBox(),
                 ),
@@ -143,7 +168,7 @@ class FilmDetailPage extends ConsumerWidget {
     return Text(title, style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.2));
   }
 
-  Widget _buildSeanceItem(Seance seance, int duree, AsyncValue<List<Cinema>> cinemas, AsyncValue<List<Salle>> salles) {
+  Widget _buildSeanceItem(BuildContext context, Seance seance, int duree, AsyncValue<List<Cinema>> cinemas, AsyncValue<List<Salle>> salles) {
     String cinemaName = "CINÉMA";
     String cinemaLieu = "Lieu inconnu";
 
@@ -197,7 +222,15 @@ class FilmDetailPage extends ConsumerWidget {
           const Divider(height: 30, color: Colors.white10),
           _prices(seance),
           const SizedBox(height: 15),
-          ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 45)), child: const Text("RÉSERVER")),
+          ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Réservation pour ${cinemaName} à ${timeFormat.format(startTime)}")),
+                );
+              },
+              style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 45)),
+              child: const Text("RÉSERVER")
+          ),
         ],
       ),
     );

@@ -6,6 +6,7 @@ import '../../../programmation/presentation/providers/programmation_provider.dar
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EvenementDetailPage extends ConsumerWidget {
   final int evenementId;
@@ -55,7 +56,10 @@ class EvenementDetailPage extends ConsumerWidget {
                 CachedNetworkImage(
                   imageUrl: event.affiche ?? "",
                   fit: BoxFit.cover,
-                  errorWidget: (c, u, e) => Container(color: AppColors.cardBg, child: const Icon(Icons.event, size: 100)),
+                  errorWidget: (c, u, e) => Container(
+                    color: AppColors.cardBg,
+                    child: const Icon(Icons.event, size: 100),
+                  ),
                 ),
                 const DecoratedBox(
                   decoration: BoxDecoration(
@@ -66,6 +70,28 @@ class EvenementDetailPage extends ConsumerWidget {
                     ),
                   ),
                 ),
+                // AJOUT DU BOUTON BANDE ANNONCE ICI
+                if (event.bandeAnnonce != null && event.bandeAnnonce!.isNotEmpty)
+                  Center(
+                    child: FloatingActionButton.extended(
+                      onPressed: () async {
+                        final Uri url = Uri.parse(event.bandeAnnonce!);
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Lien de la vidéo invalide")),
+                            );
+                          }
+                        }
+                      },
+                      label: const Text("BANDE ANNONCE"),
+                      icon: const Icon(Icons.play_arrow),
+                      backgroundColor: Colors.white.withOpacity(0.8),
+                      foregroundColor: Colors.black,
+                    ),
+                  ),
               ],
             ),
           ),
