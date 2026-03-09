@@ -10,6 +10,7 @@ import '../../features/programmation/presentation/pages/film_detail_page.dart';
 import '../../features/programmation/presentation/pages/films_list_page.dart';
 import '../../features/evenements/presentation/pages/evenement_detail_page.dart';
 import '../../features/evenements/presentation/pages/evenements_page.dart';
+import '../../features/support/presentation/pages/contact_support_page.dart';
 import '../constants/app_constants.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -71,6 +72,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/all-events',
         builder: (context, state) => const EvenementsPage(),
       ),
+      // ... autres routes
+      GoRoute(
+        path: '/support',
+        builder: (context, state) => const ContactSupportPage(),
+      ),
+
     ],
   );
 });

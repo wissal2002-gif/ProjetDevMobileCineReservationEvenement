@@ -44,6 +44,8 @@ import 'package:cine_reservation_server/src/generated/option%20supplementaire.da
     as _i29;
 import 'package:cine_reservation_server/src/generated/salle.dart' as _i30;
 import 'package:cine_reservation_server/src/generated/seance.dart' as _i31;
+import 'package:cine_reservation_server/src/generated/demande_support.dart'
+    as _i32;
 export 'avis.dart';
 export 'billet.dart';
 export 'cinema.dart';
@@ -2203,6 +2205,12 @@ class Protocol extends _i1.SerializationManagerServer {
     }
     if (t == List<_i31.Seance>) {
       return (data as List).map((e) => deserialize<_i31.Seance>(e)).toList()
+          as T;
+    }
+    if (t == List<_i32.DemandeSupport>) {
+      return (data as List)
+              .map((e) => deserialize<_i32.DemandeSupport>(e))
+              .toList()
           as T;
     }
     try {

@@ -13,17 +13,19 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../auth/email_idp_endpoint.dart' as _i2;
 import '../auth/jwt_refresh_endpoint.dart' as _i3;
-import '../endpoints/cinemas_endpoint.dart' as _i4;
-import '../endpoints/evenements_endpoint.dart' as _i5;
-import '../endpoints/films_endpoint.dart' as _i6;
-import '../endpoints/options_endpoint.dart' as _i7;
-import '../endpoints/salles_endpoint.dart' as _i8;
-import '../endpoints/seances_endpoint.dart' as _i9;
-import '../greetings/greeting_endpoint.dart' as _i10;
+import '../endpoints/avis_endpoint.dart' as _i4;
+import '../endpoints/cinemas_endpoint.dart' as _i5;
+import '../endpoints/evenements_endpoint.dart' as _i6;
+import '../endpoints/films_endpoint.dart' as _i7;
+import '../endpoints/options_endpoint.dart' as _i8;
+import '../endpoints/salles_endpoint.dart' as _i9;
+import '../endpoints/seances_endpoint.dart' as _i10;
+import '../endpoints/support_endpoint.dart' as _i11;
+import '../greetings/greeting_endpoint.dart' as _i12;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i11;
+    as _i13;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
-    as _i12;
+    as _i14;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -41,43 +43,55 @@ class Endpoints extends _i1.EndpointDispatch {
           'jwtRefresh',
           null,
         ),
-      'cinemas': _i4.CinemasEndpoint()
+      'avis': _i4.AvisEndpoint()
+        ..initialize(
+          server,
+          'avis',
+          null,
+        ),
+      'cinemas': _i5.CinemasEndpoint()
         ..initialize(
           server,
           'cinemas',
           null,
         ),
-      'evenements': _i5.EvenementsEndpoint()
+      'evenements': _i6.EvenementsEndpoint()
         ..initialize(
           server,
           'evenements',
           null,
         ),
-      'films': _i6.FilmsEndpoint()
+      'films': _i7.FilmsEndpoint()
         ..initialize(
           server,
           'films',
           null,
         ),
-      'options': _i7.OptionsEndpoint()
+      'options': _i8.OptionsEndpoint()
         ..initialize(
           server,
           'options',
           null,
         ),
-      'salles': _i8.SallesEndpoint()
+      'salles': _i9.SallesEndpoint()
         ..initialize(
           server,
           'salles',
           null,
         ),
-      'seances': _i9.SeancesEndpoint()
+      'seances': _i10.SeancesEndpoint()
         ..initialize(
           server,
           'seances',
           null,
         ),
-      'greeting': _i10.GreetingEndpoint()
+      'support': _i11.SupportEndpoint()
+        ..initialize(
+          server,
+          'support',
+          null,
+        ),
+      'greeting': _i12.GreetingEndpoint()
         ..initialize(
           server,
           'greeting',
@@ -288,6 +302,11 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['avis'] = _i1.EndpointConnector(
+      name: 'avis',
+      endpoint: endpoints['avis']!,
+      methodConnectors: {},
+    );
     connectors['cinemas'] = _i1.EndpointConnector(
       name: 'cinemas',
       endpoint: endpoints['cinemas']!,
@@ -299,7 +318,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['cinemas'] as _i4.CinemasEndpoint)
+              ) async => (endpoints['cinemas'] as _i5.CinemasEndpoint)
                   .getCinemas(session),
         ),
         'getCinemaById': _i1.MethodConnector(
@@ -316,7 +335,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['cinemas'] as _i4.CinemasEndpoint).getCinemaById(
+                  (endpoints['cinemas'] as _i5.CinemasEndpoint).getCinemaById(
                     session,
                     params['id'],
                   ),
@@ -334,7 +353,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['evenements'] as _i5.EvenementsEndpoint)
+              ) async => (endpoints['evenements'] as _i6.EvenementsEndpoint)
                   .getEvenements(session),
         ),
         'getEvenementById': _i1.MethodConnector(
@@ -350,7 +369,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['evenements'] as _i5.EvenementsEndpoint)
+              ) async => (endpoints['evenements'] as _i6.EvenementsEndpoint)
                   .getEvenementById(
                     session,
                     params['id'],
@@ -369,7 +388,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['evenements'] as _i5.EvenementsEndpoint)
+              ) async => (endpoints['evenements'] as _i6.EvenementsEndpoint)
                   .searchEvenements(
                     session,
                     params['query'],
@@ -389,7 +408,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['films'] as _i6.FilmsEndpoint).getFilms(session),
+                  (endpoints['films'] as _i7.FilmsEndpoint).getFilms(session),
         ),
         'getFilmById': _i1.MethodConnector(
           name: 'getFilmById',
@@ -404,7 +423,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['films'] as _i6.FilmsEndpoint).getFilmById(
+              ) async => (endpoints['films'] as _i7.FilmsEndpoint).getFilmById(
                 session,
                 params['id'],
               ),
@@ -422,7 +441,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['films'] as _i6.FilmsEndpoint).searchFilms(
+              ) async => (endpoints['films'] as _i7.FilmsEndpoint).searchFilms(
                 session,
                 params['query'],
               ),
@@ -440,7 +459,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['options'] as _i7.OptionsEndpoint)
+              ) async => (endpoints['options'] as _i8.OptionsEndpoint)
                   .getOptions(session),
         ),
       },
@@ -456,7 +475,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['salles'] as _i8.SallesEndpoint).getSalles(
+              ) async => (endpoints['salles'] as _i9.SallesEndpoint).getSalles(
                 session,
               ),
         ),
@@ -479,11 +498,52 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['seances'] as _i9.SeancesEndpoint)
+              ) async => (endpoints['seances'] as _i10.SeancesEndpoint)
                   .getSeancesByFilm(
                     session,
                     params['filmId'],
                   ),
+        ),
+      },
+    );
+    connectors['support'] = _i1.EndpointConnector(
+      name: 'support',
+      endpoint: endpoints['support']!,
+      methodConnectors: {
+        'creerDemande': _i1.MethodConnector(
+          name: 'creerDemande',
+          params: {
+            'sujet': _i1.ParameterDescription(
+              name: 'sujet',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'message': _i1.ParameterDescription(
+              name: 'message',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['support'] as _i11.SupportEndpoint).creerDemande(
+                    session,
+                    params['sujet'],
+                    params['message'],
+                  ),
+        ),
+        'getDemandes': _i1.MethodConnector(
+          name: 'getDemandes',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['support'] as _i11.SupportEndpoint)
+                  .getDemandes(session),
         ),
       },
     );
@@ -504,16 +564,16 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['greeting'] as _i10.GreetingEndpoint).hello(
+              ) async => (endpoints['greeting'] as _i12.GreetingEndpoint).hello(
                 session,
                 params['name'],
               ),
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i11.Endpoints()
+    modules['serverpod_auth_idp'] = _i13.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i12.Endpoints()
+    modules['serverpod_auth_core'] = _i14.Endpoints()
       ..initializeEndpoints(server);
   }
 }

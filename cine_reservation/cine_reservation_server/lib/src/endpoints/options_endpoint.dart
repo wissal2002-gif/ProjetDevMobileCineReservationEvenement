@@ -1,5 +1,4 @@
-import 'package:serverpod/serverpod.dart'
-;
+import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 
 class OptionsEndpoint extends Endpoint {

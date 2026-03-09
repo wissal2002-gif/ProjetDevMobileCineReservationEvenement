@@ -9,6 +9,7 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+avis:
 cinemas:
   - getCinemas:
   - getCinemaById:
@@ -26,5 +27,8 @@ salles:
   - getSalles:
 seances:
   - getSeancesByFilm:
+support:
+  - creerDemande:
+  - getDemandes:
 greeting:
   - hello:

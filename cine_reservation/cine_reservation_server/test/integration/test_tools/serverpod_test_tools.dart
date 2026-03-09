@@ -23,8 +23,10 @@ import 'package:cine_reservation_server/src/generated/option%20supplementaire.da
     as _i8;
 import 'package:cine_reservation_server/src/generated/salle.dart' as _i9;
 import 'package:cine_reservation_server/src/generated/seance.dart' as _i10;
-import 'package:cine_reservation_server/src/generated/greetings/greeting.dart'
+import 'package:cine_reservation_server/src/generated/demande_support.dart'
     as _i11;
+import 'package:cine_reservation_server/src/generated/greetings/greeting.dart'
+    as _i12;
 import 'package:cine_reservation_server/src/generated/protocol.dart';
 import 'package:cine_reservation_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -136,6 +138,8 @@ class TestEndpoints {
 
   late final _JwtRefreshEndpoint jwtRefresh;
 
+  late final _AvisEndpoint avis;
+
   late final _CinemasEndpoint cinemas;
 
   late final _EvenementsEndpoint evenements;
@@ -147,6 +151,8 @@ class TestEndpoints {
   late final _SallesEndpoint salles;
 
   late final _SeancesEndpoint seances;
+
+  late final _SupportEndpoint support;
 
   late final _GreetingEndpoint greeting;
 }
@@ -163,6 +169,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     jwtRefresh = _JwtRefreshEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    avis = _AvisEndpoint(
       endpoints,
       serializationManager,
     );
@@ -187,6 +197,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     seances = _SeancesEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    support = _SupportEndpoint(
       endpoints,
       serializationManager,
     );
@@ -513,6 +527,13 @@ class _JwtRefreshEndpoint {
       }
     });
   }
+}
+
+class _AvisEndpoint {
+  _AvisEndpoint(
+    _endpointDispatch,
+    _serializationManager,
+  );
 }
 
 class _CinemasEndpoint {
@@ -917,6 +938,82 @@ class _SeancesEndpoint {
   }
 }
 
+class _SupportEndpoint {
+  _SupportEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<bool> creerDemande(
+    _i1.TestSessionBuilder sessionBuilder,
+    String sujet,
+    String message,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'support',
+            method: 'creerDemande',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'support',
+          methodName: 'creerDemande',
+          parameters: _i1.testObjectToJson({
+            'sujet': sujet,
+            'message': message,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i11.DemandeSupport>> getDemandes(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'support',
+            method: 'getDemandes',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'support',
+          methodName: 'getDemandes',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i11.DemandeSupport>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _GreetingEndpoint {
   _GreetingEndpoint(
     this._endpointDispatch,
@@ -927,7 +1024,7 @@ class _GreetingEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i11.Greeting> hello(
+  _i3.Future<_i12.Greeting> hello(
     _i1.TestSessionBuilder sessionBuilder,
     String name,
   ) async {
@@ -950,7 +1047,7 @@ class _GreetingEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.Greeting>);
+                as _i3.Future<_i12.Greeting>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

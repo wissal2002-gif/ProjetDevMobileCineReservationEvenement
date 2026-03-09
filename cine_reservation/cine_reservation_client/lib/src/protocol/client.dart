@@ -23,9 +23,11 @@ import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dar
     as _i8;
 import 'package:cine_reservation_client/src/protocol/salle.dart' as _i9;
 import 'package:cine_reservation_client/src/protocol/seance.dart' as _i10;
-import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
+import 'package:cine_reservation_client/src/protocol/demande_support.dart'
     as _i11;
-import 'protocol.dart' as _i12;
+import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
+    as _i12;
+import 'protocol.dart' as _i13;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -249,6 +251,14 @@ class EndpointJwtRefresh extends _i4.EndpointRefreshJwtTokens {
 }
 
 /// {@category Endpoint}
+class EndpointAvis extends _i2.EndpointRef {
+  EndpointAvis(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'avis';
+}
+
+/// {@category Endpoint}
 class EndpointCinemas extends _i2.EndpointRef {
   EndpointCinemas(_i2.EndpointCaller caller) : super(caller);
 
@@ -373,6 +383,33 @@ class EndpointSeances extends _i2.EndpointRef {
       );
 }
 
+/// {@category Endpoint}
+class EndpointSupport extends _i2.EndpointRef {
+  EndpointSupport(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'support';
+
+  _i3.Future<bool> creerDemande(
+    String sujet,
+    String message,
+  ) => caller.callServerEndpoint<bool>(
+    'support',
+    'creerDemande',
+    {
+      'sujet': sujet,
+      'message': message,
+    },
+  );
+
+  _i3.Future<List<_i11.DemandeSupport>> getDemandes() =>
+      caller.callServerEndpoint<List<_i11.DemandeSupport>>(
+        'support',
+        'getDemandes',
+        {},
+      );
+}
+
 /// This is an example endpoint that returns a greeting message through
 /// its [hello] method.
 /// {@category Endpoint}
@@ -383,8 +420,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i11.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i11.Greeting>(
+  _i3.Future<_i12.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i12.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -422,7 +459,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i12.Protocol(),
+         _i13.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -433,12 +470,14 @@ class Client extends _i2.ServerpodClientShared {
        ) {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
+    avis = EndpointAvis(this);
     cinemas = EndpointCinemas(this);
     evenements = EndpointEvenements(this);
     films = EndpointFilms(this);
     options = EndpointOptions(this);
     salles = EndpointSalles(this);
     seances = EndpointSeances(this);
+    support = EndpointSupport(this);
     greeting = EndpointGreeting(this);
     modules = Modules(this);
   }
@@ -446,6 +485,8 @@ class Client extends _i2.ServerpodClientShared {
   late final EndpointEmailIdp emailIdp;
 
   late final EndpointJwtRefresh jwtRefresh;
+
+  late final EndpointAvis avis;
 
   late final EndpointCinemas cinemas;
 
@@ -459,6 +500,8 @@ class Client extends _i2.ServerpodClientShared {
 
   late final EndpointSeances seances;
 
+  late final EndpointSupport support;
+
   late final EndpointGreeting greeting;
 
   late final Modules modules;
@@ -467,12 +510,14 @@ class Client extends _i2.ServerpodClientShared {
   Map<String, _i2.EndpointRef> get endpointRefLookup => {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
+    'avis': avis,
     'cinemas': cinemas,
     'evenements': evenements,
     'films': films,
     'options': options,
     'salles': salles,
     'seances': seances,
+    'support': support,
     'greeting': greeting,
   };
 

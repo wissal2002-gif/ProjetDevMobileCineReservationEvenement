@@ -64,17 +64,18 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
                   _buildNavItem("Mes Réservations", 3),
                   _buildNavItem("Profil", 4),
                   const SizedBox(width: 24),
-                  // Search & Auth
+                  // Search
                   const Icon(Icons.search, color: Colors.white70, size: 22),
                   const SizedBox(width: 24),
+                  // Auth
                   if (!authState.isAuthenticated) ...[
                     TextButton(
-                      onPressed: () => context.push('/login'),
+                      onPressed: () => context.go('/login'),
                       child: const Text("Connexion", style: TextStyle(color: Colors.white70)),
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
-                      onPressed: () => context.push('/register'),
+                      onPressed: () => context.go('/register'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accent,
                         foregroundColor: Colors.white,
@@ -107,9 +108,7 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Action Aide
-        },
+        onPressed: () => context.go('/support'),
         label: const Text("Aide", style: TextStyle(fontWeight: FontWeight.bold)),
         icon: const Icon(Icons.help_outline),
         backgroundColor: AppColors.accent,
