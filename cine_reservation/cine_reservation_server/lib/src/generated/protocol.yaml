@@ -23,6 +23,9 @@ films:
   - searchFilms:
 options:
   - getOptions:
+profil:
+  - getProfil:
+  - updateProfil:
 salles:
   - getSalles:
 seances:

@@ -21,12 +21,13 @@ import 'package:cine_reservation_server/src/generated/evenement.dart' as _i6;
 import 'package:cine_reservation_server/src/generated/film.dart' as _i7;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
     as _i8;
-import 'package:cine_reservation_server/src/generated/salle.dart' as _i9;
-import 'package:cine_reservation_server/src/generated/seance.dart' as _i10;
+import 'package:cine_reservation_server/src/generated/utilisateur.dart' as _i9;
+import 'package:cine_reservation_server/src/generated/salle.dart' as _i10;
+import 'package:cine_reservation_server/src/generated/seance.dart' as _i11;
 import 'package:cine_reservation_server/src/generated/demande_support.dart'
-    as _i11;
-import 'package:cine_reservation_server/src/generated/greetings/greeting.dart'
     as _i12;
+import 'package:cine_reservation_server/src/generated/greetings/greeting.dart'
+    as _i13;
 import 'package:cine_reservation_server/src/generated/protocol.dart';
 import 'package:cine_reservation_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -148,6 +149,8 @@ class TestEndpoints {
 
   late final _OptionsEndpoint options;
 
+  late final _ProfilEndpoint profil;
+
   late final _SallesEndpoint salles;
 
   late final _SeancesEndpoint seances;
@@ -189,6 +192,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     options = _OptionsEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    profil = _ProfilEndpoint(
       endpoints,
       serializationManager,
     );
@@ -855,6 +862,84 @@ class _OptionsEndpoint {
   }
 }
 
+class _ProfilEndpoint {
+  _ProfilEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i9.Utilisateur?> getProfil(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profil',
+            method: 'getProfil',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profil',
+          methodName: 'getProfil',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i9.Utilisateur?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i9.Utilisateur?> updateProfil(
+    _i1.TestSessionBuilder sessionBuilder,
+    String nom,
+    String? telephone,
+    DateTime? dateNaissance,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profil',
+            method: 'updateProfil',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profil',
+          methodName: 'updateProfil',
+          parameters: _i1.testObjectToJson({
+            'nom': nom,
+            'telephone': telephone,
+            'dateNaissance': dateNaissance,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i9.Utilisateur?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _SallesEndpoint {
   _SallesEndpoint(
     this._endpointDispatch,
@@ -865,7 +950,7 @@ class _SallesEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i9.Salle>> getSalles(
+  _i3.Future<List<_i10.Salle>> getSalles(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -887,7 +972,7 @@ class _SallesEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i9.Salle>>);
+                as _i3.Future<List<_i10.Salle>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -906,7 +991,7 @@ class _SeancesEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i10.Seance>> getSeancesByFilm(
+  _i3.Future<List<_i11.Seance>> getSeancesByFilm(
     _i1.TestSessionBuilder sessionBuilder,
     int filmId,
   ) async {
@@ -929,7 +1014,7 @@ class _SeancesEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i10.Seance>>);
+                as _i3.Future<List<_i11.Seance>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -983,7 +1068,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<List<_i11.DemandeSupport>> getDemandes(
+  _i3.Future<List<_i12.DemandeSupport>> getDemandes(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1005,7 +1090,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i11.DemandeSupport>>);
+                as _i3.Future<List<_i12.DemandeSupport>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1024,7 +1109,7 @@ class _GreetingEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i12.Greeting> hello(
+  _i3.Future<_i13.Greeting> hello(
     _i1.TestSessionBuilder sessionBuilder,
     String name,
   ) async {
@@ -1047,7 +1132,7 @@ class _GreetingEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.Greeting>);
+                as _i3.Future<_i13.Greeting>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

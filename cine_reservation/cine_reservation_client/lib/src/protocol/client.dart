@@ -21,13 +21,14 @@ import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i6;
 import 'package:cine_reservation_client/src/protocol/film.dart' as _i7;
 import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dart'
     as _i8;
-import 'package:cine_reservation_client/src/protocol/salle.dart' as _i9;
-import 'package:cine_reservation_client/src/protocol/seance.dart' as _i10;
+import 'package:cine_reservation_client/src/protocol/utilisateur.dart' as _i9;
+import 'package:cine_reservation_client/src/protocol/salle.dart' as _i10;
+import 'package:cine_reservation_client/src/protocol/seance.dart' as _i11;
 import 'package:cine_reservation_client/src/protocol/demande_support.dart'
-    as _i11;
-import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
     as _i12;
-import 'protocol.dart' as _i13;
+import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
+    as _i13;
+import 'protocol.dart' as _i14;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -354,14 +355,43 @@ class EndpointOptions extends _i2.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointProfil extends _i2.EndpointRef {
+  EndpointProfil(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'profil';
+
+  _i3.Future<_i9.Utilisateur?> getProfil() =>
+      caller.callServerEndpoint<_i9.Utilisateur?>(
+        'profil',
+        'getProfil',
+        {},
+      );
+
+  _i3.Future<_i9.Utilisateur?> updateProfil(
+    String nom,
+    String? telephone,
+    DateTime? dateNaissance,
+  ) => caller.callServerEndpoint<_i9.Utilisateur?>(
+    'profil',
+    'updateProfil',
+    {
+      'nom': nom,
+      'telephone': telephone,
+      'dateNaissance': dateNaissance,
+    },
+  );
+}
+
+/// {@category Endpoint}
 class EndpointSalles extends _i2.EndpointRef {
   EndpointSalles(_i2.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'salles';
 
-  _i3.Future<List<_i9.Salle>> getSalles() =>
-      caller.callServerEndpoint<List<_i9.Salle>>(
+  _i3.Future<List<_i10.Salle>> getSalles() =>
+      caller.callServerEndpoint<List<_i10.Salle>>(
         'salles',
         'getSalles',
         {},
@@ -375,8 +405,8 @@ class EndpointSeances extends _i2.EndpointRef {
   @override
   String get name => 'seances';
 
-  _i3.Future<List<_i10.Seance>> getSeancesByFilm(int filmId) =>
-      caller.callServerEndpoint<List<_i10.Seance>>(
+  _i3.Future<List<_i11.Seance>> getSeancesByFilm(int filmId) =>
+      caller.callServerEndpoint<List<_i11.Seance>>(
         'seances',
         'getSeancesByFilm',
         {'filmId': filmId},
@@ -402,8 +432,8 @@ class EndpointSupport extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<List<_i11.DemandeSupport>> getDemandes() =>
-      caller.callServerEndpoint<List<_i11.DemandeSupport>>(
+  _i3.Future<List<_i12.DemandeSupport>> getDemandes() =>
+      caller.callServerEndpoint<List<_i12.DemandeSupport>>(
         'support',
         'getDemandes',
         {},
@@ -420,8 +450,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i12.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i12.Greeting>(
+  _i3.Future<_i13.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i13.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -459,7 +489,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i13.Protocol(),
+         _i14.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -475,6 +505,7 @@ class Client extends _i2.ServerpodClientShared {
     evenements = EndpointEvenements(this);
     films = EndpointFilms(this);
     options = EndpointOptions(this);
+    profil = EndpointProfil(this);
     salles = EndpointSalles(this);
     seances = EndpointSeances(this);
     support = EndpointSupport(this);
@@ -496,6 +527,8 @@ class Client extends _i2.ServerpodClientShared {
 
   late final EndpointOptions options;
 
+  late final EndpointProfil profil;
+
   late final EndpointSalles salles;
 
   late final EndpointSeances seances;
@@ -515,6 +548,7 @@ class Client extends _i2.ServerpodClientShared {
     'evenements': evenements,
     'films': films,
     'options': options,
+    'profil': profil,
     'salles': salles,
     'seances': seances,
     'support': support,

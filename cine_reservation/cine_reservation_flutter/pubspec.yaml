@@ -27,6 +27,7 @@ dependencies:
   cupertino_icons: ^1.0.5
   flutter:
     sdk: flutter
+  file_picker: ^8.1.2
   cine_reservation_client:
     path: ../cine_reservation_client
   serverpod_flutter: 3.3.1

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../profil/presentation/pages/profil_page.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'home_page.dart';
 import '../../../programmation/presentation/pages/films_list_page.dart';
@@ -104,7 +105,7 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
           const FilmsListPage(),
           const EvenementsPage(),
           const Center(child: Text("Mes Réservations", style: TextStyle(color: Colors.white))),
-          const Center(child: Text("Profil", style: TextStyle(color: Colors.white))),
+          const ProfilPage(),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
