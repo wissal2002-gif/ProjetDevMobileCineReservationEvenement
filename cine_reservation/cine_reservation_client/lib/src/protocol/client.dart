@@ -703,6 +703,35 @@ class EndpointOptions extends _i2.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointProfil extends _i2.EndpointRef {
+  EndpointProfil(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'profil';
+
+  _i3.Future<_i10.Utilisateur?> getProfil() =>
+      caller.callServerEndpoint<_i10.Utilisateur?>(
+        'profil',
+        'getProfil',
+        {},
+      );
+
+  _i3.Future<_i10.Utilisateur?> updateProfil(
+    String nom,
+    String? telephone,
+    DateTime? dateNaissance,
+  ) => caller.callServerEndpoint<_i10.Utilisateur?>(
+    'profil',
+    'updateProfil',
+    {
+      'nom': nom,
+      'telephone': telephone,
+      'dateNaissance': dateNaissance,
+    },
+  );
+}
+
+/// {@category Endpoint}
 class EndpointSalles extends _i2.EndpointRef {
   EndpointSalles(_i2.EndpointCaller caller) : super(caller);
 
@@ -826,6 +855,7 @@ class Client extends _i2.ServerpodClientShared {
     faq = EndpointFaq(this);
     films = EndpointFilms(this);
     options = EndpointOptions(this);
+    profil = EndpointProfil(this);
     salles = EndpointSalles(this);
     seances = EndpointSeances(this);
     support = EndpointSupport(this);
@@ -851,6 +881,8 @@ class Client extends _i2.ServerpodClientShared {
 
   late final EndpointOptions options;
 
+  late final EndpointProfil profil;
+
   late final EndpointSalles salles;
 
   late final EndpointSeances seances;
@@ -872,6 +904,7 @@ class Client extends _i2.ServerpodClientShared {
     'faq': faq,
     'films': films,
     'options': options,
+    'profil': profil,
     'salles': salles,
     'seances': seances,
     'support': support,

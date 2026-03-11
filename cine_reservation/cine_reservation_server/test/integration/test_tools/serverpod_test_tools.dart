@@ -156,6 +156,8 @@ class TestEndpoints {
 
   late final _OptionsEndpoint options;
 
+  late final _ProfilEndpoint profil;
+
   late final _SallesEndpoint salles;
 
   late final _SeancesEndpoint seances;
@@ -205,6 +207,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     options = _OptionsEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    profil = _ProfilEndpoint(
       endpoints,
       serializationManager,
     );
@@ -2282,6 +2288,84 @@ class _OptionsEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<List<_i14.OptionSupplementaire>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _ProfilEndpoint {
+  _ProfilEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i10.Utilisateur?> getProfil(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profil',
+            method: 'getProfil',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profil',
+          methodName: 'getProfil',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i10.Utilisateur?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i10.Utilisateur?> updateProfil(
+    _i1.TestSessionBuilder sessionBuilder,
+    String nom,
+    String? telephone,
+    DateTime? dateNaissance,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profil',
+            method: 'updateProfil',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profil',
+          methodName: 'updateProfil',
+          parameters: _i1.testObjectToJson({
+            'nom': nom,
+            'telephone': telephone,
+            'dateNaissance': dateNaissance,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i10.Utilisateur?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

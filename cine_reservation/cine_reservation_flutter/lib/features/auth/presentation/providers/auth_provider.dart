@@ -53,6 +53,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _controller.addListener(_onControllerChanged);
   }
 
+  // ─── Écoute les changements du controller ───
   void _onControllerChanged() {
     if (_controller.state == EmailAuthState.error) {
       state = state.copyWith(

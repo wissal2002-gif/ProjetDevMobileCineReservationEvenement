@@ -20,22 +20,23 @@ import '../endpoints/evenements_endpoint.dart' as _i7;
 import '../endpoints/faq_endpoint.dart' as _i8;
 import '../endpoints/films_endpoint.dart' as _i9;
 import '../endpoints/options_endpoint.dart' as _i10;
-import '../endpoints/salles_endpoint.dart' as _i11;
-import '../endpoints/seances_endpoint.dart' as _i12;
-import '../endpoints/support_endpoint.dart' as _i13;
-import '../greetings/greeting_endpoint.dart' as _i14;
-import 'package:cine_reservation_server/src/generated/film.dart' as _i15;
-import 'package:cine_reservation_server/src/generated/cinema.dart' as _i16;
-import 'package:cine_reservation_server/src/generated/salle.dart' as _i17;
-import 'package:cine_reservation_server/src/generated/siege.dart' as _i18;
-import 'package:cine_reservation_server/src/generated/seance.dart' as _i19;
-import 'package:cine_reservation_server/src/generated/evenement.dart' as _i20;
+import '../endpoints/profil_endpoint.dart' as _i11;
+import '../endpoints/salles_endpoint.dart' as _i12;
+import '../endpoints/seances_endpoint.dart' as _i13;
+import '../endpoints/support_endpoint.dart' as _i14;
+import '../greetings/greeting_endpoint.dart' as _i15;
+import 'package:cine_reservation_server/src/generated/film.dart' as _i16;
+import 'package:cine_reservation_server/src/generated/cinema.dart' as _i17;
+import 'package:cine_reservation_server/src/generated/salle.dart' as _i18;
+import 'package:cine_reservation_server/src/generated/siege.dart' as _i19;
+import 'package:cine_reservation_server/src/generated/seance.dart' as _i20;
+import 'package:cine_reservation_server/src/generated/evenement.dart' as _i21;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
-    as _i21;
-import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i22;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i23;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i24;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -95,25 +96,31 @@ class Endpoints extends _i1.EndpointDispatch {
           'options',
           null,
         ),
-      'salles': _i11.SallesEndpoint()
+      'profil': _i11.ProfilEndpoint()
+        ..initialize(
+          server,
+          'profil',
+          null,
+        ),
+      'salles': _i12.SallesEndpoint()
         ..initialize(
           server,
           'salles',
           null,
         ),
-      'seances': _i12.SeancesEndpoint()
+      'seances': _i13.SeancesEndpoint()
         ..initialize(
           server,
           'seances',
           null,
         ),
-      'support': _i13.SupportEndpoint()
+      'support': _i14.SupportEndpoint()
         ..initialize(
           server,
           'support',
           null,
         ),
-      'greeting': _i14.GreetingEndpoint()
+      'greeting': _i15.GreetingEndpoint()
         ..initialize(
           server,
           'greeting',
@@ -333,7 +340,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'film': _i1.ParameterDescription(
               name: 'film',
-              type: _i1.getType<_i15.Film>(),
+              type: _i1.getType<_i16.Film>(),
               nullable: false,
             ),
           },
@@ -351,7 +358,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'film': _i1.ParameterDescription(
               name: 'film',
-              type: _i1.getType<_i15.Film>(),
+              type: _i1.getType<_i16.Film>(),
               nullable: false,
             ),
           },
@@ -399,7 +406,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cinema': _i1.ParameterDescription(
               name: 'cinema',
-              type: _i1.getType<_i16.Cinema>(),
+              type: _i1.getType<_i17.Cinema>(),
               nullable: false,
             ),
           },
@@ -418,7 +425,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cinema': _i1.ParameterDescription(
               name: 'cinema',
-              type: _i1.getType<_i16.Cinema>(),
+              type: _i1.getType<_i17.Cinema>(),
               nullable: false,
             ),
           },
@@ -466,7 +473,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'salle': _i1.ParameterDescription(
               name: 'salle',
-              type: _i1.getType<_i17.Salle>(),
+              type: _i1.getType<_i18.Salle>(),
               nullable: false,
             ),
           },
@@ -484,7 +491,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'salle': _i1.ParameterDescription(
               name: 'salle',
-              type: _i1.getType<_i17.Salle>(),
+              type: _i1.getType<_i18.Salle>(),
               nullable: false,
             ),
           },
@@ -571,7 +578,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'siege': _i1.ParameterDescription(
               name: 'siege',
-              type: _i1.getType<_i18.Siege>(),
+              type: _i1.getType<_i19.Siege>(),
               nullable: false,
             ),
           },
@@ -639,7 +646,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'seance': _i1.ParameterDescription(
               name: 'seance',
-              type: _i1.getType<_i19.Seance>(),
+              type: _i1.getType<_i20.Seance>(),
               nullable: false,
             ),
           },
@@ -658,7 +665,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'seance': _i1.ParameterDescription(
               name: 'seance',
-              type: _i1.getType<_i19.Seance>(),
+              type: _i1.getType<_i20.Seance>(),
               nullable: false,
             ),
           },
@@ -924,7 +931,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'evenement': _i1.ParameterDescription(
               name: 'evenement',
-              type: _i1.getType<_i20.Evenement>(),
+              type: _i1.getType<_i21.Evenement>(),
               nullable: false,
             ),
           },
@@ -943,7 +950,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'evenement': _i1.ParameterDescription(
               name: 'evenement',
-              type: _i1.getType<_i20.Evenement>(),
+              type: _i1.getType<_i21.Evenement>(),
               nullable: false,
             ),
           },
@@ -1026,7 +1033,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'option': _i1.ParameterDescription(
               name: 'option',
-              type: _i1.getType<_i21.OptionSupplementaire>(),
+              type: _i1.getType<_i22.OptionSupplementaire>(),
               nullable: false,
             ),
           },
@@ -1045,7 +1052,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'option': _i1.ParameterDescription(
               name: 'option',
-              type: _i1.getType<_i21.OptionSupplementaire>(),
+              type: _i1.getType<_i22.OptionSupplementaire>(),
               nullable: false,
             ),
           },
@@ -1268,6 +1275,54 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['profil'] = _i1.EndpointConnector(
+      name: 'profil',
+      endpoint: endpoints['profil']!,
+      methodConnectors: {
+        'getProfil': _i1.MethodConnector(
+          name: 'getProfil',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profil'] as _i11.ProfilEndpoint).getProfil(
+                session,
+              ),
+        ),
+        'updateProfil': _i1.MethodConnector(
+          name: 'updateProfil',
+          params: {
+            'nom': _i1.ParameterDescription(
+              name: 'nom',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'telephone': _i1.ParameterDescription(
+              name: 'telephone',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'dateNaissance': _i1.ParameterDescription(
+              name: 'dateNaissance',
+              type: _i1.getType<DateTime?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['profil'] as _i11.ProfilEndpoint).updateProfil(
+                    session,
+                    params['nom'],
+                    params['telephone'],
+                    params['dateNaissance'],
+                  ),
+        ),
+      },
+    );
     connectors['salles'] = _i1.EndpointConnector(
       name: 'salles',
       endpoint: endpoints['salles']!,
@@ -1279,7 +1334,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['salles'] as _i11.SallesEndpoint).getSalles(
+              ) async => (endpoints['salles'] as _i12.SallesEndpoint).getSalles(
                 session,
               ),
         ),
@@ -1302,7 +1357,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['seances'] as _i12.SeancesEndpoint)
+              ) async => (endpoints['seances'] as _i13.SeancesEndpoint)
                   .getSeancesByFilm(
                     session,
                     params['filmId'],
@@ -1333,7 +1388,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['support'] as _i13.SupportEndpoint).creerDemande(
+                  (endpoints['support'] as _i14.SupportEndpoint).creerDemande(
                     session,
                     params['sujet'],
                     params['message'],
@@ -1346,7 +1401,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['support'] as _i13.SupportEndpoint)
+              ) async => (endpoints['support'] as _i14.SupportEndpoint)
                   .getDemandes(session),
         ),
       },
@@ -1368,16 +1423,16 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['greeting'] as _i14.GreetingEndpoint).hello(
+              ) async => (endpoints['greeting'] as _i15.GreetingEndpoint).hello(
                 session,
                 params['name'],
               ),
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i22.Endpoints()
+    modules['serverpod_auth_idp'] = _i23.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i23.Endpoints()
+    modules['serverpod_auth_core'] = _i24.Endpoints()
       ..initializeEndpoints(server);
   }
 }

@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../admin/presentation/providers/admin_provider.dart'; // Import corrigé
+import '../../../admin/presentation/providers/admin_provider.dart';
+import '../../../profil/pages/profil_page.dart'; // Import rétabli
 import 'home_page.dart';
 import '../../../programmation/presentation/pages/films_list_page.dart';
 import '../../../evenements/presentation/pages/evenements_page.dart';
@@ -21,7 +22,6 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    // Vérification du rôle admin via le provider (utilisant isUserAdminProvider de admin_provider.dart)
     final isAdmin = ref.watch(isUserAdminProvider).value ?? false;
 
     return Scaffold(
@@ -38,7 +38,6 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
-                  // Logo
                   GestureDetector(
                     onTap: () => setState(() => _selectedIndex = 0),
                     child: Row(
@@ -60,7 +59,6 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
                     ),
                   ),
                   const Spacer(),
-                  // Nav Items
                   _buildNavItem("Accueil", 0),
                   _buildNavItem("Films", 1),
                   _buildNavItem("Événements", 2),
@@ -69,7 +67,6 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
 
                   const SizedBox(width: 24),
 
-                  // BOUTON ADMIN
                   if (isAdmin)
                     Padding(
                       padding: const EdgeInsets.only(right: 16),
@@ -127,7 +124,7 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
           const FilmsListPage(),
           const EvenementsPage(),
           const Center(child: Text("Mes Réservations", style: TextStyle(color: Colors.white))),
-          const Center(child: Text("Profil Utilisateur", style: TextStyle(color: Colors.white))), // Placeholder Profil
+          const ProfilPage(), // Vraie page Profil rétablie
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
