@@ -9,3 +9,8 @@ fields:
   categorie: String?, default='snack'
   disponible: bool?, default=true
   image: String?
+  cinemaId: int? # Relation avec le cinéma pour choisir les options par cinéma
+
+indexes:
+  option_cinema_idx:
+    fields: cinemaId

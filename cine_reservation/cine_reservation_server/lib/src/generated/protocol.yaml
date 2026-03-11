@@ -9,6 +9,49 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+admin:
+  - ajouterFilm:
+  - modifierFilm:
+  - supprimerFilm:
+  - getAllFilms:
+  - ajouterCinema:
+  - modifierCinema:
+  - supprimerCinema:
+  - getAllCinemas:
+  - ajouterSalle:
+  - modifierSalle:
+  - supprimerSalle:
+  - getSallesByCinema:
+  - getAllSalles:
+  - getSiegesBySalle:
+  - ajouterSiege:
+  - supprimerSiege:
+  - genererSiegesPourSalle:
+  - ajouterSeance:
+  - modifierSeance:
+  - supprimerSeance:
+  - getAllSeances:
+  - getSeancesByFilm:
+  - getAllUtilisateurs:
+  - suspendreUtilisateur:
+  - activerUtilisateur:
+  - supprimerUtilisateur:
+  - getHistoriqueUtilisateur:
+  - getAllReservations:
+  - rembourserReservation:
+  - getTauxRemplissageSeance:
+  - getSiegesByReservation:
+  - getAllEvenements:
+  - ajouterEvenement:
+  - modifierEvenement:
+  - supprimerEvenement:
+  - getAllDemandesSupport:
+  - repondreDemande:
+  - getAllOptions:
+  - ajouterOption:
+  - modifierOption:
+  - supprimerOption:
+  - getAdminStats:
 avis:
 cinemas:
   - getCinemas:
@@ -17,6 +60,8 @@ evenements:
   - getEvenements:
   - getEvenementById:
   - searchEvenements:
+faq:
+  - getAllFaqs:
 films:
   - getFilms:
   - getFilmById:

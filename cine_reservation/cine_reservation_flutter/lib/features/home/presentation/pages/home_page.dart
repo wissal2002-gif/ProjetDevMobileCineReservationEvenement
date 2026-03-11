@@ -50,12 +50,22 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: Column(
                 children: [
                   const Text(
-                    "Réservez vos billets de cinéma en ligne",
+                    "Réservez vos billets de Cinéma et d’Événements en ligne",
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.w900, height: 1.1),
                   ),
                   const SizedBox(height: 40),
                   _buildMaquetteSearchBar(context),
+                  const SizedBox(height: 20),
+                  // --- BOUTON FAQ AJOUTÉ ICI ---
+                  TextButton.icon(
+                    onPressed: () => context.push('/faq'),
+                    icon: const Icon(Icons.help_center_outlined, color: Color(0xFF8B7355)),
+                    label: const Text(
+                      "Une question ? Consultez notre FAQ",
+                      style: TextStyle(color: Colors.white70, decoration: TextDecoration.underline),
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -37,15 +37,19 @@ import 'salle.dart' as _i22;
 import 'seance.dart' as _i23;
 import 'siege.dart' as _i24;
 import 'utilisateur.dart' as _i25;
-import 'package:cine_reservation_server/src/generated/cinema.dart' as _i26;
-import 'package:cine_reservation_server/src/generated/evenement.dart' as _i27;
-import 'package:cine_reservation_server/src/generated/film.dart' as _i28;
-import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
-    as _i29;
-import 'package:cine_reservation_server/src/generated/salle.dart' as _i30;
-import 'package:cine_reservation_server/src/generated/seance.dart' as _i31;
+import 'package:cine_reservation_server/src/generated/film.dart' as _i26;
+import 'package:cine_reservation_server/src/generated/cinema.dart' as _i27;
+import 'package:cine_reservation_server/src/generated/salle.dart' as _i28;
+import 'package:cine_reservation_server/src/generated/siege.dart' as _i29;
+import 'package:cine_reservation_server/src/generated/seance.dart' as _i30;
+import 'package:cine_reservation_server/src/generated/utilisateur.dart' as _i31;
+import 'package:cine_reservation_server/src/generated/reservation.dart' as _i32;
+import 'package:cine_reservation_server/src/generated/evenement.dart' as _i33;
 import 'package:cine_reservation_server/src/generated/demande_support.dart'
-    as _i32;
+    as _i34;
+import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
+    as _i35;
+import 'package:cine_reservation_server/src/generated/faq.dart' as _i36;
 export 'avis.dart';
 export 'billet.dart';
 export 'cinema.dart';
@@ -1086,6 +1090,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: true,
           dartType: 'String?',
         ),
+        _i2.ColumnDefinition(
+          name: 'cinemaId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
       ],
       foreignKeys: [],
       indexes: [
@@ -1101,6 +1111,19 @@ class Protocol extends _i1.SerializationManagerServer {
           type: 'btree',
           isUnique: true,
           isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'option_cinema_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'cinemaId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
         ),
       ],
       managed: true,
@@ -2182,36 +2205,61 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i26.Cinema>) {
-      return (data as List).map((e) => deserialize<_i26.Cinema>(e)).toList()
+    if (t == List<_i26.Film>) {
+      return (data as List).map((e) => deserialize<_i26.Film>(e)).toList() as T;
+    }
+    if (t == List<_i27.Cinema>) {
+      return (data as List).map((e) => deserialize<_i27.Cinema>(e)).toList()
           as T;
     }
-    if (t == List<_i27.Evenement>) {
-      return (data as List).map((e) => deserialize<_i27.Evenement>(e)).toList()
+    if (t == List<_i28.Salle>) {
+      return (data as List).map((e) => deserialize<_i28.Salle>(e)).toList()
           as T;
     }
-    if (t == List<_i28.Film>) {
-      return (data as List).map((e) => deserialize<_i28.Film>(e)).toList() as T;
+    if (t == List<_i29.Siege>) {
+      return (data as List).map((e) => deserialize<_i29.Siege>(e)).toList()
+          as T;
     }
-    if (t == List<_i29.OptionSupplementaire>) {
+    if (t == List<_i30.Seance>) {
+      return (data as List).map((e) => deserialize<_i30.Seance>(e)).toList()
+          as T;
+    }
+    if (t == List<_i31.Utilisateur>) {
       return (data as List)
-              .map((e) => deserialize<_i29.OptionSupplementaire>(e))
+              .map((e) => deserialize<_i31.Utilisateur>(e))
               .toList()
           as T;
     }
-    if (t == List<_i30.Salle>) {
-      return (data as List).map((e) => deserialize<_i30.Salle>(e)).toList()
-          as T;
-    }
-    if (t == List<_i31.Seance>) {
-      return (data as List).map((e) => deserialize<_i31.Seance>(e)).toList()
-          as T;
-    }
-    if (t == List<_i32.DemandeSupport>) {
+    if (t == List<_i32.Reservation>) {
       return (data as List)
-              .map((e) => deserialize<_i32.DemandeSupport>(e))
+              .map((e) => deserialize<_i32.Reservation>(e))
               .toList()
           as T;
+    }
+    if (t == List<_i33.Evenement>) {
+      return (data as List).map((e) => deserialize<_i33.Evenement>(e)).toList()
+          as T;
+    }
+    if (t == List<_i34.DemandeSupport>) {
+      return (data as List)
+              .map((e) => deserialize<_i34.DemandeSupport>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i35.OptionSupplementaire>) {
+      return (data as List)
+              .map((e) => deserialize<_i35.OptionSupplementaire>(e))
+              .toList()
+          as T;
+    }
+    if (t == Map<String, int>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<int>(v)),
+          )
+          as T;
+    }
+    if (t == List<_i36.Faq>) {
+      return (data as List).map((e) => deserialize<_i36.Faq>(e)).toList() as T;
     }
     try {
       return _i3.Protocol().deserialize<T>(data, t);
