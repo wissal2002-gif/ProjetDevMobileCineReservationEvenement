@@ -825,6 +825,17 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['utilisateurId'],
                   ),
         ),
+        'getMonProfil': _i1.MethodConnector(
+          name: 'getMonProfil',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).getMonProfil(
+                session,
+              ),
+        ),
         'getAllReservations': _i1.MethodConnector(
           name: 'getAllReservations',
           params: {},

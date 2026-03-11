@@ -72,6 +72,12 @@ class AdminEndpoint extends Endpoint {
   Future<void> supprimerUtilisateur(Session session, int id) async => await Utilisateur.db.deleteWhere(session, where: (t) => t.id.equals(id));
   Future<List<Reservation>> getHistoriqueUtilisateur(Session session, int utilisateurId) async => await Reservation.db.find(session, where: (t) => t.utilisateurId.equals(utilisateurId), orderBy: (t) => t.dateReservation, orderDescending: true);
 
+  Future<Utilisateur?> getMonProfil(Session session) async {
+    var authInfo = await session.authenticated; // Ajout du await ici
+    if (authInfo == null) return null;
+    return await Utilisateur.db.findFirstRow(session, where: (t) => t.authUserId.equals(authInfo.userIdentifier));
+  }
+
   // ─── RÉSERVATIONS ───
   Future<List<Reservation>> getAllReservations(Session session) async => await Reservation.db.find(session, orderBy: (t) => t.dateReservation, orderDescending: true);
   Future<void> rembourserReservation(Session session, int reservationId, double montant) async {
@@ -80,15 +86,17 @@ class AdminEndpoint extends Endpoint {
   }
   Future<double> getTauxRemplissageSeance(Session session, int seanceId) async {
     final seance = await Seance.db.findById(session, seanceId);
-    final salle = await Salle.db.findById(session, seance?.salleId ?? 0);
-    if (seance == null || salle == null) return 0.0;
+    if (seance == null) return 0.0;
+    final salle = await Salle.db.findById(session, seance.salleId);
+    if (salle == null) return 0.0;
     final count = await Reservation.db.count(session, where: (t) => t.seanceId.equals(seanceId) & t.statut.notEquals('annule'));
     return (count / salle.capacite) * 100;
   }
   Future<List<Siege>> getSiegesByReservation(Session session, int reservationId) async {
     final rels = await ReservationSiege.db.find(session, where: (t) => t.reservationId.equals(reservationId));
     final ids = rels.map((r) => r.siegeId).toSet();
-    return ids.isEmpty ? [] : await Siege.db.find(session, where: (t) => t.id.inSet(ids));
+    if (ids.isEmpty) return [];
+    return await Siege.db.find(session, where: (t) => t.id.inSet(ids));
   }
 
   // ─── ÉVÉNEMENTS ───

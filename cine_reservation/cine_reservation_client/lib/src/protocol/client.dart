@@ -460,6 +460,13 @@ class EndpointAdmin extends _i2.EndpointRef {
     {'utilisateurId': utilisateurId},
   );
 
+  _i3.Future<_i10.Utilisateur?> getMonProfil() =>
+      caller.callServerEndpoint<_i10.Utilisateur?>(
+        'admin',
+        'getMonProfil',
+        {},
+      );
+
   _i3.Future<List<_i11.Reservation>> getAllReservations() =>
       caller.callServerEndpoint<List<_i11.Reservation>>(
         'admin',

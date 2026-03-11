@@ -1,6 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../main.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+
+// --- Vérification Admin réactive ---
+final isUserAdminProvider = FutureProvider<bool>((ref) async {
+  // On observe l'état d'authentification pour réagir aux connexions/déconnexions
+  final authState = ref.watch(authProvider);
+  
+  if (!authState.isAuthenticated) return false;
+
+  try {
+    final user = await client.admin.getMonProfil();
+    // Retourne true si le rôle est admin
+    return user?.role == 'admin';
+  } catch (e) {
+    return false;
+  }
+});
 
 // --- Statistiques Dashboard ---
 final adminStatsProvider = FutureProvider<Map<String, int>>((ref) async {

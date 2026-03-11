@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../admin/presentation/providers/admin_provider.dart'; // Import corrigé
 import 'home_page.dart';
 import '../../../programmation/presentation/pages/films_list_page.dart';
 import '../../../evenements/presentation/pages/evenements_page.dart';
@@ -20,6 +21,8 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    // Vérification du rôle admin via le provider (utilisant isUserAdminProvider de admin_provider.dart)
+    final isAdmin = ref.watch(isUserAdminProvider).value ?? false;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -63,11 +66,30 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
                   _buildNavItem("Événements", 2),
                   _buildNavItem("Mes Réservations", 3),
                   _buildNavItem("Profil", 4),
+
                   const SizedBox(width: 24),
-                  // Search
+
+                  // BOUTON ADMIN
+                  if (isAdmin)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: TextButton.icon(
+                        onPressed: () => context.push('/admin'),
+                        icon: const Icon(Icons.admin_panel_settings, color: AppColors.accent, size: 20),
+                        label: const Text(
+                          "ADMIN",
+                          style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+                        ),
+                        style: TextButton.styleFrom(
+                          backgroundColor: AppColors.accent.withOpacity(0.1),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ),
+
                   const Icon(Icons.search, color: Colors.white70, size: 22),
                   const SizedBox(width: 24),
-                  // Auth
+
                   if (!authState.isAuthenticated) ...[
                     TextButton(
                       onPressed: () => context.go('/login'),
@@ -88,6 +110,7 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
                   ] else ...[
                     IconButton(
                       icon: const Icon(Icons.logout, color: Colors.redAccent),
+                      tooltip: "Déconnexion",
                       onPressed: () => ref.read(authProvider.notifier).logout(),
                     ),
                   ],
@@ -104,7 +127,7 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
           const FilmsListPage(),
           const EvenementsPage(),
           const Center(child: Text("Mes Réservations", style: TextStyle(color: Colors.white))),
-          const Center(child: Text("Profil", style: TextStyle(color: Colors.white))),
+          const Center(child: Text("Profil Utilisateur", style: TextStyle(color: Colors.white))), // Placeholder Profil
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

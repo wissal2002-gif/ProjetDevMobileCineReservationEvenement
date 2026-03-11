@@ -38,6 +38,7 @@ admin:
   - activerUtilisateur:
   - supprimerUtilisateur:
   - getHistoriqueUtilisateur:
+  - getMonProfil:
   - getAllReservations:
   - rembourserReservation:
   - getTauxRemplissageSeance:
