@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../main.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/admin_provider.dart';
@@ -61,43 +62,55 @@ class _ManageCinemasPageState extends ConsumerState<ManageCinemasPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (cinema.email != null) Text("Email: ${cinema.email}", style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                        if (cinema.adresse.isNotEmpty) Text("Adresse: ${cinema.adresse}", style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                        const Divider(color: Colors.white10),
+                        const Text("SALLES", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 12)),
                         ref.watch(sallesProvider(cinema.id!)).when(
                           data: (salles) => Column(
                             children: [
                               ...salles.map((salle) => ListTile(
                                 contentPadding: EdgeInsets.zero,
                                 dense: true,
-                                leading: const Icon(Icons.door_sliding_outlined, color: Colors.white38),
                                 title: Text("Salle ${salle.codeSalle}", style: const TextStyle(color: Colors.white70)),
-                                subtitle: Text("${salle.capacite} sièges • ${salle.typeProjection}\nÉquipements: ${salle.equipements ?? 'Standard'}", style: const TextStyle(color: Colors.white38)),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.blueAccent),
-                                      onPressed: () => _showSalleDialog(context, cinema.id!, salle: salle),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.remove_circle_outline, size: 18, color: Colors.redAccent),
-                                      onPressed: () => _deleteSalle(salle.id!, cinema.id!),
-                                    ),
-                                  ],
+                                subtitle: Text("${salle.capacite} sièges • ${salle.typeProjection}"),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.remove_circle_outline, size: 18, color: Colors.redAccent),
+                                  onPressed: () => _deleteSalle(salle.id!, cinema.id!),
                                 ),
                               )),
-                              const Divider(color: Colors.white10),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.add_circle_outline, color: AppColors.accent),
-                                title: const Text("Ajouter une salle", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
-                                onTap: () => _showSalleDialog(context, cinema.id!),
+                              TextButton.icon(
+                                icon: const Icon(Icons.add, size: 16),
+                                label: const Text("Ajouter une salle"),
+                                onPressed: () => _showSalleDialog(context, cinema.id!),
                               ),
                             ],
                           ),
-                          loading: () => const LinearProgressIndicator(color: AppColors.accent),
-                          error: (e, __) => Text("Erreur : $e", style: const TextStyle(color: Colors.redAccent)),
+                          loading: () => const LinearProgressIndicator(),
+                          error: (e, __) => Text("Erreur : $e"),
+                        ),
+                        
+                        const Divider(color: Colors.white10),
+                        const Text("OPTIONS & SNACKS", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 12)),
+                        ref.watch(allOptionsProvider).when(
+                          data: (options) {
+                            final cinemaOptions = options.where((o) => o.cinemaId == cinema.id).toList();
+                            return Column(
+                              children: [
+                                ...cinemaOptions.map((opt) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  dense: true,
+                                  leading: const Icon(Icons.fastfood_outlined, size: 16, color: Colors.white38),
+                                  title: Text(opt.nom, style: const TextStyle(color: Colors.white70)),
+                                  subtitle: Text("${opt.prix} DH", style: const TextStyle(color: Colors.white38)),
+                                )),
+                                TextButton.icon(
+                                  icon: const Icon(Icons.add, size: 16),
+                                  label: const Text("Gérer les snacks"),
+                                  onPressed: () => context.push('/admin/options'),
+                                ),
+                              ],
+                            );
+                          },
+                          loading: () => const SizedBox(),
+                          error: (_, __) => const SizedBox(),
                         ),
                       ],
                     ),
@@ -125,14 +138,14 @@ class _ManageCinemasPageState extends ConsumerState<ManageCinemasPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.cardBg,
-        title: Text(isEdit ? "Modifier Cinéma" : "Nouveau Cinéma", style: const TextStyle(color: Colors.white)),
+        title: Text(isEdit ? "Modifier" : "Nouveau"),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _textField(nomCtrl, "Nom du cinéma"),
+              _textField(nomCtrl, "Nom"),
               _textField(villeCtrl, "Ville"),
-              _textField(adresseCtrl, "Adresse complète"),
+              _textField(adresseCtrl, "Adresse"),
               _textField(telCtrl, "Téléphone", keyboard: TextInputType.phone),
               _textField(emailCtrl, "Email", keyboard: TextInputType.emailAddress),
             ],
@@ -142,121 +155,52 @@ class _ManageCinemasPageState extends ConsumerState<ManageCinemasPage> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
           ElevatedButton(
             onPressed: () async {
-              if (nomCtrl.text.isEmpty) return;
-              final newCinema = Cinema(
-                id: cinema?.id,
-                nom: nomCtrl.text,
-                ville: villeCtrl.text,
-                adresse: adresseCtrl.text,
-                telephone: telCtrl.text,
-                email: emailCtrl.text,
-              );
-              
-              if (isEdit) {
-                await client.admin.modifierCinema(newCinema);
-              } else {
-                await client.admin.ajouterCinema(newCinema);
-              }
-              
+              final newCinema = Cinema(id: cinema?.id, nom: nomCtrl.text, ville: villeCtrl.text, adresse: adresseCtrl.text, telephone: telCtrl.text, email: emailCtrl.text);
+              if (isEdit) await client.admin.modifierCinema(newCinema); else await client.admin.ajouterCinema(newCinema);
               ref.invalidate(allCinemasProvider);
-              if (context.mounted) Navigator.pop(context);
+              Navigator.pop(context);
             },
-            child: Text(isEdit ? "Enregistrer" : "Créer"),
+            child: const Text("Enregistrer"),
           ),
         ],
       ),
     );
   }
 
-  void _showSalleDialog(BuildContext context, int cinemaId, {Salle? salle}) {
-    final bool isEdit = salle != null;
-    final codeCtrl = TextEditingController(text: salle?.codeSalle);
-    final capCtrl = TextEditingController(text: salle?.capacite.toString() ?? "100");
-    String selectedProjection = salle?.typeProjection ?? "2D";
-    
-    List<String> selectedEquipements = salle?.equipements?.split(", ").where((e) => e.isNotEmpty).toList() ?? [];
-    final List<String> availableEquipements = ["Dolby Atmos", "4K", "Projecteur Laser", "Sièges VIP", "Accès PMR", "Climatisation"];
+  void _showSalleDialog(BuildContext context, int cinemaId) {
+    final codeCtrl = TextEditingController();
+    final capCtrl = TextEditingController(text: "100");
+    String selectedProjection = "2D";
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: AppColors.cardBg,
-          title: Text(isEdit ? "Modifier Salle" : "Ajouter une Salle", style: const TextStyle(color: Colors.white)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _textField(codeCtrl, "Nom/Code de la salle"),
-                _textField(capCtrl, "Capacité", keyboard: TextInputType.number),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  value: selectedProjection,
-                  dropdownColor: AppColors.cardBg,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: "Type de Projection",
-                    labelStyle: const TextStyle(color: Colors.white54),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.05),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                  ),
-                  items: ["2D", "3D", "IMAX", "4DX"]
-                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                      .toList(),
-                  onChanged: (val) => setDialogState(() => selectedProjection = val!),
-                ),
-                const SizedBox(height: 16),
-                const Text("Équipements", style: TextStyle(color: Colors.white70, fontSize: 14)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: availableEquipements.map((e) {
-                    final isSelected = selectedEquipements.contains(e);
-                    return FilterChip(
-                      label: Text(e, style: TextStyle(color: isSelected ? Colors.black : Colors.white, fontSize: 12)),
-                      selected: isSelected,
-                      selectedColor: AppColors.accent,
-                      backgroundColor: Colors.white10,
-                      onSelected: (bool selected) {
-                        setDialogState(() {
-                          if (selected) {
-                            selectedEquipements.add(e);
-                          } else {
-                            selectedEquipements.remove(e);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
+          title: const Text("Ajouter Salle"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _textField(codeCtrl, "Code Salle"),
+              _textField(capCtrl, "Capacité", keyboard: TextInputType.number),
+              DropdownButtonFormField<String>(
+                value: selectedProjection,
+                dropdownColor: AppColors.cardBg,
+                items: ["2D", "3D", "IMAX"].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                onChanged: (v) => setDialogState(() => selectedProjection = v!),
+              ),
+            ],
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
             ElevatedButton(
               onPressed: () async {
-                if (codeCtrl.text.isEmpty) return;
-                final newSalle = Salle(
-                  id: salle?.id,
-                  cinemaId: cinemaId,
-                  codeSalle: codeCtrl.text,
-                  capacite: int.tryParse(capCtrl.text) ?? 100,
-                  typeProjection: selectedProjection,
-                  equipements: selectedEquipements.join(", "),
-                );
-                
-                if (isEdit) {
-                  await client.admin.modifierSalle(newSalle);
-                } else {
-                  await client.admin.ajouterSalle(newSalle);
-                }
-                
+                final salle = Salle(cinemaId: cinemaId, codeSalle: codeCtrl.text, capacite: int.parse(capCtrl.text), typeProjection: selectedProjection);
+                await client.admin.ajouterSalle(salle);
                 ref.invalidate(sallesProvider(cinemaId));
-                if (context.mounted) Navigator.pop(context);
+                Navigator.pop(context);
               },
-              child: Text(isEdit ? "Enregistrer" : "Ajouter"),
+              child: const Text("Ajouter"),
             ),
           ],
         ),
@@ -274,18 +218,11 @@ class _ManageCinemasPageState extends ConsumerState<ManageCinemasPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.cardBg,
-        title: const Text("Supprimer ?", style: TextStyle(color: Colors.white)),
-        content: Text("Cela supprimera le cinéma '$nom' et toutes ses salles.", style: const TextStyle(color: Colors.white70)),
+        title: const Text("Supprimer ?"),
+        content: Text("Supprimer '$nom' et toutes ses salles ?"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
-          TextButton(
-            onPressed: () async {
-              await client.admin.supprimerCinema(id);
-              ref.invalidate(allCinemasProvider);
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text("Supprimer", style: TextStyle(color: Colors.redAccent)),
-          ),
+          TextButton(onPressed: () async { await client.admin.supprimerCinema(id); ref.invalidate(allCinemasProvider); Navigator.pop(context); }, child: const Text("Supprimer", style: TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
@@ -293,20 +230,8 @@ class _ManageCinemasPageState extends ConsumerState<ManageCinemasPage> {
 
   Widget _textField(TextEditingController ctrl, String label, {TextInputType keyboard = TextInputType.text}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextField(
-        controller: ctrl,
-        keyboardType: keyboard,
-        style: const TextStyle(color: Colors.white, fontSize: 14),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white54, fontSize: 12),
-          filled: true,
-          fillColor: Colors.white.withOpacity(0.05),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-        ),
-      ),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextField(controller: ctrl, keyboardType: keyboard, style: const TextStyle(color: Colors.white), decoration: InputDecoration(labelText: label, filled: true, fillColor: Colors.white10)),
     );
   }
 }

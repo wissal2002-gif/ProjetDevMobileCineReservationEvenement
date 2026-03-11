@@ -50,6 +50,12 @@ class AdminEndpoint extends Endpoint {
   Future<void> supprimerSeance(Session session, int id) async => await Seance.db.deleteWhere(session, where: (t) => t.id.equals(id));
   Future<List<Seance>> getAllSeances(Session session) async => await Seance.db.find(session, orderBy: (t) => t.dateHeure);
   Future<List<Seance>> getSeancesByFilm(Session session, int filmId) async => await Seance.db.find(session, where: (t) => t.filmId.equals(filmId), orderBy: (t) => t.dateHeure);
+  Future<List<Seance>> getSeancesByCinema(Session session, int cinemaId) async {
+    final salles = await Salle.db.find(session, where: (t) => t.cinemaId.equals(cinemaId));
+    final salleIds = salles.map((s) => s.id!).toSet();
+    if (salleIds.isEmpty) return [];
+    return await Seance.db.find(session, where: (t) => t.salleId.inSet(salleIds), orderBy: (t) => t.dateHeure);
+  }
 
   // ─── GESTION DES UTILISATEURS ───
   Future<List<Utilisateur>> getAllUtilisateurs(Session session) async => await Utilisateur.db.find(session, orderBy: (t) => t.nom);
@@ -104,7 +110,7 @@ class AdminEndpoint extends Endpoint {
   Future<OptionSupplementaire> modifierOption(Session session, OptionSupplementaire option) async => await OptionSupplementaire.db.updateRow(session, option);
   Future<void> supprimerOption(Session session, int id) async => await OptionSupplementaire.db.deleteWhere(session, where: (t) => t.id.equals(id));
 
-  // ─── STATISTIQUES (RESTORED getAdminStats) ───
+  // ─── STATISTIQUES ───
   Future<Map<String, int>> getAdminStats(Session session) async {
     return {
       'totalFilms': await Film.db.count(session),

@@ -32,6 +32,7 @@ admin:
   - supprimerSeance:
   - getAllSeances:
   - getSeancesByFilm:
+  - getSeancesByCinema:
   - getAllUtilisateurs:
   - suspendreUtilisateur:
   - activerUtilisateur:

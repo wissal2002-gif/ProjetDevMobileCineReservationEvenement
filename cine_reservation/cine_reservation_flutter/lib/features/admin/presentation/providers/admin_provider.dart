@@ -2,11 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../main.dart';
 
-// Statistiques pour le Dashboard (Retourne une Map comme attendu par admin_dashboard_page.dart)
+// --- Statistiques Dashboard ---
 final adminStatsProvider = FutureProvider<Map<String, int>>((ref) async {
-  return await client.admin.getAdminStats();
+  try {
+    return await client.admin.getAdminStats();
+  } catch (e) {
+    throw Exception('Erreur statistiques : $e');
+  }
 });
 
+// --- Cinémas & Salles ---
 final allCinemasProvider = FutureProvider<List<Cinema>>((ref) async {
   return await client.admin.getAllCinemas();
 });
@@ -19,39 +24,57 @@ final allSallesProvider = FutureProvider<List<Salle>>((ref) async {
   return await client.admin.getAllSalles();
 });
 
+// --- Sièges ---
+final siegesBySalleProvider = FutureProvider.family<List<Siege>, int>((ref, salleId) async {
+  return await client.admin.getSiegesBySalle(salleId);
+});
+
+// --- Films & Séances ---
 final allSeancesProvider = FutureProvider<List<Seance>>((ref) async {
   return await client.admin.getAllSeances();
 });
 
+final seancesByFilmProvider = FutureProvider.family<List<Seance>, int>((ref, filmId) async {
+  return await client.admin.getSeancesByFilm(filmId);
+});
+
+final seancesByCinemaProvider = FutureProvider.family<List<Seance>, int>((ref, cinemaId) async {
+  return await client.admin.getSeancesByCinema(cinemaId);
+});
+
+// --- Utilisateurs ---
 final allUtilisateursProvider = FutureProvider<List<Utilisateur>>((ref) async {
   return await client.admin.getAllUtilisateurs();
 });
 
-final allReservationsProvider = FutureProvider<List<Reservation>>((ref) async {
-  return await client.admin.getAllReservations();
-});
-
-// Provider manquant pour l'historique
 final userHistoryProvider = FutureProvider.family<List<Reservation>, int>((ref, userId) async {
   return await client.admin.getHistoriqueUtilisateur(userId);
 });
 
-// Provider manquant pour les demandes de support (nom corrigé avec 's')
-final allDemandesSupportProvider = FutureProvider<List<DemandeSupport>>((ref) async {
-  return await client.admin.getAllDemandesSupport();
+// --- Réservations & Remplissage ---
+final allReservationsProvider = FutureProvider<List<Reservation>>((ref) async {
+  return await client.admin.getAllReservations();
 });
 
-// Provider manquant pour les sièges d'une réservation
 final reservationSiegesProvider = FutureProvider.family<List<Siege>, int>((ref, resId) async {
   return await client.admin.getSiegesByReservation(resId);
 });
 
-// Provider pour les événements
+final remplissageSeanceProvider = FutureProvider.family<double, int>((ref, seanceId) async {
+  return await client.admin.getTauxRemplissageSeance(seanceId);
+});
+
+// --- Événements ---
 final allEvenementsProvider = FutureProvider<List<Evenement>>((ref) async {
   return await client.admin.getAllEvenements();
 });
 
-// Provider pour le remplissage
-final remplissageSeanceProvider = FutureProvider.family<double, int>((ref, seanceId) async {
-  return await client.admin.getTauxRemplissageSeance(seanceId);
+// --- Options & Snacks ---
+final allOptionsProvider = FutureProvider<List<OptionSupplementaire>>((ref) async {
+  return await client.admin.getAllOptions();
+});
+
+// --- Support Client ---
+final allDemandesSupportProvider = FutureProvider<List<DemandeSupport>>((ref) async {
+  return await client.admin.getAllDemandesSupport();
 });

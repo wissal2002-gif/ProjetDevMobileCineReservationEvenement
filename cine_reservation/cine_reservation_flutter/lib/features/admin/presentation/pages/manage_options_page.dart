@@ -1,10 +1,9 @@
-// lib/features/admin/presentation/pages/manage_options_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../providers/admin_options_provider.dart';
 import '../../../../main.dart';
+import '../providers/admin_provider.dart';
 
 class ManageOptionsPage extends ConsumerWidget {
   const ManageOptionsPage({super.key});
@@ -28,16 +27,10 @@ class ManageOptionsPage extends ConsumerWidget {
       body: optionsAsync.when(
         data: (options) => options.isEmpty
             ? const Center(child: Text("Aucun snack configuré", style: TextStyle(color: Colors.white54)))
-            : GridView.builder(
+            : ListView.builder(
           padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.75,
-            crossAxisSpacing: 15,
-            mainAxisSpacing: 15,
-          ),
           itemCount: options.length,
-          itemBuilder: (context, index) => _buildOptionCard(context, ref, options[index]),
+          itemBuilder: (context, index) => _buildOptionRow(context, ref, options[index]),
         ),
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
         error: (e, _) => Center(child: Text("Erreur: $e", style: const TextStyle(color: Colors.red))),
@@ -45,45 +38,75 @@ class ManageOptionsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOptionCard(BuildContext context, WidgetRef ref, OptionSupplementaire item) {
+  Widget _buildOptionRow(BuildContext context, WidgetRef ref, OptionSupplementaire item) {
+    final cinemasAsync = ref.watch(allCinemasProvider);
+    
+    final String cinemaName = item.cinemaId == null 
+        ? "Tous les cinémas" 
+        : cinemasAsync.maybeWhen(
+            data: (cinemas) => cinemas.firstWhere((c) => c.id == item.cinemaId, orElse: () => Cinema(nom: "Inconnu", adresse: "", ville: "")).nom,
+            orElse: () => "Chargement..."
+          );
+
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      height: 100,
       decoration: BoxDecoration(
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: item.disponible == false ? Colors.red.withOpacity(0.3) : Colors.white10),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-              child: item.image != null && item.image!.isNotEmpty
-                  ? Image.network(item.image!, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.fastfood, size: 50, color: Colors.white24))
-                  : Container(color: Colors.black26, child: const Center(child: Icon(Icons.fastfood, size: 50, color: Colors.white24))),
+          ClipRRect(
+            borderRadius: const BorderRadius.horizontal(left: Radius.circular(15)),
+            child: SizedBox(
+              width: 100,
+              height: 100,
+              child: Stack(
+                children: [
+                  item.image != null && item.image!.isNotEmpty
+                      ? Image.network(item.image!, width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.fastfood, size: 40, color: Colors.white24))
+                      : Container(color: Colors.black26, child: const Center(child: Icon(Icons.fastfood, size: 40, color: Colors.white24))),
+                  if (item.disponible == false)
+                    Container(
+                      color: Colors.black54,
+                      child: const Center(child: Text("ÉPUISÉ", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 10))),
+                    ),
+                ],
+              ),
             ),
           ),
+          
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(item.nom, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Text("${item.prix} DH", style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
+                  Text(cinemaName, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                ],
+              ),
+            ),
+          ),
+
           Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.only(right: 8),
+            child: Row(
               children: [
-                Text(item.nom, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text("${item.prix} DH", style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blueAccent, size: 20),
-                      onPressed: () => _showOptionDialog(context, ref, option: item),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                      onPressed: () => _deleteOption(context, ref, item),
-                    ),
-                  ],
-                )
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.blueAccent, size: 20),
+                  onPressed: () => _showOptionDialog(context, ref, option: item),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                  onPressed: () => _deleteOption(context, ref, item),
+                ),
               ],
             ),
           )
@@ -96,49 +119,106 @@ class ManageOptionsPage extends ConsumerWidget {
     final nomCtrl = TextEditingController(text: option?.nom);
     final prixCtrl = TextEditingController(text: option?.prix.toString() ?? "");
     final imgCtrl = TextEditingController(text: option?.image);
-    final catCtrl = TextEditingController(text: option?.categorie ?? "snack");
+    final descCtrl = TextEditingController(text: option?.description);
+    
+    // Sécurité Dropdown : normalisation drink -> boisson et vérification existence
+    final List<String> categories = ['snack', 'boisson', 'service', 'vip', 'drink'];
+    String selectedCategorie = option?.categorie ?? 'snack';
+    if (!categories.contains(selectedCategorie)) selectedCategorie = 'snack';
+
+    int? selectedCinemaId = option?.cinemaId;
+    bool isDisponible = option?.disponible ?? true;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.cardBg,
-        title: Text(option == null ? "Nouvelle Option" : "Modifier l'Option", style: const TextStyle(color: Colors.white)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nomCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Nom")),
-              TextField(controller: prixCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Prix (DH)"), keyboardType: TextInputType.number),
-              TextField(controller: imgCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "URL Image")),
-              TextField(controller: catCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Catégorie (snack/boisson)")),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
-            onPressed: () async {
-              final newOption = OptionSupplementaire(
-                id: option?.id,
-                nom: nomCtrl.text,
-                prix: double.tryParse(prixCtrl.text) ?? 0.0,
-                image: imgCtrl.text,
-                categorie: catCtrl.text,
-                disponible: true,
-              );
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final cinemasAsync = ref.watch(allCinemasProvider);
 
-              if (option == null) {
-                await client.admin.ajouterOption(newOption);
-              } else {
-                await client.admin.modifierOption(newOption);
-              }
-              ref.invalidate(allOptionsProvider);
-              Navigator.pop(context);
-            },
-            child: const Text("Enregistrer", style: TextStyle(color: Colors.black)),
-          )
-        ],
+          return AlertDialog(
+            backgroundColor: AppColors.cardBg,
+            title: Text(option == null ? "Nouvelle Option" : "Modifier l'Option", style: const TextStyle(color: Colors.white)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(controller: nomCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Nom")),
+                  TextField(controller: prixCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Prix (DH)"), keyboardType: TextInputType.number),
+                  TextField(controller: imgCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "URL Image")),
+                  
+                  const SizedBox(height: 15),
+                  DropdownButtonFormField<String>(
+                    value: selectedCategorie,
+                    dropdownColor: AppColors.cardBg,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(labelText: "Catégorie"),
+                    items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat == 'drink' ? 'BOISSON (UK)' : cat.toUpperCase()))).toList(),
+                    onChanged: (val) => setDialogState(() => selectedCategorie = val!),
+                  ),
+
+                  const SizedBox(height: 15),
+                  cinemasAsync.when(
+                    data: (cinemas) => DropdownButtonFormField<int?>(
+                      value: selectedCinemaId,
+                      dropdownColor: AppColors.cardBg,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(labelText: "Affecter à un Cinéma"),
+                      items: [
+                        const DropdownMenuItem<int?>(value: null, child: Text("TOUS LES CINÉMAS")),
+                        ...cinemas.map((c) => DropdownMenuItem<int?>(value: c.id, child: Text(c.nom.toUpperCase()))),
+                      ],
+                      onChanged: (val) => setDialogState(() => selectedCinemaId = val),
+                    ),
+                    loading: () => const LinearProgressIndicator(),
+                    error: (_, __) => const Text("Erreur cinémas"),
+                  ),
+
+                  TextField(controller: descCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Description"), maxLines: 2),
+                  
+                  SwitchListTile(
+                    title: const Text("Disponible", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                    value: isDisponible,
+                    activeColor: AppColors.accent,
+                    onChanged: (val) => setDialogState(() => isDisponible = val),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
+                onPressed: () async {
+                  if (nomCtrl.text.isEmpty || prixCtrl.text.isEmpty) return;
+                  
+                  final newOption = OptionSupplementaire(
+                    id: option?.id,
+                    nom: nomCtrl.text,
+                    prix: double.tryParse(prixCtrl.text) ?? 0.0,
+                    image: imgCtrl.text,
+                    description: descCtrl.text,
+                    categorie: selectedCategorie,
+                    disponible: isDisponible,
+                    cinemaId: selectedCinemaId,
+                  );
+
+                  try {
+                    if (option == null) {
+                      await client.admin.ajouterOption(newOption);
+                    } else {
+                      await client.admin.modifierOption(newOption);
+                    }
+                    ref.invalidate(allOptionsProvider);
+                    Navigator.pop(context);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e")));
+                  }
+                },
+                child: const Text("Enregistrer", style: TextStyle(color: Colors.black)),
+              )
+            ],
+          );
+        },
       ),
     );
   }
