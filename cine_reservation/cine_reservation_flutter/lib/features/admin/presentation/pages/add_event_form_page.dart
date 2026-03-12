@@ -17,7 +17,6 @@ class AddEventFormPage extends ConsumerStatefulWidget {
 class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Contrôleurs pour tous les champs de la BD
   late TextEditingController _titreCtrl, _descCtrl, _lieuCtrl, _villeCtrl,
       _prixCtrl, _placesTotalCtrl, _afficheCtrl, _baCtrl, _orgaCtrl,
       _delaiAnnulCtrl, _fraisAnnulCtrl;
@@ -26,6 +25,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
   String _statut = 'actif';
   int? _selectedCinemaId;
   int? _selectedSalleId; 
+  String? _selectedSalleName; // Pour stocker le nom de la salle
   bool _isAtCinema = false;
   bool _annulationGratuite = true;
 
@@ -55,6 +55,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
       _dateDebut = widget.event!.dateDebut;
       _dateFin = widget.event!.dateFin;
       _annulationGratuite = widget.event!.annulationGratuite ?? true;
+      _selectedSalleName = widget.event!.lieu;
     }
   }
 
@@ -102,7 +103,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
               _buildCard([
                 _buildDropdownType(),
                 const SizedBox(height: 15),
-                _buildTextField(_titreCtrl, "Titre", Icons.title),
+                _buildTextField(_titreCtrl, "Titre", Icons.title, required: true),
                 const SizedBox(height: 15),
                 _buildTextField(_orgaCtrl, "Organisateur", Icons.person),
                 const SizedBox(height: 15),
@@ -120,6 +121,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                     if (!val) {
                       _selectedCinemaId = null;
                       _selectedSalleId = null;
+                      _selectedSalleName = null;
                     }
                   }),
                 ),
@@ -134,6 +136,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                       onChanged: (val) => setState(() {
                         _selectedCinemaId = val;
                         _selectedSalleId = null; 
+                        _selectedSalleName = null;
                       }),
                     ),
                     loading: () => const LinearProgressIndicator(),
@@ -159,6 +162,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                             setState(() {
                               _selectedSalleId = val;
                               final salle = snapshot.data!.firstWhere((s) => s.id == val);
+                              _selectedSalleName = "Salle ${salle.codeSalle}"; // On capture le nom
                               _placesTotalCtrl.text = salle.capacite.toString();
                             });
                           },
@@ -167,25 +171,25 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                     ),
                   ],
                 ] else ...[
-                  _buildTextField(_lieuCtrl, "Nom du Lieu (Théâtre, Stade...)", Icons.place),
+                  _buildTextField(_lieuCtrl, "Nom du Lieu (Théâtre, Stade...)", Icons.place, required: !_isAtCinema),
                   const SizedBox(height: 15),
-                  _buildTextField(_villeCtrl, "Ville", Icons.location_city),
+                  _buildTextField(_villeCtrl, "Ville", Icons.location_city, required: true),
                 ],
               ]),
 
               _buildSectionTitle("Dates & Prix"),
               _buildCard([
                 ListTile(
-                  title: const Text("Début"),
-                  subtitle: Text(DateFormat('dd/MM/yyyy HH:mm').format(_dateDebut)),
+                  title: const Text("Début", style: TextStyle(color: Colors.white, fontSize: 14)),
+                  subtitle: Text(DateFormat('dd/MM/yyyy HH:mm').format(_dateDebut), style: const TextStyle(color: AppColors.accent)),
                   trailing: const Icon(Icons.calendar_today, color: AppColors.accent),
                   onTap: () => _pickDateTime(true),
                 ),
                 Row(
                   children: [
-                    Expanded(child: _buildTextField(_prixCtrl, "Prix (DH)", Icons.money, isNumber: true)),
+                    Expanded(child: _buildTextField(_prixCtrl, "Prix (DH)", Icons.money, isNumber: true, required: true)),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildTextField(_placesTotalCtrl, "Places", Icons.event_seat, isNumber: true)),
+                    Expanded(child: _buildTextField(_placesTotalCtrl, "Places", Icons.event_seat, isNumber: true, required: true)),
                   ],
                 ),
               ]),
@@ -193,8 +197,9 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
               _buildSectionTitle("Annulation & Frais"),
               _buildCard([
                 SwitchListTile(
-                  title: const Text("Annulation Gratuite"),
+                  title: const Text("Annulation Gratuite", style: TextStyle(color: Colors.white)),
                   value: _annulationGratuite,
+                  activeColor: AppColors.accent,
                   onChanged: (val) => setState(() => _annulationGratuite = val),
                 ),
                 if (!_annulationGratuite) ...[
@@ -213,9 +218,13 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
 
               const SizedBox(height: 30),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent, minimumSize: const Size(double.infinity, 50)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent, 
+                  minimumSize: const Size(double.infinity, 55),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                ),
                 onPressed: _submit,
-                child: const Text("ENREGISTRER", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                child: const Text("ENREGISTRER L'ÉVÉNEMENT", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
               ),
               const SizedBox(height: 40),
             ],
@@ -225,25 +234,34 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
     );
   }
 
-  // --- Widgets Utilitaires ---
   Widget _buildSectionTitle(String title) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10),
-    child: Text(title.toUpperCase(), style: const TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.bold)),
+    padding: const EdgeInsets.symmetric(vertical: 12),
+    child: Text(title.toUpperCase(), style: const TextStyle(color: AppColors.accent, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
   );
 
   Widget _buildCard(List<Widget> children) => Container(
-    padding: const EdgeInsets.all(15),
-    decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(12)),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white.withOpacity(0.05))),
     child: Column(children: children),
   );
 
-  Widget _buildTextField(TextEditingController ctrl, String label, IconData icon, {int maxLines = 1, bool isNumber = false}) {
+  Widget _buildTextField(TextEditingController ctrl, String label, IconData icon, {int maxLines = 1, bool isNumber = false, bool required = false}) {
     return TextFormField(
       controller: ctrl,
       maxLines: maxLines,
-      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon, size: 20)),
-      style: const TextStyle(color: Colors.white),
+      keyboardType: isNumber ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+      validator: (val) {
+        if (required && (val == null || val.trim().isEmpty)) return "Ce champ est obligatoire";
+        return null;
+      },
+      decoration: InputDecoration(
+        labelText: label, 
+        prefixIcon: Icon(icon, size: 20, color: Colors.white38),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.03),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none)
+      ),
+      style: const TextStyle(color: Colors.white, fontSize: 14),
     );
   }
 
@@ -251,34 +269,40 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
     return DropdownButtonFormField<String>(
       value: _type,
       dropdownColor: AppColors.cardBg,
+      style: const TextStyle(color: Colors.white),
       items: ['concert', 'theatre', 'festival', 'autre'].map((t) => DropdownMenuItem(value: t, child: Text(t.toUpperCase()))).toList(),
       onChanged: (v) => setState(() => _type = v!),
-      decoration: const InputDecoration(labelText: "Type"),
+      decoration: const InputDecoration(labelText: "Type d'événement"),
     );
   }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
+      final double prix = double.tryParse(_prixCtrl.text) ?? 0.0;
+      final int places = int.tryParse(_placesTotalCtrl.text) ?? 0;
+      final int delai = int.tryParse(_delaiAnnulCtrl.text) ?? 48;
+      final double frais = double.tryParse(_fraisAnnulCtrl.text) ?? 0.0;
+
       final ev = Evenement(
         id: widget.event?.id,
-        titre: _titreCtrl.text,
-        description: _descCtrl.text,
+        titre: _titreCtrl.text.trim(),
+        description: _descCtrl.text.trim(),
         type: _type,
         cinemaId: _isAtCinema ? _selectedCinemaId : null,
-        lieu: _isAtCinema ? null : _lieuCtrl.text,
-        ville: _villeCtrl.text,
+        lieu: _isAtCinema ? _selectedSalleName : _lieuCtrl.text.trim(), // On stocke le nom de la salle dans 'lieu'
+        ville: _villeCtrl.text.trim(),
         dateDebut: _dateDebut,
         dateFin: _dateFin,
-        prix: double.parse(_prixCtrl.text),
-        placesTotales: int.parse(_placesTotalCtrl.text),
-        placesDisponibles: widget.event == null ? int.parse(_placesTotalCtrl.text) : widget.event!.placesDisponibles,
-        affiche: _afficheCtrl.text,
-        bandeAnnonce: _baCtrl.text,
-        organisateur: _orgaCtrl.text,
+        prix: prix,
+        placesTotales: places,
+        placesDisponibles: widget.event == null ? places : widget.event!.placesDisponibles,
+        affiche: _afficheCtrl.text.trim(),
+        bandeAnnonce: _baCtrl.text.trim(),
+        organisateur: _orgaCtrl.text.trim(),
         statut: _statut,
         annulationGratuite: _annulationGratuite,
-        delaiAnnulation: int.parse(_delaiAnnulCtrl.text),
-        fraisAnnulation: double.parse(_fraisAnnulCtrl.text),
+        delaiAnnulation: delai,
+        fraisAnnulation: frais,
       );
 
       try {
@@ -290,9 +314,10 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
         if (mounted) {
           ref.invalidate(allEvenementsProvider);
           Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Événement enregistré !"), backgroundColor: Colors.green));
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur : $e"), backgroundColor: Colors.red));
       }
     }
   }

@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../features/programmation/presentation/providers/programmation_provider.dart';
 import '../../../../features/evenements/presentation/providers/evenement_provider.dart';
+import '../../../admin/presentation/providers/admin_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
-
-// ... (garder les mêmes imports en haut)
 
 class HomePage extends ConsumerStatefulWidget {
   final Function(int)? onNavigate;
@@ -57,7 +56,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                   const SizedBox(height: 40),
                   _buildMaquetteSearchBar(context),
                   const SizedBox(height: 20),
-                  // --- BOUTON FAQ AJOUTÉ ICI ---
                   TextButton.icon(
                     onPressed: () => context.push('/faq'),
                     icon: const Icon(Icons.help_center_outlined, color: Color(0xFF8B7355)),
@@ -73,7 +71,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
           // ─── FILMS À L'AFFICHE ───
           SliverToBoxAdapter(
-            // CORRECTION ICI : Ajout de "widget." devant onNavigate
             child: _buildSectionHeader("Films à l'affiche", () => widget.onNavigate?.call(1)),
           ),
           SliverToBoxAdapter(
@@ -105,7 +102,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           // ─── ÉVÉNEMENTS À L'AFFICHE ───
           SliverToBoxAdapter(child: const SizedBox(height: 30)),
           SliverToBoxAdapter(
-            // CORRECTION ICI : Ajout de "widget." devant onNavigate
             child: _buildSectionHeader("Événements à l'affiche", () => widget.onNavigate?.call(2)),
           ),
           SliverToBoxAdapter(
@@ -113,33 +109,11 @@ class _HomePageState extends ConsumerState<HomePage> {
               height: 200,
               child: eventsAsync.when(
                 data: (events) {
-                  // Récupérer la liste des cinémas pour faire la recherche par nom
-                  final cinemas = ref.watch(allCinemasProvider).value ?? [];
-
                   final filtered = events.where((e) {
                     final query = _searchQuery.toLowerCase();
-
-                    // 1. Recherche par titre
                     final matchesTitle = e.titre.toLowerCase().contains(query);
-
-                    // 2. Recherche par lieu (ville)
-                    final matchesLieu = (e.ville?.toLowerCase().contains(query) ?? false);
-
-                    // 3. Recherche par Date (format: jj/mm/aaaa)
-                    final dateString = "${e.dateDebut.day}/${e.dateDebut.month}/${e.dateDebut.year}";
-                    final matchesDate = dateString.contains(query);
-
-                    // 4. Recherche par Nom du Cinéma
-                    bool matchesCinema = false;
-                    if (e.cinemaId != null) {
-                      final cinema = cinemas.firstWhere(
-                            (c) => c.id == e.cinemaId,
-                        orElse: () => cinemas.isNotEmpty ? cinemas.first : throw Exception("Pas de cinémas"),
-                      );
-                      matchesCinema = cinema.nom.toLowerCase().contains(query);
-                    }
-
-                    return matchesTitle || matchesLieu || matchesDate || matchesCinema;
+                    final matchesLieu = (e.ville?.toLowerCase().contains(query) ?? false) || (e.lieu?.toLowerCase().contains(query) ?? false);
+                    return matchesTitle || matchesLieu;
                   }).toList();
 
                   if (filtered.isEmpty) return _buildNoResult();
@@ -162,8 +136,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-
-
   Widget _buildMaquetteSearchBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8),
@@ -180,7 +152,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           Expanded(
               child: TextField(
                   onChanged: (value) {
-                    setState(() { _searchQuery = value; }); // Met à jour l'UI à chaque lettre
+                    setState(() { _searchQuery = value; }); 
                   },
                   style: const TextStyle(color: Colors.black87),
                   decoration: const InputDecoration(
@@ -231,6 +203,12 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildHomeEventCard(BuildContext context, dynamic event) {
+    // Construction de l'info lieu (Ville + Salle/Lieu tiers)
+    String displayLieu = event.ville ?? "";
+    if (event.lieu != null && event.lieu!.isNotEmpty) {
+      displayLieu += " • ${event.lieu}";
+    }
+
     return GestureDetector(
       onTap: () => context.push('/event-detail', extra: event.id),
       child: Container(
@@ -249,7 +227,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(event.titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text("${event.ville} • ${event.prix} €", style: const TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(displayLieu, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                    const SizedBox(height: 2),
+                    Text("${event.prix} DH", style: const TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),

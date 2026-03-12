@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/evenement_provider.dart';
-import '../../../programmation/presentation/providers/programmation_provider.dart'; // Pour les cinémas
+import '../../../programmation/presentation/providers/programmation_provider.dart' as prog; 
+import '../../../admin/presentation/providers/admin_provider.dart' as admin; 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import 'package:intl/intl.dart';
@@ -15,14 +16,15 @@ class EvenementDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventAsync = ref.watch(evenementsProvider);
-    final cinemasAsync = ref.watch(allCinemasProvider);
+    final cinemasAsync = ref.watch(prog.allCinemasProvider);
+    final sallesAsync = ref.watch(admin.allSallesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: eventAsync.when(
         data: (events) {
           final event = events.firstWhere((e) => e.id == evenementId);
-          return _buildContent(context, event, cinemasAsync);
+          return _buildContent(context, ref, event, cinemasAsync, sallesAsync);
         },
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
         error: (e, s) => Center(child: Text("Erreur: $e", style: const TextStyle(color: Colors.red))),
@@ -30,15 +32,15 @@ class EvenementDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, Evenement event, AsyncValue<List<Cinema>> cinemasAsync) {
+  Widget _buildContent(BuildContext context, WidgetRef ref, Evenement event, AsyncValue<List<Cinema>> cinemasAsync, AsyncValue<List<Salle>> sallesAsync) {
     final dateFormat = DateFormat('EEEE d MMMM yyyy', 'fr_FR');
     final timeFormat = DateFormat('HH:mm');
 
-    // Trouver le nom du cinéma si cinemaId est présent
     String cinemaInfo = event.lieu ?? "Lieu non spécifié";
-    cinemasAsync.whenData((list) {
+    
+    cinemasAsync.whenData((cinemas) {
       if (event.cinemaId != null) {
-        final cinema = list.firstWhere((c) => c.id == event.cinemaId, orElse: () => list.first);
+        final cinema = cinemas.firstWhere((c) => c.id == event.cinemaId, orElse: () => cinemas.first);
         cinemaInfo = "${cinema.nom} (${cinema.ville})";
       }
     });
@@ -56,10 +58,7 @@ class EvenementDetailPage extends ConsumerWidget {
                 CachedNetworkImage(
                   imageUrl: event.affiche ?? "",
                   fit: BoxFit.cover,
-                  errorWidget: (c, u, e) => Container(
-                    color: AppColors.cardBg,
-                    child: const Icon(Icons.event, size: 100),
-                  ),
+                  errorWidget: (c, u, e) => Container(color: AppColors.cardBg, child: const Icon(Icons.event, size: 100)),
                 ),
                 const DecoratedBox(
                   decoration: BoxDecoration(
@@ -70,21 +69,12 @@ class EvenementDetailPage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                // AJOUT DU BOUTON BANDE ANNONCE ICI
                 if (event.bandeAnnonce != null && event.bandeAnnonce!.isNotEmpty)
                   Center(
                     child: FloatingActionButton.extended(
                       onPressed: () async {
                         final Uri url = Uri.parse(event.bandeAnnonce!);
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url, mode: LaunchMode.externalApplication);
-                        } else {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Lien de la vidéo invalide")),
-                            );
-                          }
-                        }
+                        if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
                       },
                       label: const Text("BANDE ANNONCE"),
                       icon: const Icon(Icons.play_arrow),
@@ -106,8 +96,7 @@ class EvenementDetailPage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildTypeBadge(event.type ?? "Événement"),
-                    if (event.annulationGratuite ?? false)
-                      _buildCancelBadge("Annulation gratuite"),
+                    _buildCancelBadge(event.annulationGratuite == true ? "Annulation gratuite" : "Annulation payante", isFree: event.annulationGratuite ?? false),
                   ],
                 ),
                 const SizedBox(height: 15),
@@ -122,30 +111,22 @@ class EvenementDetailPage extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: 30),
-                _buildInfoSection(Icons.calendar_today, "DATE ET HEURE",
-                    "${dateFormat.format(event.dateDebut)} à ${timeFormat.format(event.dateDebut)}"),
+                _buildInfoSection(Icons.calendar_today, "DATE ET HEURE", "${dateFormat.format(event.dateDebut)} à ${timeFormat.format(event.dateDebut)}"), 
 
                 _buildInfoSection(Icons.location_on, "LIEU / CINÉMA", cinemaInfo),
 
-                _buildInfoSection(Icons.person, "ORGANISATEUR",
-                    event.organisateur ?? "Non spécifié"),
-
-                if (event.annulationGratuite ?? false)
-                  _buildInfoSection(Icons.history, "DÉLAI D'ANNULATION",
-                      "Jusqu'à ${event.delaiAnnulation ?? 48} heures avant l'événement"),
+                _buildInfoSection(Icons.person, "ORGANISATEUR", event.organisateur ?? "Non spécifié"),
 
                 const SizedBox(height: 30),
                 const Text("À PROPOS DE CET ÉVÉNEMENT", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
-                Text(event.description ?? "Pas de description disponible.",
-                    style: const TextStyle(color: Colors.white70, height: 1.6)),
+                Text(event.description ?? "Pas de description disponible.", style: const TextStyle(color: Colors.white70, height: 1.6)),
 
                 const SizedBox(height: 30),
                 _buildStatusSection(event),
 
                 const SizedBox(height: 40),
                 _buildPriceAndBooking(event),
-
                 const SizedBox(height: 30),
               ],
             ),
@@ -163,11 +144,12 @@ class EvenementDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCancelBadge(String text) {
+  Widget _buildCancelBadge(String text, {required bool isFree}) {
+    final color = isFree ? Colors.green : Colors.orange;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: Colors.green.withOpacity(0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.green)),
-      child: Text(text.toUpperCase(), style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+      decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: color)),
+      child: Text(text.toUpperCase(), style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -201,7 +183,11 @@ class EvenementDetailPage extends ConsumerWidget {
         children: [
           _buildStatItem(Icons.event_seat, "${event.placesDisponibles ?? 0}", "Places dispo"),
           _buildStatItem(Icons.groups, "${event.placesTotales ?? 0}", "Capacité"),
-          _buildStatItem(Icons.euro, "${event.fraisAnnulation ?? 0.0}", "Frais annulation"),
+          _buildStatItem(
+            Icons.money_off, 
+            event.annulationGratuite == true ? "GRATUIT" : "${event.fraisAnnulation ?? 0.0} DH", 
+            "Frais annulation"
+          ),
         ],
       ),
     );
@@ -234,8 +220,8 @@ class EvenementDetailPage extends ConsumerWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("PRIX À PARTIR DE", style: TextStyle(color: AppColors.textLight, fontSize: 10)),
-              Text("${event.prix ?? 0.0} €", style: const TextStyle(color: AppColors.accent, fontSize: 26, fontWeight: FontWeight.bold)),
+              const Text("PRIX", style: TextStyle(color: AppColors.textLight, fontSize: 10)),
+              Text("${event.prix ?? 0.0} DH", style: const TextStyle(color: AppColors.accent, fontSize: 26, fontWeight: FontWeight.bold)),
             ],
           ),
           ElevatedButton(
