@@ -28,10 +28,11 @@ import 'package:cine_reservation_client/src/protocol/demande_support.dart'
     as _i13;
 import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dart'
     as _i14;
-import 'package:cine_reservation_client/src/protocol/faq.dart' as _i15;
+import 'package:cine_reservation_client/src/protocol/code_promo.dart' as _i15;
+import 'package:cine_reservation_client/src/protocol/faq.dart' as _i16;
 import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
-    as _i16;
-import 'protocol.dart' as _i17;
+    as _i17;
+import 'protocol.dart' as _i18;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -576,6 +577,48 @@ class EndpointAdmin extends _i2.EndpointRef {
     {'id': id},
   );
 
+  _i3.Future<List<_i15.CodePromo>> getAllCodesPromo() =>
+      caller.callServerEndpoint<List<_i15.CodePromo>>(
+        'admin',
+        'getAllCodesPromo',
+        {},
+      );
+
+  _i3.Future<_i15.CodePromo> ajouterCodePromo(_i15.CodePromo cp) =>
+      caller.callServerEndpoint<_i15.CodePromo>(
+        'admin',
+        'ajouterCodePromo',
+        {'cp': cp},
+      );
+
+  _i3.Future<_i15.CodePromo> modifierCodePromo(_i15.CodePromo cp) =>
+      caller.callServerEndpoint<_i15.CodePromo>(
+        'admin',
+        'modifierCodePromo',
+        {'cp': cp},
+      );
+
+  _i3.Future<void> supprimerCodePromo(int id) =>
+      caller.callServerEndpoint<void>(
+        'admin',
+        'supprimerCodePromo',
+        {'id': id},
+      );
+
+  _i3.Future<Map<String, dynamic>> getCodePromoStats(int codePromoId) =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'admin',
+        'getCodePromoStats',
+        {'codePromoId': codePromoId},
+      );
+
+  _i3.Future<Map<String, dynamic>> getGlobalPromoSummary() =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'admin',
+        'getGlobalPromoSummary',
+        {},
+      );
+
   _i3.Future<Map<String, int>> getAdminStats() =>
       caller.callServerEndpoint<Map<String, int>>(
         'admin',
@@ -650,8 +693,8 @@ class EndpointFaq extends _i2.EndpointRef {
   @override
   String get name => 'faq';
 
-  _i3.Future<List<_i15.Faq>> getAllFaqs() =>
-      caller.callServerEndpoint<List<_i15.Faq>>(
+  _i3.Future<List<_i16.Faq>> getAllFaqs() =>
+      caller.callServerEndpoint<List<_i16.Faq>>(
         'faq',
         'getAllFaqs',
         {},
@@ -798,8 +841,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i16.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i16.Greeting>(
+  _i3.Future<_i17.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i17.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -837,7 +880,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i17.Protocol(),
+         _i18.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

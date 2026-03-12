@@ -53,6 +53,12 @@ admin:
   - ajouterOption:
   - modifierOption:
   - supprimerOption:
+  - getAllCodesPromo:
+  - ajouterCodePromo:
+  - modifierCodePromo:
+  - supprimerCodePromo:
+  - getCodePromoStats:
+  - getGlobalPromoSummary:
   - getAdminStats:
 avis:
 cinemas:

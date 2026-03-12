@@ -44,6 +44,7 @@ class AdminSidebar extends StatelessWidget {
                 _navItem(context, Icons.grid_on_outlined, "Gestion Sièges", "/admin/sieges"),
                 _navItem(context, Icons.fastfood_outlined, "Gestion Options", "/admin/options"),
                 _navItem(context, Icons.event_note_outlined, "Gestion Événements", "/admin/evenements"),
+                _navItem(context, Icons.local_offer_outlined, "Gestion Promotions", "/admin/promos"),
                 const Divider(color: Colors.white10, indent: 20, endIndent: 20),
                 _navItem(context, Icons.people_outline, "Utilisateurs", "/admin/users"),
                 _navItem(context, Icons.confirmation_number_outlined, "Réservations", "/admin/reservations"),

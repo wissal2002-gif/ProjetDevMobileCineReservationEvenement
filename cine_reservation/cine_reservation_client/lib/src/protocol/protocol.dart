@@ -44,11 +44,12 @@ import 'package:cine_reservation_client/src/protocol/demande_support.dart'
     as _i31;
 import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dart'
     as _i32;
-import 'package:cine_reservation_client/src/protocol/faq.dart' as _i33;
+import 'package:cine_reservation_client/src/protocol/code_promo.dart' as _i33;
+import 'package:cine_reservation_client/src/protocol/faq.dart' as _i34;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i34;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i35;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i36;
 export 'avis.dart';
 export 'billet.dart';
 export 'cinema.dart';
@@ -289,20 +290,30 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_i33.CodePromo>) {
+      return (data as List).map((e) => deserialize<_i33.CodePromo>(e)).toList()
+          as T;
+    }
+    if (t == Map<String, dynamic>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
+          )
+          as T;
+    }
     if (t == Map<String, int>) {
       return (data as Map).map(
             (k, v) => MapEntry(deserialize<String>(k), deserialize<int>(v)),
           )
           as T;
     }
-    if (t == List<_i33.Faq>) {
-      return (data as List).map((e) => deserialize<_i33.Faq>(e)).toList() as T;
+    if (t == List<_i34.Faq>) {
+      return (data as List).map((e) => deserialize<_i34.Faq>(e)).toList() as T;
     }
     try {
-      return _i34.Protocol().deserialize<T>(data, t);
+      return _i35.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i35.Protocol().deserialize<T>(data, t);
+      return _i36.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -390,11 +401,11 @@ class Protocol extends _i1.SerializationManager {
       case _i22.Utilisateur():
         return 'Utilisateur';
     }
-    className = _i34.Protocol().getClassNameForObject(data);
+    className = _i35.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i35.Protocol().getClassNameForObject(data);
+    className = _i36.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -472,11 +483,11 @@ class Protocol extends _i1.SerializationManager {
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i34.Protocol().deserializeByClassName(data);
+      return _i35.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i35.Protocol().deserializeByClassName(data);
+      return _i36.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -491,10 +502,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i34.Protocol().mapRecordToJson(record);
+      return _i35.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i35.Protocol().mapRecordToJson(record);
+      return _i36.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

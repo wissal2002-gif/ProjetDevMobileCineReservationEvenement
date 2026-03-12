@@ -5,14 +5,10 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 
 // --- Vérification Admin réactive ---
 final isUserAdminProvider = FutureProvider<bool>((ref) async {
-  // On observe l'état d'authentification pour réagir aux connexions/déconnexions
   final authState = ref.watch(authProvider);
-  
   if (!authState.isAuthenticated) return false;
-
   try {
     final user = await client.admin.getMonProfil();
-    // Retourne true si le rôle est admin
     return user?.role == 'admin';
   } catch (e) {
     return false;
@@ -94,4 +90,17 @@ final allOptionsProvider = FutureProvider<List<OptionSupplementaire>>((ref) asyn
 // --- Support Client ---
 final allDemandesSupportProvider = FutureProvider<List<DemandeSupport>>((ref) async {
   return await client.admin.getAllDemandesSupport();
+});
+
+// --- PROMOTIONS ---
+final allCodesPromoProvider = FutureProvider<List<CodePromo>>((ref) async {
+  return await client.admin.getAllCodesPromo();
+});
+
+final codePromoStatsProvider = FutureProvider.family<Map<String, dynamic>, int>((ref, id) async {
+  return await client.admin.getCodePromoStats(id);
+});
+
+final globalPromoSummaryProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  return await client.admin.getGlobalPromoSummary();
 });

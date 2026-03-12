@@ -33,10 +33,11 @@ import 'package:cine_reservation_server/src/generated/seance.dart' as _i20;
 import 'package:cine_reservation_server/src/generated/evenement.dart' as _i21;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
     as _i22;
+import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i23;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i23;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i24;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i25;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -1085,6 +1086,102 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['id'],
                   ),
         ),
+        'getAllCodesPromo': _i1.MethodConnector(
+          name: 'getAllCodesPromo',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getAllCodesPromo(session),
+        ),
+        'ajouterCodePromo': _i1.MethodConnector(
+          name: 'ajouterCodePromo',
+          params: {
+            'cp': _i1.ParameterDescription(
+              name: 'cp',
+              type: _i1.getType<_i23.CodePromo>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).ajouterCodePromo(
+                    session,
+                    params['cp'],
+                  ),
+        ),
+        'modifierCodePromo': _i1.MethodConnector(
+          name: 'modifierCodePromo',
+          params: {
+            'cp': _i1.ParameterDescription(
+              name: 'cp',
+              type: _i1.getType<_i23.CodePromo>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).modifierCodePromo(
+                    session,
+                    params['cp'],
+                  ),
+        ),
+        'supprimerCodePromo': _i1.MethodConnector(
+          name: 'supprimerCodePromo',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).supprimerCodePromo(
+                    session,
+                    params['id'],
+                  ),
+        ),
+        'getCodePromoStats': _i1.MethodConnector(
+          name: 'getCodePromoStats',
+          params: {
+            'codePromoId': _i1.ParameterDescription(
+              name: 'codePromoId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).getCodePromoStats(
+                    session,
+                    params['codePromoId'],
+                  ),
+        ),
+        'getGlobalPromoSummary': _i1.MethodConnector(
+          name: 'getGlobalPromoSummary',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getGlobalPromoSummary(session),
+        ),
         'getAdminStats': _i1.MethodConnector(
           name: 'getAdminStats',
           params: {},
@@ -1430,9 +1527,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i23.Endpoints()
+    modules['serverpod_auth_idp'] = _i24.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i24.Endpoints()
+    modules['serverpod_auth_core'] = _i25.Endpoints()
       ..initializeEndpoints(server);
   }
 }

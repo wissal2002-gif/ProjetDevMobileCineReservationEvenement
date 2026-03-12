@@ -49,7 +49,8 @@ import 'package:cine_reservation_server/src/generated/demande_support.dart'
     as _i34;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
     as _i35;
-import 'package:cine_reservation_server/src/generated/faq.dart' as _i36;
+import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i36;
+import 'package:cine_reservation_server/src/generated/faq.dart' as _i37;
 export 'avis.dart';
 export 'billet.dart';
 export 'cinema.dart';
@@ -2252,14 +2253,24 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
+    if (t == List<_i36.CodePromo>) {
+      return (data as List).map((e) => deserialize<_i36.CodePromo>(e)).toList()
+          as T;
+    }
+    if (t == Map<String, dynamic>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
+          )
+          as T;
+    }
     if (t == Map<String, int>) {
       return (data as Map).map(
             (k, v) => MapEntry(deserialize<String>(k), deserialize<int>(v)),
           )
           as T;
     }
-    if (t == List<_i36.Faq>) {
-      return (data as List).map((e) => deserialize<_i36.Faq>(e)).toList() as T;
+    if (t == List<_i37.Faq>) {
+      return (data as List).map((e) => deserialize<_i37.Faq>(e)).toList() as T;
     }
     try {
       return _i3.Protocol().deserialize<T>(data, t);

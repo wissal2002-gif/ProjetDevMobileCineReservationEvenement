@@ -40,6 +40,7 @@ import '../../features/admin/presentation/pages/manage_seances_page.dart';
 import '../../features/admin/presentation/pages/manage_users_page.dart';
 import '../../features/admin/presentation/pages/manage_support_page.dart';
 import '../../features/admin/presentation/pages/manage_reservations_page.dart';
+import '../../features/admin/presentation/pages/manage_promos_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -70,6 +71,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/users', builder: (context, state) => const ManageUsersPage()),
       GoRoute(path: '/admin/support', builder: (context, state) => const ManageSupportPage()),
       GoRoute(path: '/admin/reservations', builder: (context, state) => const ManageReservationsPage()),
+      GoRoute(path: '/admin/promos', builder: (context, state) => const ManagePromosPage()),
     ],
   );
 });
