@@ -24,14 +24,14 @@ class FilmDetailPage extends ConsumerWidget {
       body: filmAsync.when(
         data: (film) => film == null
             ? const Center(child: Text("Film non trouvé"))
-            : _buildBody(context, film, seancesAsync, optionsAsync, cinemasAsync, sallesAsync),
+            : _buildBody(context, ref, film, seancesAsync, optionsAsync, cinemasAsync, sallesAsync),
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
         error: (e, s) => Center(child: Text("Erreur: $e")),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, Film film,
+  Widget _buildBody(BuildContext context, WidgetRef ref, Film film,
       AsyncValue<List<Seance>> seances,
       AsyncValue<List<OptionSupplementaire>> options,
       AsyncValue<List<Cinema>> cinemas,
@@ -61,7 +61,6 @@ class FilmDetailPage extends ConsumerWidget {
                         )
                     )
                 ),
-                // Section Bande Annonce Corrigée
                 if (film.bandeAnnonce != null && film.bandeAnnonce!.isNotEmpty)
                   Center(
                     child: FloatingActionButton.extended(
@@ -69,12 +68,6 @@ class FilmDetailPage extends ConsumerWidget {
                         final Uri url = Uri.parse(film.bandeAnnonce!);
                         if (await canLaunchUrl(url)) {
                           await launchUrl(url, mode: LaunchMode.externalApplication);
-                        } else {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Lien de la bande annonce invalide")),
-                            );
-                          }
                         }
                       },
                       label: const Text("BANDE ANNONCE"),
@@ -100,11 +93,6 @@ class FilmDetailPage extends ConsumerWidget {
                       _badge(film.classification!, film.classification!.contains('18') ? Colors.red : Colors.orange),
                   ],
                 ),
-                if (film.classification != null && film.classification!.contains('18'))
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: Text("⚠️ Ce film est interdit aux mineurs.", style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold)),
-                  ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -128,27 +116,16 @@ class FilmDetailPage extends ConsumerWidget {
                 Text("Casting : ${film.casting ?? 'N/A'}", style: const TextStyle(color: Colors.white70)),
 
                 const SizedBox(height: 25),
-                _sectionTitle("PLACES DISPONIBLES"),
-                seances.when(
-                  data: (list) {
-                    final totalPlaces = list.fold<int>(0, (sum, s) => sum + s.placesDisponibles);
-                    return Text("$totalPlaces places disponibles sur l'ensemble des séances", style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16));
-                  },
-                  loading: () => const CircularProgressIndicator(strokeWidth: 2),
-                  error: (_, __) => const Text("N/A", style: TextStyle(color: Colors.white70)),
-                ),
-
-                const SizedBox(height: 40),
-                const Text("SÉANCES & CINÉMAS", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                _sectionTitle("SÉANCES & CINÉMAS"),
                 const SizedBox(height: 15),
                 seances.when(
-                  data: (list) => Column(children: list.map((s) => _buildSeanceItem(context, s, film.duree ?? 0, cinemas, salles)).toList()),
+                  data: (list) => Column(children: list.map((s) => _buildSeanceItem(context, ref, s, film.duree ?? 0, cinemas, salles)).toList()),
                   loading: () => const CircularProgressIndicator(),
                   error: (e, s) => const SizedBox(),
                 ),
 
                 const SizedBox(height: 40),
-                const Text("OPTIONS SUPPLÉMENTAIRES", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                _sectionTitle("OPTIONS SUPPLÉMENTAIRES"),
                 const SizedBox(height: 15),
                 options.when(
                   data: (list) => _buildOptions(list),
@@ -168,12 +145,14 @@ class FilmDetailPage extends ConsumerWidget {
     return Text(title, style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.2));
   }
 
-  Widget _buildSeanceItem(BuildContext context, Seance seance, int duree, AsyncValue<List<Cinema>> cinemas, AsyncValue<List<Salle>> salles) {
-    String cinemaName = "CINÉMA";
-    String cinemaLieu = "Lieu inconnu";
+  Widget _buildSeanceItem(BuildContext context, WidgetRef ref, Seance seance, int duree, AsyncValue<List<Cinema>> cinemas, AsyncValue<List<Salle>> salles) {
+    String cinemaName = "Chargement...";
+    String salleName = "";
+    String cinemaLieu = "...";
 
     salles.whenData((sList) {
       final salle = sList.firstWhere((s) => s.id == seance.salleId, orElse: () => sList.first);
+      salleName = " - ${salle.codeSalle}";
       cinemas.whenData((cList) {
         final cinema = cList.firstWhere((c) => c.id == salle.cinemaId, orElse: () => cList.first);
         cinemaName = cinema.nom;
@@ -200,9 +179,9 @@ class FilmDetailPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(cinemaName.toUpperCase(), style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 12)),
+                    Text("${cinemaName}${salleName}".toUpperCase(), style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 13)),
                     Text(cinemaLieu, style: const TextStyle(color: Colors.white54, fontSize: 10)),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 8),
                     Text(
                       "${dateFormat.format(startTime)} de ${timeFormat.format(startTime)} à ${timeFormat.format(endTime)}",
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
@@ -223,11 +202,7 @@ class FilmDetailPage extends ConsumerWidget {
           _prices(seance),
           const SizedBox(height: 15),
           ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Réservation pour ${cinemaName} à ${timeFormat.format(startTime)}")),
-                );
-              },
+              onPressed: () {},
               style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 45)),
               child: const Text("RÉSERVER")
           ),
@@ -255,7 +230,7 @@ class FilmDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _p(String l, double p) => Column(children: [Text(l, style: const TextStyle(color: Colors.white38, fontSize: 10)), Text("${p}€", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))]);
+  Widget _p(String l, double p) => Column(children: [Text(l, style: const TextStyle(color: Colors.white38, fontSize: 10)), Text("${p} DH", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))]);
 
   Widget _buildOptions(List<OptionSupplementaire> list) {
     return SizedBox(
@@ -269,7 +244,7 @@ class FilmDetailPage extends ConsumerWidget {
             width: 140,
             margin: const EdgeInsets.only(right: 15),
             decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(12)),
-            child: Center(child: Text("${opt.nom}\n${opt.prix}€", textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 12))),
+            child: Center(child: Text("${opt.nom}\n${opt.prix} DH", textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 12))),
           );
         },
       ),

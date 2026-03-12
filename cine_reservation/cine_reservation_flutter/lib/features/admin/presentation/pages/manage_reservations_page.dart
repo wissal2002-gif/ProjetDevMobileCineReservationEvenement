@@ -122,13 +122,20 @@ class ManageReservationsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text("COORDONNÉES CLIENT", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 11)),
+                    _infoRow("Nom:", user.nom),
+                    _infoRow("Email:", user.email),
+                    _infoRow("Téléphone:", user.telephone ?? "Non renseigné"),
+                    const Divider(color: Colors.white10),
+                    const Text("DÉTAILS RÉSERVATION", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 11)),
+                    _infoRow("Objet:", title),
                     _infoRow("Lieu:", lieu),
                     if (!isEvent) ref.watch(reservationSiegesProvider(res.id!)).when(
                       data: (s) => _infoRow("Sièges:", s.map((e) => e.numero).join(", ")),
                       loading: () => const Text("..."),
                       error: (_,__) => const Text("Erreur sièges"),
                     ),
-                    _infoRow("Statut Actuel:", res.statut?.toUpperCase() ?? ""),
+                    _infoRow("Statut:", res.statut?.toUpperCase() ?? ""),
 
                     if (isEvent && relatedEvent != null && res.statut == 'annule') ...[
                       const Divider(color: Colors.white10),
@@ -206,8 +213,8 @@ class ManageReservationsPage extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(children: [
-        Text("$label ", style: const TextStyle(color: Colors.white38, fontSize: 12)),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 12)),
+        SizedBox(width: 80, child: Text("$label ", style: const TextStyle(color: Colors.white38, fontSize: 12))),
+        Expanded(child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 12))),
       ]),
     );
   }

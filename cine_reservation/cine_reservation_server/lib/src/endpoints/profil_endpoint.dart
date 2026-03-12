@@ -5,44 +5,47 @@ class ProfilEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
 
-  // ─── Récupérer le profil ───
   Future<Utilisateur?> getProfil(Session session) async {
-    final authInfo = session.authenticated;
+    final authInfo = await session.authenticated;
     if (authInfo == null) return null;
 
-    final utilisateurs = await Utilisateur.db.find(
+    final utilisateur = await Utilisateur.db.findFirstRow(
       session,
-      where: (u) => u.authUserId.equals(authInfo.userIdentifier),
-      limit: 1,
+      where: (t) => t.authUserId.equals(authInfo.userIdentifier),
     );
 
-    return utilisateurs.isEmpty ? null : utilisateurs.first;
+    if (utilisateur == null) return null;
+
+    // Vérification de la suspension
+    if (utilisateur.statut == 'suspendu') {
+      throw Exception('ACCOUNT_SUSPENDED');
+    }
+
+    return utilisateur;
   }
 
-  // ─── Modifier le profil ───
   Future<Utilisateur?> updateProfil(
-      Session session,
-      String nom,
-      String? telephone,
-      DateTime? dateNaissance,
-      ) async {
-    final authInfo = session.authenticated;
+    Session session,
+    String nom,
+    String? telephone,
+    DateTime? dateNaissance,
+  ) async {
+    final authInfo = await session.authenticated;
     if (authInfo == null) return null;
 
-    final utilisateurs = await Utilisateur.db.find(
+    final utilisateur = await Utilisateur.db.findFirstRow(
       session,
-      where: (u) => u.authUserId.equals(authInfo.userIdentifier),
-      limit: 1,
+      where: (t) => t.authUserId.equals(authInfo.userIdentifier),
     );
 
-    if (utilisateurs.isEmpty) return null;
+    if (utilisateur == null) return null;
 
-    final utilisateur = utilisateurs.first.copyWith(
+    final updated = utilisateur.copyWith(
       nom: nom,
       telephone: telephone,
       dateNaissance: dateNaissance,
     );
 
-    return await Utilisateur.db.updateRow(session, utilisateur);
+    return await Utilisateur.db.updateRow(session, updated);
   }
 }

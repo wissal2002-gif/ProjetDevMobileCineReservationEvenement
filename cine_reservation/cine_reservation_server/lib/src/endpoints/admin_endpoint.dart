@@ -73,9 +73,13 @@ class AdminEndpoint extends Endpoint {
   Future<List<Reservation>> getHistoriqueUtilisateur(Session session, int utilisateurId) async => await Reservation.db.find(session, where: (t) => t.utilisateurId.equals(utilisateurId), orderBy: (t) => t.dateReservation, orderDescending: true);
 
   Future<Utilisateur?> getMonProfil(Session session) async {
-    var authInfo = await session.authenticated; // Ajout du await ici
+    var authInfo = await session.authenticated;
     if (authInfo == null) return null;
-    return await Utilisateur.db.findFirstRow(session, where: (t) => t.authUserId.equals(authInfo.userIdentifier));
+    final user = await Utilisateur.db.findFirstRow(session, where: (t) => t.authUserId.equals(authInfo.userIdentifier));
+    if (user != null && user.statut?.toLowerCase() == 'suspendu') {
+      throw Exception('ACCOUNT_SUSPENDED');
+    }
+    return user;
   }
 
   // ─── RÉSERVATIONS ───

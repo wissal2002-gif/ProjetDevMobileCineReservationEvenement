@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../features/programmation/presentation/providers/programmation_provider.dart';
 import '../../../../features/evenements/presentation/providers/evenement_provider.dart';
-import '../../../admin/presentation/providers/admin_provider.dart';
+import '../../../../features/admin/presentation/providers/admin_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 

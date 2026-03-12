@@ -1,11 +1,11 @@
-// lib/features/admin/presentation/pages/manage_events_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../providers/admin_events_provider.dart';
+import '../providers/admin_provider.dart';
 import 'add_event_form_page.dart';
 import 'package:intl/intl.dart';
+import '../../../../main.dart';
 
 class ManageEventsPage extends ConsumerWidget {
   const ManageEventsPage({super.key});
@@ -18,15 +18,16 @@ class ManageEventsPage extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text("GESTION ÉVÉNEMENTS"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_box_rounded, color: AppColors.accent, size: 28),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AddEventFormPage()),
-            ).then((_) => ref.refresh(allEvenementsProvider)),
-          ),
-        ],
+        centerTitle: true,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.accent,
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddEventFormPage()),
+        ).then((_) => ref.refresh(allEvenementsProvider)),
+        label: const Text("Ajouter", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        icon: const Icon(Icons.add_box_rounded, color: Colors.black),
       ),
       body: eventsAsync.when(
         data: (events) => events.isEmpty
@@ -52,7 +53,6 @@ class ManageEventsPage extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Image / Header
           Stack(
             children: [
               ClipRRect(
@@ -76,14 +76,12 @@ class ManageEventsPage extends ConsumerWidget {
               ),
             ],
           ),
-          // Details
           ListTile(
             title: Text(event.titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             subtitle: Text("${event.ville} • ${DateFormat('dd MMM yyyy').format(event.dateDebut)}",
                 style: TextStyle(color: Colors.white.withOpacity(0.6))),
             trailing: Text("${event.prix} DH", style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 18)),
           ),
-          // Actions
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
@@ -128,16 +126,29 @@ class ManageEventsPage extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.cardBg,
-        title: const Text("Supprimer l'événement ?"),
-        content: Text("Voulez-vous supprimer '${event.titre}' ? Cette action est irréversible."),
+        title: const Text("Supprimer l'événement ?", style: TextStyle(color: Colors.white)),
+        content: Text("Voulez-vous supprimer '${event.titre}' ? Cette action est irréversible.", style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
-              // await client.evenement.deleteEvent(event.id!);
-              ref.refresh(allEvenementsProvider);
-              Navigator.pop(context);
+              try {
+                await client.admin.supprimerEvenement(event.id!);
+                ref.invalidate(allEvenementsProvider);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Événement supprimé"), backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Erreur : $e"), backgroundColor: Colors.red),
+                  );
+                }
+              }
             },
             child: const Text("Supprimer"),
           ),
