@@ -21,7 +21,7 @@ class GreetingEndpoint extends Endpoint {
   // messaging.
   //
   // You can use any serializable type as a parameter or return type, read more
-  // in the [docs](https://docs.serverpod.dev/concepts/working-with-endpoints).
+  // in the [Conception](https://docs.serverpod.dev/concepts/working-with-endpoints).
 
   /// Returns a personalized greeting message: "Hello {name}".
   Future<Greeting> hello(Session session, String name) async {
