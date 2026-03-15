@@ -94,7 +94,11 @@ abstract class Evenement implements _i1.SerializableModel {
       noteMoyenne: (jsonSerialization['noteMoyenne'] as num?)?.toDouble(),
       nombreAvis: jsonSerialization['nombreAvis'] as int?,
       statut: jsonSerialization['statut'] as String?,
-      annulationGratuite: jsonSerialization['annulationGratuite'] as bool?,
+      annulationGratuite: jsonSerialization['annulationGratuite'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['annulationGratuite'],
+            ),
       delaiAnnulation: jsonSerialization['delaiAnnulation'] as int?,
       fraisAnnulation: (jsonSerialization['fraisAnnulation'] as num?)
           ?.toDouble(),

@@ -26,6 +26,9 @@ options:
 profil:
   - getProfil:
   - updateProfil:
+  - updatePhotoProfil:
+  - desactiverCompte:
+  - supprimerCompte:
 salles:
   - getSalles:
 seances:

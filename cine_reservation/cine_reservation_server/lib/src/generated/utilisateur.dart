@@ -448,7 +448,7 @@ class UtilisateurRepository {
   /// );
   /// ```
   Future<List<Utilisateur>> find(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<UtilisateurTable>? where,
     int? limit,
     int? offset,
@@ -456,6 +456,8 @@ class UtilisateurRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<UtilisateurTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Utilisateur>(
       where: where?.call(Utilisateur.t),
@@ -465,6 +467,8 @@ class UtilisateurRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -486,13 +490,15 @@ class UtilisateurRepository {
   /// );
   /// ```
   Future<Utilisateur?> findFirstRow(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<UtilisateurTable>? where,
     int? offset,
     _i1.OrderByBuilder<UtilisateurTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<UtilisateurTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Utilisateur>(
       where: where?.call(Utilisateur.t),
@@ -501,18 +507,24 @@ class UtilisateurRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Utilisateur] by its [id] or null if no such row exists.
   Future<Utilisateur?> findById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Utilisateur>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -522,14 +534,20 @@ class UtilisateurRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<Utilisateur>> insert(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Utilisateur> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Utilisateur>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -537,7 +555,7 @@ class UtilisateurRepository {
   ///
   /// The returned [Utilisateur] will have its `id` field set.
   Future<Utilisateur> insertRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Utilisateur row, {
     _i1.Transaction? transaction,
   }) async {
@@ -553,7 +571,7 @@ class UtilisateurRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Utilisateur>> update(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Utilisateur> rows, {
     _i1.ColumnSelections<UtilisateurTable>? columns,
     _i1.Transaction? transaction,
@@ -569,7 +587,7 @@ class UtilisateurRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Utilisateur> updateRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Utilisateur row, {
     _i1.ColumnSelections<UtilisateurTable>? columns,
     _i1.Transaction? transaction,
@@ -584,7 +602,7 @@ class UtilisateurRepository {
   /// Updates a single [Utilisateur] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Utilisateur?> updateById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     required _i1.ColumnValueListBuilder<UtilisateurUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -599,7 +617,7 @@ class UtilisateurRepository {
   /// Updates all [Utilisateur]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Utilisateur>> updateWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.ColumnValueListBuilder<UtilisateurUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<UtilisateurTable> where,
     int? limit,
@@ -625,7 +643,7 @@ class UtilisateurRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Utilisateur>> delete(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Utilisateur> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -637,7 +655,7 @@ class UtilisateurRepository {
 
   /// Deletes a single [Utilisateur].
   Future<Utilisateur> deleteRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Utilisateur row, {
     _i1.Transaction? transaction,
   }) async {
@@ -649,7 +667,7 @@ class UtilisateurRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Utilisateur>> deleteWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.WhereExpressionBuilder<UtilisateurTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -662,7 +680,7 @@ class UtilisateurRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<UtilisateurTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -670,6 +688,22 @@ class UtilisateurRepository {
     return session.db.count<Utilisateur>(
       where: where?.call(Utilisateur.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [Utilisateur] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<UtilisateurTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<Utilisateur>(
+      where: where(Utilisateur.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../main.dart';
@@ -32,6 +34,17 @@ class ProfilState {
       error: error,
       saveSuccess: saveSuccess ?? this.saveSuccess,
     );
+  }
+
+  // Décoder la photo base64 stockée en BD
+  Uint8List? get photoBytes {
+    final photo = utilisateur?.photoProfil;
+    if (photo == null || photo.isEmpty) return null;
+    try {
+      return base64Decode(photo);
+    } catch (_) {
+      return null;
+    }
   }
 }
 
@@ -72,8 +85,47 @@ class ProfilNotifier extends StateNotifier<ProfilState> {
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        error: 'Erreur lors de la mise à jour.',
+        error: 'Erreur lors de la mise a jour.',
       );
+    }
+  }
+
+  // ─── Sauvegarder photo en base64 en BD ───
+  Future<void> updatePhoto(Uint8List imageBytes) async {
+    state = state.copyWith(isSaving: true);
+    try {
+      final base64Image = base64Encode(imageBytes);
+      final updated = await client.profil.updatePhotoProfil(base64Image);
+      state = state.copyWith(
+        isSaving: false,
+        utilisateur: updated,
+        saveSuccess: true,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isSaving: false,
+        error: 'Erreur lors de la sauvegarde de la photo.',
+      );
+    }
+  }
+
+  // ─── Désactiver le compte ───
+  Future<bool> desactiverCompte() async {
+    try {
+      return await client.profil.desactiverCompte();
+    } catch (e) {
+      state = state.copyWith(error: 'Erreur lors de la desactivation.');
+      return false;
+    }
+  }
+
+  // ─── Supprimer le compte ───
+  Future<bool> supprimerCompte() async {
+    try {
+      return await client.profil.supprimerCompte();
+    } catch (e) {
+      state = state.copyWith(error: 'Erreur lors de la suppression.');
+      return false;
     }
   }
 }

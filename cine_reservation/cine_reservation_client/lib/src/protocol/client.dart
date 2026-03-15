@@ -381,6 +381,25 @@ class EndpointProfil extends _i2.EndpointRef {
       'dateNaissance': dateNaissance,
     },
   );
+
+  _i3.Future<_i9.Utilisateur?> updatePhotoProfil(String photoBase64) =>
+      caller.callServerEndpoint<_i9.Utilisateur?>(
+        'profil',
+        'updatePhotoProfil',
+        {'photoBase64': photoBase64},
+      );
+
+  _i3.Future<bool> desactiverCompte() => caller.callServerEndpoint<bool>(
+    'profil',
+    'desactiverCompte',
+    {},
+  );
+
+  _i3.Future<bool> supprimerCompte() => caller.callServerEndpoint<bool>(
+    'profil',
+    'supprimerCompte',
+    {},
+  );
 }
 
 /// {@category Endpoint}

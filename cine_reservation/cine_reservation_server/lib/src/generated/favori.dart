@@ -232,7 +232,7 @@ class FavoriRepository {
   /// );
   /// ```
   Future<List<Favori>> find(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<FavoriTable>? where,
     int? limit,
     int? offset,
@@ -240,6 +240,8 @@ class FavoriRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<FavoriTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Favori>(
       where: where?.call(Favori.t),
@@ -249,6 +251,8 @@ class FavoriRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -270,13 +274,15 @@ class FavoriRepository {
   /// );
   /// ```
   Future<Favori?> findFirstRow(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<FavoriTable>? where,
     int? offset,
     _i1.OrderByBuilder<FavoriTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<FavoriTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Favori>(
       where: where?.call(Favori.t),
@@ -285,18 +291,24 @@ class FavoriRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Favori] by its [id] or null if no such row exists.
   Future<Favori?> findById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Favori>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -306,14 +318,20 @@ class FavoriRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<Favori>> insert(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Favori> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Favori>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -321,7 +339,7 @@ class FavoriRepository {
   ///
   /// The returned [Favori] will have its `id` field set.
   Future<Favori> insertRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Favori row, {
     _i1.Transaction? transaction,
   }) async {
@@ -337,7 +355,7 @@ class FavoriRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Favori>> update(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Favori> rows, {
     _i1.ColumnSelections<FavoriTable>? columns,
     _i1.Transaction? transaction,
@@ -353,7 +371,7 @@ class FavoriRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Favori> updateRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Favori row, {
     _i1.ColumnSelections<FavoriTable>? columns,
     _i1.Transaction? transaction,
@@ -368,7 +386,7 @@ class FavoriRepository {
   /// Updates a single [Favori] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Favori?> updateById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     required _i1.ColumnValueListBuilder<FavoriUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -383,7 +401,7 @@ class FavoriRepository {
   /// Updates all [Favori]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Favori>> updateWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.ColumnValueListBuilder<FavoriUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<FavoriTable> where,
     int? limit,
@@ -409,7 +427,7 @@ class FavoriRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Favori>> delete(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Favori> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -421,7 +439,7 @@ class FavoriRepository {
 
   /// Deletes a single [Favori].
   Future<Favori> deleteRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Favori row, {
     _i1.Transaction? transaction,
   }) async {
@@ -433,7 +451,7 @@ class FavoriRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Favori>> deleteWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.WhereExpressionBuilder<FavoriTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -446,7 +464,7 @@ class FavoriRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<FavoriTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -454,6 +472,22 @@ class FavoriRepository {
     return session.db.count<Favori>(
       where: where?.call(Favori.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [Favori] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<FavoriTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<Favori>(
+      where: where(Favori.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

@@ -517,6 +517,45 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['dateNaissance'],
                   ),
         ),
+        'updatePhotoProfil': _i1.MethodConnector(
+          name: 'updatePhotoProfil',
+          params: {
+            'photoBase64': _i1.ParameterDescription(
+              name: 'photoBase64',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['profil'] as _i9.ProfilEndpoint).updatePhotoProfil(
+                    session,
+                    params['photoBase64'],
+                  ),
+        ),
+        'desactiverCompte': _i1.MethodConnector(
+          name: 'desactiverCompte',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profil'] as _i9.ProfilEndpoint)
+                  .desactiverCompte(session),
+        ),
+        'supprimerCompte': _i1.MethodConnector(
+          name: 'supprimerCompte',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profil'] as _i9.ProfilEndpoint)
+                  .supprimerCompte(session),
+        ),
       },
     );
     connectors['salles'] = _i1.EndpointConnector(

@@ -59,7 +59,9 @@ abstract class CodePromo
             ),
       utilisationsMax: jsonSerialization['utilisationsMax'] as int?,
       utilisationsActuelles: jsonSerialization['utilisationsActuelles'] as int?,
-      actif: jsonSerialization['actif'] as bool?,
+      actif: jsonSerialization['actif'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['actif']),
     );
   }
 
@@ -430,7 +432,7 @@ class CodePromoRepository {
   /// );
   /// ```
   Future<List<CodePromo>> find(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<CodePromoTable>? where,
     int? limit,
     int? offset,
@@ -438,6 +440,8 @@ class CodePromoRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<CodePromoTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<CodePromo>(
       where: where?.call(CodePromo.t),
@@ -447,6 +451,8 @@ class CodePromoRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -468,13 +474,15 @@ class CodePromoRepository {
   /// );
   /// ```
   Future<CodePromo?> findFirstRow(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<CodePromoTable>? where,
     int? offset,
     _i1.OrderByBuilder<CodePromoTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<CodePromoTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<CodePromo>(
       where: where?.call(CodePromo.t),
@@ -483,18 +491,24 @@ class CodePromoRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [CodePromo] by its [id] or null if no such row exists.
   Future<CodePromo?> findById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<CodePromo>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -504,14 +518,20 @@ class CodePromoRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<CodePromo>> insert(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<CodePromo> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<CodePromo>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -519,7 +539,7 @@ class CodePromoRepository {
   ///
   /// The returned [CodePromo] will have its `id` field set.
   Future<CodePromo> insertRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     CodePromo row, {
     _i1.Transaction? transaction,
   }) async {
@@ -535,7 +555,7 @@ class CodePromoRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<CodePromo>> update(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<CodePromo> rows, {
     _i1.ColumnSelections<CodePromoTable>? columns,
     _i1.Transaction? transaction,
@@ -551,7 +571,7 @@ class CodePromoRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<CodePromo> updateRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     CodePromo row, {
     _i1.ColumnSelections<CodePromoTable>? columns,
     _i1.Transaction? transaction,
@@ -566,7 +586,7 @@ class CodePromoRepository {
   /// Updates a single [CodePromo] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<CodePromo?> updateById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     required _i1.ColumnValueListBuilder<CodePromoUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -581,7 +601,7 @@ class CodePromoRepository {
   /// Updates all [CodePromo]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<CodePromo>> updateWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.ColumnValueListBuilder<CodePromoUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<CodePromoTable> where,
     int? limit,
@@ -607,7 +627,7 @@ class CodePromoRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<CodePromo>> delete(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<CodePromo> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -619,7 +639,7 @@ class CodePromoRepository {
 
   /// Deletes a single [CodePromo].
   Future<CodePromo> deleteRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     CodePromo row, {
     _i1.Transaction? transaction,
   }) async {
@@ -631,7 +651,7 @@ class CodePromoRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<CodePromo>> deleteWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.WhereExpressionBuilder<CodePromoTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -644,7 +664,7 @@ class CodePromoRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<CodePromoTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -652,6 +672,22 @@ class CodePromoRepository {
     return session.db.count<CodePromo>(
       where: where?.call(CodePromo.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [CodePromo] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<CodePromoTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<CodePromo>(
+      where: where(CodePromo.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

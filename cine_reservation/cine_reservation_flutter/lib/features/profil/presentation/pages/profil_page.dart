@@ -1,7 +1,7 @@
-import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profil_provider.dart';
@@ -19,9 +19,6 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
   final _formKey = GlobalKey<FormState>();
   DateTime? _dateNaissance;
   bool _editing = false;
-  Uint8List? _imageBytes;
-
-  // Suivi des champs modifiés
   bool _telephoneChanged = false;
   bool _dateChanged = false;
 
@@ -46,7 +43,8 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
       withData: true,
     );
     if (result != null && result.files.first.bytes != null) {
-      setState(() => _imageBytes = result.files.first.bytes);
+      // Sauvegarder directement en BD via base64
+      await ref.read(profilProvider.notifier).updatePhoto(result.files.first.bytes!);
     }
   }
 
@@ -59,6 +57,137 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
     setState(() => _editing = true);
   }
 
+  void _showChangerMotDePasse() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.cardBg,
+        title: const Text('Changer le mot de passe',
+            style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'Un email de reinitialisation vous sera envoye.\n\nVous devrez confirmer via le code recu par email.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(authProvider.notifier).logout().then((_) {
+                context.go('/forgot-password');
+              });
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
+            child: const Text('Continuer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDesactiverCompte() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.cardBg,
+        title: const Text('Desactiver le compte', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'Votre compte sera temporairement desactive. Vous pourrez le reactivier en contactant le support.\n\nEtes-vous sur ?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final ok = await ref.read(profilProvider.notifier).desactiverCompte();
+              if (ok && mounted) {
+                await ref.read(authProvider.notifier).logout();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Compte desactive. Contactez le support pour le reactivier.'),
+                    backgroundColor: Colors.orange,
+                    duration: Duration(seconds: 5),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Desactiver'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSupprimerCompte() {
+    final confirmController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.cardBg,
+        title: const Text('Supprimer le compte', style: TextStyle(color: Colors.red)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Cette action est irreversible. Toutes vos donnees seront supprimees definitivemet.',
+              style: TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 16),
+            const Text('Tapez SUPPRIMER pour confirmer :', style: TextStyle(color: Colors.white60, fontSize: 12)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: confirmController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'SUPPRIMER',
+                hintStyle: TextStyle(color: Colors.white24),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (confirmController.text.trim() != 'SUPPRIMER') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Tapez exactement SUPPRIMER'), backgroundColor: Colors.red),
+                );
+                return;
+              }
+              Navigator.pop(ctx);
+              final ok = await ref.read(profilProvider.notifier).supprimerCompte();
+              if (ok && mounted) {
+                await ref.read(authProvider.notifier).logout();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Compte supprime definitivement.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Supprimer definitivement'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profilState = ref.watch(profilProvider);
@@ -66,10 +195,7 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
     ref.listen(profilProvider, (previous, next) {
       if (next.error != null && previous?.error != next.error) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: AppColors.error,
-          ),
+          SnackBar(content: Text(next.error!), backgroundColor: AppColors.error),
         );
       }
       if (next.saveSuccess && previous?.saveSuccess != true) {
@@ -80,13 +206,11 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Profil mis à jour avec succès !'),
-              ],
-            ),
+            content: Row(children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Profil mis a jour avec succes !'),
+            ]),
             backgroundColor: AppColors.success,
             duration: Duration(seconds: 3),
           ),
@@ -95,12 +219,12 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
     });
 
     if (profilState.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.accent),
-      );
+      return const Center(child: CircularProgressIndicator(color: AppColors.accent));
     }
 
     final user = profilState.utilisateur;
+    // Photo depuis la BD (base64 décodé)
+    final photoBytes = profilState.photoBytes;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -109,28 +233,27 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
         children: [
           const SizedBox(height: 20),
 
-          // Avatar
+          // ─── Avatar ───
           Center(
             child: Stack(
               children: [
-                GestureDetector(
+                profilState.isSaving
+                    ? const CircleAvatar(
+                  radius: 50,
+                  backgroundColor: AppColors.secondary,
+                  child: CircularProgressIndicator(color: AppColors.accent, strokeWidth: 2),
+                )
+                    : GestureDetector(
                   onTap: _pickImage,
                   child: CircleAvatar(
                     radius: 50,
                     backgroundColor: AppColors.secondary,
-                    backgroundImage: _imageBytes != null
-                        ? MemoryImage(_imageBytes!)
-                        : null,
-                    child: _imageBytes == null
+                    backgroundImage: photoBytes != null ? MemoryImage(photoBytes) : null,
+                    child: photoBytes == null
                         ? Text(
-                      user?.nom.isNotEmpty == true
-                          ? user!.nom[0].toUpperCase()
-                          : '?',
+                      user?.nom.isNotEmpty == true ? user!.nom[0].toUpperCase() : '?',
                       style: const TextStyle(
-                        fontSize: 36,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          fontSize: 36, color: AppColors.accent, fontWeight: FontWeight.bold),
                     )
                         : null,
                   ),
@@ -146,8 +269,7 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
                         color: AppColors.accent,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(Icons.camera_alt,
-                          color: Colors.white, size: 16),
+                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
                     ),
                   ),
                 ),
@@ -158,22 +280,13 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
           const SizedBox(height: 16),
 
           Center(
-            child: Text(
-              user?.nom ?? '',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.white,
-              ),
-            ),
+            child: Text(user?.nom ?? '',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.white)),
           ),
           Center(
-            child: Text(
-              user?.email ?? '',
-              style: const TextStyle(color: AppColors.textLight, fontSize: 14),
-            ),
+            child: Text(user?.email ?? '',
+                style: const TextStyle(color: AppColors.textLight, fontSize: 14)),
           ),
-
           const SizedBox(height: 8),
 
           // Badge fidélité
@@ -190,10 +303,8 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
                 children: [
                   const Icon(Icons.star, color: AppColors.accent, size: 16),
                   const SizedBox(width: 6),
-                  Text(
-                    '${user?.pointsFidelite ?? 0} points fidélité',
-                    style: const TextStyle(color: AppColors.accent, fontSize: 13),
-                  ),
+                  Text('${user?.pointsFidelite ?? 0} points fidelite',
+                      style: const TextStyle(color: AppColors.accent, fontSize: 13)),
                 ],
               ),
             ),
@@ -201,7 +312,7 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
 
           const SizedBox(height: 32),
 
-          // Infos / Formulaire
+          // ─── Infos / Formulaire ───
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -216,17 +327,73 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
 
           const SizedBox(height: 24),
 
-          // Déconnexion
+          // ─── Actions compte ───
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.divider),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Securite et compte',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                const SizedBox(height: 12),
+                const Divider(color: Colors.white10),
+
+                // Changer mot de passe
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.lock_outline, color: AppColors.accent),
+                  title: const Text('Changer le mot de passe', style: TextStyle(color: Colors.white)),
+                  subtitle: const Text('Modifier via email de reinitialisation',
+                      style: TextStyle(color: Colors.white38, fontSize: 11)),
+                  trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
+                  onTap: _showChangerMotDePasse,
+                ),
+
+                const Divider(color: Colors.white10),
+
+                // Désactiver compte
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.pause_circle_outline, color: Colors.orange),
+                  title: const Text('Desactiver le compte', style: TextStyle(color: Colors.orange)),
+                  subtitle: const Text('Suspension temporaire du compte',
+                      style: TextStyle(color: Colors.white38, fontSize: 11)),
+                  trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
+                  onTap: _showDesactiverCompte,
+                ),
+
+                const Divider(color: Colors.white10),
+
+                // Supprimer compte
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
+                  title: const Text('Supprimer le compte', style: TextStyle(color: Colors.red)),
+                  subtitle: const Text('Suppression definitive et irreversible',
+                      style: TextStyle(color: Colors.white38, fontSize: 11)),
+                  trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
+                  onTap: _showSupprimerCompte,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // ─── Déconnexion ───
           OutlinedButton.icon(
             onPressed: () => ref.read(authProvider.notifier).logout(),
             icon: const Icon(Icons.logout, color: Colors.redAccent),
-            label: const Text('Se déconnecter',
-                style: TextStyle(color: Colors.redAccent)),
+            label: const Text('Se deconnecter', style: TextStyle(color: Colors.redAccent)),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.redAccent),
               minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
 
@@ -241,11 +408,10 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
         ? '${user!.dateNaissance!.day.toString().padLeft(2, '0')}/'
         '${user.dateNaissance!.month.toString().padLeft(2, '0')}/'
         '${user.dateNaissance!.year}'
-        : 'Non renseignée';
-
+        : 'Non renseignee';
     final telStr = (user?.telephone != null && user!.telephone!.isNotEmpty)
         ? user.telephone!
-        : 'Non renseigné';
+        : 'Non renseigne';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,13 +419,8 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Mes informations',
-              style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold),
-            ),
+            const Text('Mes informations',
+                style: TextStyle(color: AppColors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             IconButton(
               icon: const Icon(Icons.edit, color: AppColors.accent),
               onPressed: () => _startEditing(profilState),
@@ -270,10 +431,10 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
         const SizedBox(height: 8),
         _infoRow(Icons.person_outline, 'Nom', user?.nom ?? '-'),
         _infoRow(Icons.email_outlined, 'Email', user?.email ?? '-'),
-        _infoRow(Icons.phone_outlined, 'Téléphone', telStr),
+        _infoRow(Icons.phone_outlined, 'Telephone', telStr),
         _infoRow(Icons.cake_outlined, 'Date de naissance', dateStr),
         _infoRow(Icons.shield_outlined, 'Statut', user?.statut ?? '-'),
-        _infoRow(Icons.badge_outlined, 'Rôle', user?.role ?? '-'),
+        _infoRow(Icons.badge_outlined, 'Role', user?.role ?? '-'),
       ],
     );
   }
@@ -289,11 +450,8 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: const TextStyle(
-                        color: AppColors.textLight, fontSize: 12)),
-                Text(value,
-                    style: const TextStyle(color: AppColors.white, fontSize: 14)),
+                Text(label, style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
+                Text(value, style: const TextStyle(color: AppColors.white, fontSize: 14)),
               ],
             ),
           ),
@@ -311,13 +469,8 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Modifier le profil',
-                style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold),
-              ),
+              const Text('Modifier le profil',
+                  style: TextStyle(color: AppColors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               IconButton(
                 icon: const Icon(Icons.close, color: AppColors.textLight),
                 onPressed: () => setState(() => _editing = false),
@@ -326,8 +479,6 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
           ),
           const Divider(color: AppColors.divider),
           const SizedBox(height: 12),
-
-          // Nom
           TextFormField(
             controller: _nomController,
             style: const TextStyle(color: AppColors.white),
@@ -337,32 +488,21 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
             ),
             validator: (v) => v == null || v.isEmpty ? 'Nom requis' : null,
           ),
-
           const SizedBox(height: 16),
-
-          // Téléphone avec indicateur de modification
           TextFormField(
             controller: _telephoneController,
             style: const TextStyle(color: AppColors.white),
             keyboardType: TextInputType.phone,
             onChanged: (_) => setState(() => _telephoneChanged = true),
             decoration: InputDecoration(
-              labelText: 'Téléphone',
+              labelText: 'Telephone',
               prefixIcon: const Icon(Icons.phone_outlined),
               suffixIcon: _telephoneChanged
                   ? const Icon(Icons.edit_note, color: AppColors.accent, size: 20)
                   : null,
-              helperText: _telephoneChanged
-                  ? 'Modifié — pensez à sauvegarder'
-                  : null,
-              helperStyle:
-              const TextStyle(color: AppColors.accent, fontSize: 11),
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Date de naissance avec indicateur
           GestureDetector(
             onTap: () async {
               final date = await showDatePicker(
@@ -388,8 +528,7 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
               }
             },
             child: Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: AppColors.inputBg,
                 borderRadius: BorderRadius.circular(12),
@@ -398,55 +537,27 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
                   width: _dateChanged ? 1.5 : 1,
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.cake_outlined,
-                          color: _dateChanged
-                              ? AppColors.accent
-                              : AppColors.textLight),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _dateNaissance != null
-                              ? '${_dateNaissance!.day.toString().padLeft(2, '0')}/'
-                              '${_dateNaissance!.month.toString().padLeft(2, '0')}/'
-                              '${_dateNaissance!.year}'
-                              : 'Date de naissance',
-                          style: TextStyle(
-                            color: _dateNaissance != null
-                                ? AppColors.white
-                                : AppColors.textLight,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      if (_dateChanged)
-                        const Icon(Icons.edit_note,
-                            color: AppColors.accent, size: 20),
-                    ],
-                  ),
-                  if (_dateChanged)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, left: 32),
-                      child: Text(
-                        'Modifiée — pensez à sauvegarder',
-                        style: TextStyle(
-                          color: AppColors.accent.withOpacity(0.8),
-                          fontSize: 11,
-                        ),
-                      ),
+                  Icon(Icons.cake_outlined,
+                      color: _dateChanged ? AppColors.accent : AppColors.textLight),
+                  const SizedBox(width: 12),
+                  Text(
+                    _dateNaissance != null
+                        ? '${_dateNaissance!.day.toString().padLeft(2, '0')}/'
+                        '${_dateNaissance!.month.toString().padLeft(2, '0')}/'
+                        '${_dateNaissance!.year}'
+                        : 'Date de naissance',
+                    style: TextStyle(
+                      color: _dateNaissance != null ? AppColors.white : AppColors.textLight,
+                      fontSize: 14,
                     ),
+                  ),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: 24),
-
-          // Bouton Sauvegarder
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -456,8 +567,7 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
                 if (_formKey.currentState!.validate()) {
                   ref.read(profilProvider.notifier).updateProfil(
                     nom: _nomController.text.trim(),
-                    telephone:
-                    _telephoneController.text.trim().isEmpty
+                    telephone: _telephoneController.text.trim().isEmpty
                         ? null
                         : _telephoneController.text.trim(),
                     dateNaissance: _dateNaissance,
@@ -466,15 +576,13 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: profilState.isSaving
                   ? const SizedBox(
                 height: 20,
                 width: 20,
-                child: CircularProgressIndicator(
-                    color: AppColors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(color: AppColors.white, strokeWidth: 2),
               )
                   : const Text('Sauvegarder', style: TextStyle(fontSize: 16)),
             ),
