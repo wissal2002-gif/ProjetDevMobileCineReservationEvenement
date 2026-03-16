@@ -37,15 +37,18 @@ import 'salle.dart' as _i22;
 import 'seance.dart' as _i23;
 import 'siege.dart' as _i24;
 import 'utilisateur.dart' as _i25;
-import 'package:cine_reservation_server/src/generated/cinema.dart' as _i26;
-import 'package:cine_reservation_server/src/generated/evenement.dart' as _i27;
-import 'package:cine_reservation_server/src/generated/film.dart' as _i28;
+import 'package:cine_reservation_server/src/generated/billet.dart' as _i26;
+import 'package:cine_reservation_server/src/generated/cinema.dart' as _i27;
+import 'package:cine_reservation_server/src/generated/evenement.dart' as _i28;
+import 'package:cine_reservation_server/src/generated/film.dart' as _i29;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
-    as _i29;
-import 'package:cine_reservation_server/src/generated/salle.dart' as _i30;
-import 'package:cine_reservation_server/src/generated/seance.dart' as _i31;
+    as _i30;
+import 'package:cine_reservation_server/src/generated/reservation.dart' as _i31;
+import 'package:cine_reservation_server/src/generated/salle.dart' as _i32;
+import 'package:cine_reservation_server/src/generated/seance.dart' as _i33;
+import 'package:cine_reservation_server/src/generated/siege.dart' as _i34;
 import 'package:cine_reservation_server/src/generated/demande_support.dart'
-    as _i32;
+    as _i35;
 export 'avis.dart';
 export 'billet.dart';
 export 'cinema.dart';
@@ -2182,34 +2185,51 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i26.Cinema>) {
-      return (data as List).map((e) => deserialize<_i26.Cinema>(e)).toList()
+    if (t == List<_i26.Billet>) {
+      return (data as List).map((e) => deserialize<_i26.Billet>(e)).toList()
           as T;
     }
-    if (t == List<_i27.Evenement>) {
-      return (data as List).map((e) => deserialize<_i27.Evenement>(e)).toList()
+    if (t == List<_i27.Cinema>) {
+      return (data as List).map((e) => deserialize<_i27.Cinema>(e)).toList()
           as T;
     }
-    if (t == List<_i28.Film>) {
-      return (data as List).map((e) => deserialize<_i28.Film>(e)).toList() as T;
+    if (t == List<_i28.Evenement>) {
+      return (data as List).map((e) => deserialize<_i28.Evenement>(e)).toList()
+          as T;
     }
-    if (t == List<_i29.OptionSupplementaire>) {
+    if (t == List<_i29.Film>) {
+      return (data as List).map((e) => deserialize<_i29.Film>(e)).toList() as T;
+    }
+    if (t == List<_i30.OptionSupplementaire>) {
       return (data as List)
-              .map((e) => deserialize<_i29.OptionSupplementaire>(e))
+              .map((e) => deserialize<_i30.OptionSupplementaire>(e))
               .toList()
           as T;
     }
-    if (t == List<_i30.Salle>) {
-      return (data as List).map((e) => deserialize<_i30.Salle>(e)).toList()
-          as T;
-    }
-    if (t == List<_i31.Seance>) {
-      return (data as List).map((e) => deserialize<_i31.Seance>(e)).toList()
-          as T;
-    }
-    if (t == List<_i32.DemandeSupport>) {
+    if (t == List<_i31.Reservation>) {
       return (data as List)
-              .map((e) => deserialize<_i32.DemandeSupport>(e))
+              .map((e) => deserialize<_i31.Reservation>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i32.Salle>) {
+      return (data as List).map((e) => deserialize<_i32.Salle>(e)).toList()
+          as T;
+    }
+    if (t == List<_i33.Seance>) {
+      return (data as List).map((e) => deserialize<_i33.Seance>(e)).toList()
+          as T;
+    }
+    if (t == List<_i34.Siege>) {
+      return (data as List).map((e) => deserialize<_i34.Siege>(e)).toList()
+          as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == List<_i35.DemandeSupport>) {
+      return (data as List)
+              .map((e) => deserialize<_i35.DemandeSupport>(e))
               .toList()
           as T;
     }

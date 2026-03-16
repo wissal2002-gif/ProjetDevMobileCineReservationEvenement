@@ -7,7 +7,8 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import 'home_page.dart';
 import '../../../programmation/presentation/pages/films_list_page.dart';
 import '../../../evenements/presentation/pages/evenements_page.dart';
-
+import '../../../reservation/presentation/pages/mes_reservations_page.dart';
+import '../../../billets/presentation/pages/billets_page.dart';
 class MainNavigationPage extends ConsumerStatefulWidget {
   const MainNavigationPage({super.key});
 
@@ -104,7 +105,7 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
           HomePage(onNavigate: (index) => setState(() => _selectedIndex = index)),
           const FilmsListPage(),
           const EvenementsPage(),
-          const Center(child: Text("Mes Réservations", style: TextStyle(color: Colors.white))),
+          MesReservationsPage(),
           const ProfilPage(),
         ],
       ),

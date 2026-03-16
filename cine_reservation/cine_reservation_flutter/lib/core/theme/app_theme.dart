@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class AppColors {
   static const Color background   = Color(0xFF0D0A08);
@@ -44,7 +44,7 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.white,
-        minimumSize: const Size(double.infinity, 52),
+        minimumSize: const Size(88, 44),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),

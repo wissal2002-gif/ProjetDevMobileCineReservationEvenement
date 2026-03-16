@@ -1,4 +1,4 @@
-name: cine_reservation_flutter
+﻿name: cine_reservation_flutter
 description: A new Flutter project with Serverpod.
 
 # The following line prevents the package from being accidentally published to
@@ -33,6 +33,8 @@ dependencies:
   serverpod_flutter: 3.4.3
   serverpod_auth_idp_flutter: 3.4.3
   flutter_riverpod: ^2.6.1
+  pdf: ^3.10.7
+  printing: ^5.12.0
   go_router: ^14.6.2
   flutter_secure_storage: ^10.0.0
   cached_network_image: ^3.4.1
@@ -86,3 +88,4 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+

@@ -32,19 +32,22 @@ import 'salle.dart' as _i19;
 import 'seance.dart' as _i20;
 import 'siege.dart' as _i21;
 import 'utilisateur.dart' as _i22;
-import 'package:cine_reservation_client/src/protocol/cinema.dart' as _i23;
-import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i24;
-import 'package:cine_reservation_client/src/protocol/film.dart' as _i25;
+import 'package:cine_reservation_client/src/protocol/billet.dart' as _i23;
+import 'package:cine_reservation_client/src/protocol/cinema.dart' as _i24;
+import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i25;
+import 'package:cine_reservation_client/src/protocol/film.dart' as _i26;
 import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dart'
-    as _i26;
-import 'package:cine_reservation_client/src/protocol/salle.dart' as _i27;
-import 'package:cine_reservation_client/src/protocol/seance.dart' as _i28;
+    as _i27;
+import 'package:cine_reservation_client/src/protocol/reservation.dart' as _i28;
+import 'package:cine_reservation_client/src/protocol/salle.dart' as _i29;
+import 'package:cine_reservation_client/src/protocol/seance.dart' as _i30;
+import 'package:cine_reservation_client/src/protocol/siege.dart' as _i31;
 import 'package:cine_reservation_client/src/protocol/demande_support.dart'
-    as _i29;
+    as _i32;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i30;
+    as _i33;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i31;
+    as _i34;
 export 'avis.dart';
 export 'billet.dart';
 export 'cinema.dart';
@@ -238,42 +241,59 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i23.Cinema>) {
-      return (data as List).map((e) => deserialize<_i23.Cinema>(e)).toList()
+    if (t == List<_i23.Billet>) {
+      return (data as List).map((e) => deserialize<_i23.Billet>(e)).toList()
           as T;
     }
-    if (t == List<_i24.Evenement>) {
-      return (data as List).map((e) => deserialize<_i24.Evenement>(e)).toList()
+    if (t == List<_i24.Cinema>) {
+      return (data as List).map((e) => deserialize<_i24.Cinema>(e)).toList()
           as T;
     }
-    if (t == List<_i25.Film>) {
-      return (data as List).map((e) => deserialize<_i25.Film>(e)).toList() as T;
+    if (t == List<_i25.Evenement>) {
+      return (data as List).map((e) => deserialize<_i25.Evenement>(e)).toList()
+          as T;
     }
-    if (t == List<_i26.OptionSupplementaire>) {
+    if (t == List<_i26.Film>) {
+      return (data as List).map((e) => deserialize<_i26.Film>(e)).toList() as T;
+    }
+    if (t == List<_i27.OptionSupplementaire>) {
       return (data as List)
-              .map((e) => deserialize<_i26.OptionSupplementaire>(e))
+              .map((e) => deserialize<_i27.OptionSupplementaire>(e))
               .toList()
           as T;
     }
-    if (t == List<_i27.Salle>) {
-      return (data as List).map((e) => deserialize<_i27.Salle>(e)).toList()
-          as T;
-    }
-    if (t == List<_i28.Seance>) {
-      return (data as List).map((e) => deserialize<_i28.Seance>(e)).toList()
-          as T;
-    }
-    if (t == List<_i29.DemandeSupport>) {
+    if (t == List<_i28.Reservation>) {
       return (data as List)
-              .map((e) => deserialize<_i29.DemandeSupport>(e))
+              .map((e) => deserialize<_i28.Reservation>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i29.Salle>) {
+      return (data as List).map((e) => deserialize<_i29.Salle>(e)).toList()
+          as T;
+    }
+    if (t == List<_i30.Seance>) {
+      return (data as List).map((e) => deserialize<_i30.Seance>(e)).toList()
+          as T;
+    }
+    if (t == List<_i31.Siege>) {
+      return (data as List).map((e) => deserialize<_i31.Siege>(e)).toList()
+          as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == List<_i32.DemandeSupport>) {
+      return (data as List)
+              .map((e) => deserialize<_i32.DemandeSupport>(e))
               .toList()
           as T;
     }
     try {
-      return _i30.Protocol().deserialize<T>(data, t);
+      return _i33.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i31.Protocol().deserialize<T>(data, t);
+      return _i34.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -361,11 +381,11 @@ class Protocol extends _i1.SerializationManager {
       case _i22.Utilisateur():
         return 'Utilisateur';
     }
-    className = _i30.Protocol().getClassNameForObject(data);
+    className = _i33.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i31.Protocol().getClassNameForObject(data);
+    className = _i34.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -443,11 +463,11 @@ class Protocol extends _i1.SerializationManager {
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i30.Protocol().deserializeByClassName(data);
+      return _i33.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i31.Protocol().deserializeByClassName(data);
+      return _i34.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -462,10 +482,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i30.Protocol().mapRecordToJson(record);
+      return _i33.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i31.Protocol().mapRecordToJson(record);
+      return _i34.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

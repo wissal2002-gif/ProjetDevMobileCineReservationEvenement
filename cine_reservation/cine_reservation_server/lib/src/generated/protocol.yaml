@@ -10,6 +10,10 @@ emailIdp:
 jwtRefresh:
   - refreshAccessToken:
 avis:
+billet:
+  - getMesBillets:
+  - getBilletsByReservation:
+  - validerBillet:
 cinemas:
   - getCinemas:
   - getCinemaById:
@@ -23,16 +27,28 @@ films:
   - searchFilms:
 options:
   - getOptions:
+paiement:
+  - effectuerPaiement:
+  - demanderRemboursement:
 profil:
   - getProfil:
   - updateProfil:
   - updatePhotoProfil:
   - desactiverCompte:
   - supprimerCompte:
+reservation:
+  - creerReservation:
+  - getMesReservations:
+  - annulerReservation:
+  - validerCodePromo:
 salles:
   - getSalles:
 seances:
   - getSeancesByFilm:
+sieges:
+  - getSiegesBySalle:
+  - getSiegesReservesBySeance:
+  - getSiegesReservesByEvenement:
 support:
   - creerDemande:
   - getDemandes:

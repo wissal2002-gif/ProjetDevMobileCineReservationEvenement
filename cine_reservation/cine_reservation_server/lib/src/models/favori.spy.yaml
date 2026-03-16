@@ -1,11 +1,9 @@
-class: Favori
+﻿class: Favori
 table: favoris
 managedMigration: true
-
 fields:
   utilisateurId: int
   cinemaId: int
-
 indexes:
   favori_unique_idx:
     fields: utilisateurId, cinemaId

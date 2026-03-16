@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../features/programmation/presentation/providers/programmation_provider.dart';
 import '../../../../features/evenements/presentation/providers/evenement_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cine_reservation_client/cine_reservation_client.dart';
 
 // ... (garder les mêmes imports en haut)
 
@@ -27,6 +28,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'home_support_fab',
         backgroundColor: const Color(0xFF8B7355),
         onPressed: () => context.push('/support'),
         icon: const Icon(Icons.help_outline, color: Colors.white),
@@ -124,7 +126,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     if (e.cinemaId != null) {
                       final cinema = cinemas.firstWhere(
                             (c) => c.id == e.cinemaId,
-                        orElse: () => cinemas.isNotEmpty ? cinemas.first : throw Exception("Pas de cinémas"),
+                        orElse: () => Cinema(nom: '', ville: '', adresse: ''),
                       );
                       matchesCinema = cinema.nom.toLowerCase().contains(query);
                     }
@@ -250,3 +252,5 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 }
+
+
