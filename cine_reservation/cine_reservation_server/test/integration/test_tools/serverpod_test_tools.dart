@@ -16,23 +16,24 @@ import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'package:cine_reservation_server/src/generated/billet.dart' as _i5;
-import 'package:cine_reservation_server/src/generated/cinema.dart' as _i6;
-import 'package:cine_reservation_server/src/generated/evenement.dart' as _i7;
-import 'package:cine_reservation_server/src/generated/film.dart' as _i8;
+import 'package:cine_reservation_server/src/generated/avis.dart' as _i5;
+import 'package:cine_reservation_server/src/generated/billet.dart' as _i6;
+import 'package:cine_reservation_server/src/generated/cinema.dart' as _i7;
+import 'package:cine_reservation_server/src/generated/evenement.dart' as _i8;
+import 'package:cine_reservation_server/src/generated/film.dart' as _i9;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
-    as _i9;
-import 'package:cine_reservation_server/src/generated/paiement.dart' as _i10;
-import 'package:cine_reservation_server/src/generated/utilisateur.dart' as _i11;
-import 'package:cine_reservation_server/src/generated/reservation.dart' as _i12;
-import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i13;
-import 'package:cine_reservation_server/src/generated/salle.dart' as _i14;
-import 'package:cine_reservation_server/src/generated/seance.dart' as _i15;
-import 'package:cine_reservation_server/src/generated/siege.dart' as _i16;
+    as _i10;
+import 'package:cine_reservation_server/src/generated/paiement.dart' as _i11;
+import 'package:cine_reservation_server/src/generated/utilisateur.dart' as _i12;
+import 'package:cine_reservation_server/src/generated/reservation.dart' as _i13;
+import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i14;
+import 'package:cine_reservation_server/src/generated/salle.dart' as _i15;
+import 'package:cine_reservation_server/src/generated/seance.dart' as _i16;
+import 'package:cine_reservation_server/src/generated/siege.dart' as _i17;
 import 'package:cine_reservation_server/src/generated/demande_support.dart'
-    as _i17;
-import 'package:cine_reservation_server/src/generated/greetings/greeting.dart'
     as _i18;
+import 'package:cine_reservation_server/src/generated/greetings/greeting.dart'
+    as _i19;
 import 'package:cine_reservation_server/src/generated/protocol.dart';
 import 'package:cine_reservation_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -567,9 +568,110 @@ class _JwtRefreshEndpoint {
 
 class _AvisEndpoint {
   _AvisEndpoint(
-    _endpointDispatch,
-    _serializationManager,
+    this._endpointDispatch,
+    this._serializationManager,
   );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i5.Avis?> soumettreAvis(
+    _i1.TestSessionBuilder sessionBuilder,
+    int filmId,
+    int note,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'avis',
+            method: 'soumettreAvis',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'avis',
+          methodName: 'soumettreAvis',
+          parameters: _i1.testObjectToJson({
+            'filmId': filmId,
+            'note': note,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i5.Avis?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<int?> getMonAvis(
+    _i1.TestSessionBuilder sessionBuilder,
+    int filmId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'avis',
+            method: 'getMonAvis',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'avis',
+          methodName: 'getMonAvis',
+          parameters: _i1.testObjectToJson({'filmId': filmId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<int?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> getStatsFilm(
+    _i1.TestSessionBuilder sessionBuilder,
+    int filmId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'avis',
+            method: 'getStatsFilm',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'avis',
+          methodName: 'getStatsFilm',
+          parameters: _i1.testObjectToJson({'filmId': filmId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _BilletEndpoint {
@@ -582,7 +684,7 @@ class _BilletEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i5.Billet>> getMesBillets(
+  _i3.Future<List<_i6.Billet>> getMesBillets(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -604,7 +706,7 @@ class _BilletEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i5.Billet>>);
+                as _i3.Future<List<_i6.Billet>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -612,7 +714,7 @@ class _BilletEndpoint {
     });
   }
 
-  _i3.Future<List<_i5.Billet>> getBilletsByReservation(
+  _i3.Future<List<_i6.Billet>> getBilletsByReservation(
     _i1.TestSessionBuilder sessionBuilder,
     int reservationId,
   ) async {
@@ -635,7 +737,7 @@ class _BilletEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i5.Billet>>);
+                as _i3.Future<List<_i6.Billet>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -685,7 +787,7 @@ class _CinemasEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i6.Cinema>> getCinemas(
+  _i3.Future<List<_i7.Cinema>> getCinemas(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -707,7 +809,7 @@ class _CinemasEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i6.Cinema>>);
+                as _i3.Future<List<_i7.Cinema>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -715,7 +817,7 @@ class _CinemasEndpoint {
     });
   }
 
-  _i3.Future<_i6.Cinema?> getCinemaById(
+  _i3.Future<_i7.Cinema?> getCinemaById(
     _i1.TestSessionBuilder sessionBuilder,
     int id,
   ) async {
@@ -738,7 +840,7 @@ class _CinemasEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.Cinema?>);
+                as _i3.Future<_i7.Cinema?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -757,7 +859,7 @@ class _EvenementsEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i7.Evenement>> getEvenements(
+  _i3.Future<List<_i8.Evenement>> getEvenements(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -779,7 +881,7 @@ class _EvenementsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i7.Evenement>>);
+                as _i3.Future<List<_i8.Evenement>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -787,7 +889,7 @@ class _EvenementsEndpoint {
     });
   }
 
-  _i3.Future<_i7.Evenement?> getEvenementById(
+  _i3.Future<_i8.Evenement?> getEvenementById(
     _i1.TestSessionBuilder sessionBuilder,
     int id,
   ) async {
@@ -810,7 +912,7 @@ class _EvenementsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.Evenement?>);
+                as _i3.Future<_i8.Evenement?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -818,7 +920,7 @@ class _EvenementsEndpoint {
     });
   }
 
-  _i3.Future<List<_i7.Evenement>> searchEvenements(
+  _i3.Future<List<_i8.Evenement>> searchEvenements(
     _i1.TestSessionBuilder sessionBuilder,
     String query,
   ) async {
@@ -841,7 +943,7 @@ class _EvenementsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i7.Evenement>>);
+                as _i3.Future<List<_i8.Evenement>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -860,7 +962,7 @@ class _FilmsEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i8.Film>> getFilms(
+  _i3.Future<List<_i9.Film>> getFilms(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -882,7 +984,7 @@ class _FilmsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i8.Film>>);
+                as _i3.Future<List<_i9.Film>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -890,7 +992,7 @@ class _FilmsEndpoint {
     });
   }
 
-  _i3.Future<_i8.Film?> getFilmById(
+  _i3.Future<_i9.Film?> getFilmById(
     _i1.TestSessionBuilder sessionBuilder,
     int id,
   ) async {
@@ -913,7 +1015,7 @@ class _FilmsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.Film?>);
+                as _i3.Future<_i9.Film?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -921,7 +1023,7 @@ class _FilmsEndpoint {
     });
   }
 
-  _i3.Future<List<_i8.Film>> searchFilms(
+  _i3.Future<List<_i9.Film>> searchFilms(
     _i1.TestSessionBuilder sessionBuilder,
     String query,
   ) async {
@@ -944,7 +1046,7 @@ class _FilmsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i8.Film>>);
+                as _i3.Future<List<_i9.Film>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -963,7 +1065,7 @@ class _OptionsEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i9.OptionSupplementaire>> getOptions(
+  _i3.Future<List<_i10.OptionSupplementaire>> getOptions(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -985,7 +1087,7 @@ class _OptionsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i9.OptionSupplementaire>>);
+                as _i3.Future<List<_i10.OptionSupplementaire>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1004,7 +1106,7 @@ class _PaiementEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i10.Paiement?> effectuerPaiement(
+  _i3.Future<_i11.Paiement?> effectuerPaiement(
     _i1.TestSessionBuilder sessionBuilder,
     int reservationId,
     double montant,
@@ -1033,7 +1135,7 @@ class _PaiementEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.Paiement?>);
+                as _i3.Future<_i11.Paiement?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1087,7 +1189,7 @@ class _ProfilEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i11.Utilisateur?> getProfil(
+  _i3.Future<_i12.Utilisateur?> getProfil(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1109,7 +1211,7 @@ class _ProfilEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.Utilisateur?>);
+                as _i3.Future<_i12.Utilisateur?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1117,7 +1219,7 @@ class _ProfilEndpoint {
     });
   }
 
-  _i3.Future<_i11.Utilisateur?> updateProfil(
+  _i3.Future<_i12.Utilisateur?> updateProfil(
     _i1.TestSessionBuilder sessionBuilder,
     String nom,
     String? telephone,
@@ -1146,7 +1248,7 @@ class _ProfilEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.Utilisateur?>);
+                as _i3.Future<_i12.Utilisateur?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1154,7 +1256,7 @@ class _ProfilEndpoint {
     });
   }
 
-  _i3.Future<_i11.Utilisateur?> updatePhotoProfil(
+  _i3.Future<_i12.Utilisateur?> updatePhotoProfil(
     _i1.TestSessionBuilder sessionBuilder,
     String photoBase64,
   ) async {
@@ -1177,7 +1279,7 @@ class _ProfilEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.Utilisateur?>);
+                as _i3.Future<_i12.Utilisateur?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1256,7 +1358,7 @@ class _ReservationEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i12.Reservation?> creerReservation(
+  _i3.Future<_i13.Reservation?> creerReservation(
     _i1.TestSessionBuilder sessionBuilder, {
     int? seanceId,
     int? evenementId,
@@ -1289,7 +1391,7 @@ class _ReservationEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.Reservation?>);
+                as _i3.Future<_i13.Reservation?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1297,7 +1399,7 @@ class _ReservationEndpoint {
     });
   }
 
-  _i3.Future<List<_i12.Reservation>> getMesReservations(
+  _i3.Future<List<_i13.Reservation>> getMesReservations(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1319,7 +1421,7 @@ class _ReservationEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i12.Reservation>>);
+                as _i3.Future<List<_i13.Reservation>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1358,7 +1460,7 @@ class _ReservationEndpoint {
     });
   }
 
-  _i3.Future<_i13.CodePromo?> validerCodePromo(
+  _i3.Future<_i14.CodePromo?> validerCodePromo(
     _i1.TestSessionBuilder sessionBuilder,
     String code,
   ) async {
@@ -1381,7 +1483,7 @@ class _ReservationEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.CodePromo?>);
+                as _i3.Future<_i14.CodePromo?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1400,7 +1502,7 @@ class _SallesEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i14.Salle>> getSalles(
+  _i3.Future<List<_i15.Salle>> getSalles(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1422,7 +1524,7 @@ class _SallesEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i14.Salle>>);
+                as _i3.Future<List<_i15.Salle>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1441,7 +1543,7 @@ class _SeancesEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i15.Seance>> getSeancesByFilm(
+  _i3.Future<List<_i16.Seance>> getSeancesByFilm(
     _i1.TestSessionBuilder sessionBuilder,
     int filmId,
   ) async {
@@ -1464,7 +1566,38 @@ class _SeancesEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i15.Seance>>);
+                as _i3.Future<List<_i16.Seance>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i16.Seance>> getSeancesByIds(
+    _i1.TestSessionBuilder sessionBuilder,
+    List<int> ids,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'seances',
+            method: 'getSeancesByIds',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'seances',
+          methodName: 'getSeancesByIds',
+          parameters: _i1.testObjectToJson({'ids': ids}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i16.Seance>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1483,7 +1616,7 @@ class _SiegesEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i16.Siege>> getSiegesBySalle(
+  _i3.Future<List<_i17.Siege>> getSiegesBySalle(
     _i1.TestSessionBuilder sessionBuilder,
     int salleId,
   ) async {
@@ -1506,7 +1639,7 @@ class _SiegesEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.Siege>>);
+                as _i3.Future<List<_i17.Siege>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1622,7 +1755,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<List<_i17.DemandeSupport>> getDemandes(
+  _i3.Future<List<_i18.DemandeSupport>> getDemandes(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1644,7 +1777,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i17.DemandeSupport>>);
+                as _i3.Future<List<_i18.DemandeSupport>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1663,7 +1796,7 @@ class _GreetingEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i18.Greeting> hello(
+  _i3.Future<_i19.Greeting> hello(
     _i1.TestSessionBuilder sessionBuilder,
     String name,
   ) async {
@@ -1686,7 +1819,7 @@ class _GreetingEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i18.Greeting>);
+                as _i3.Future<_i19.Greeting>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

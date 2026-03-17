@@ -2185,6 +2185,12 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
+    if (t == Map<String, dynamic>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
+          )
+          as T;
+    }
     if (t == List<_i26.Billet>) {
       return (data as List).map((e) => deserialize<_i26.Billet>(e)).toList()
           as T;
@@ -2220,12 +2226,12 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data as List).map((e) => deserialize<_i33.Seance>(e)).toList()
           as T;
     }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
     if (t == List<_i34.Siege>) {
       return (data as List).map((e) => deserialize<_i34.Siege>(e)).toList()
           as T;
-    }
-    if (t == List<int>) {
-      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     if (t == List<_i35.DemandeSupport>) {
       return (data as List)

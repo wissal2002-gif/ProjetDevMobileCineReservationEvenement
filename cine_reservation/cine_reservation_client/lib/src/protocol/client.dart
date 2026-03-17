@@ -16,24 +16,25 @@ import 'package:serverpod_client/serverpod_client.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
-import 'package:cine_reservation_client/src/protocol/billet.dart' as _i5;
-import 'package:cine_reservation_client/src/protocol/cinema.dart' as _i6;
-import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i7;
-import 'package:cine_reservation_client/src/protocol/film.dart' as _i8;
+import 'package:cine_reservation_client/src/protocol/avis.dart' as _i5;
+import 'package:cine_reservation_client/src/protocol/billet.dart' as _i6;
+import 'package:cine_reservation_client/src/protocol/cinema.dart' as _i7;
+import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i8;
+import 'package:cine_reservation_client/src/protocol/film.dart' as _i9;
 import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dart'
-    as _i9;
-import 'package:cine_reservation_client/src/protocol/paiement.dart' as _i10;
-import 'package:cine_reservation_client/src/protocol/utilisateur.dart' as _i11;
-import 'package:cine_reservation_client/src/protocol/reservation.dart' as _i12;
-import 'package:cine_reservation_client/src/protocol/code_promo.dart' as _i13;
-import 'package:cine_reservation_client/src/protocol/salle.dart' as _i14;
-import 'package:cine_reservation_client/src/protocol/seance.dart' as _i15;
-import 'package:cine_reservation_client/src/protocol/siege.dart' as _i16;
+    as _i10;
+import 'package:cine_reservation_client/src/protocol/paiement.dart' as _i11;
+import 'package:cine_reservation_client/src/protocol/utilisateur.dart' as _i12;
+import 'package:cine_reservation_client/src/protocol/reservation.dart' as _i13;
+import 'package:cine_reservation_client/src/protocol/code_promo.dart' as _i14;
+import 'package:cine_reservation_client/src/protocol/salle.dart' as _i15;
+import 'package:cine_reservation_client/src/protocol/seance.dart' as _i16;
+import 'package:cine_reservation_client/src/protocol/siege.dart' as _i17;
 import 'package:cine_reservation_client/src/protocol/demande_support.dart'
-    as _i17;
-import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
     as _i18;
-import 'protocol.dart' as _i19;
+import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
+    as _i19;
+import 'protocol.dart' as _i20;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -262,6 +263,31 @@ class EndpointAvis extends _i2.EndpointRef {
 
   @override
   String get name => 'avis';
+
+  _i3.Future<_i5.Avis?> soumettreAvis(
+    int filmId,
+    int note,
+  ) => caller.callServerEndpoint<_i5.Avis?>(
+    'avis',
+    'soumettreAvis',
+    {
+      'filmId': filmId,
+      'note': note,
+    },
+  );
+
+  _i3.Future<int?> getMonAvis(int filmId) => caller.callServerEndpoint<int?>(
+    'avis',
+    'getMonAvis',
+    {'filmId': filmId},
+  );
+
+  _i3.Future<Map<String, dynamic>> getStatsFilm(int filmId) =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'avis',
+        'getStatsFilm',
+        {'filmId': filmId},
+      );
 }
 
 /// {@category Endpoint}
@@ -271,15 +297,15 @@ class EndpointBillet extends _i2.EndpointRef {
   @override
   String get name => 'billet';
 
-  _i3.Future<List<_i5.Billet>> getMesBillets() =>
-      caller.callServerEndpoint<List<_i5.Billet>>(
+  _i3.Future<List<_i6.Billet>> getMesBillets() =>
+      caller.callServerEndpoint<List<_i6.Billet>>(
         'billet',
         'getMesBillets',
         {},
       );
 
-  _i3.Future<List<_i5.Billet>> getBilletsByReservation(int reservationId) =>
-      caller.callServerEndpoint<List<_i5.Billet>>(
+  _i3.Future<List<_i6.Billet>> getBilletsByReservation(int reservationId) =>
+      caller.callServerEndpoint<List<_i6.Billet>>(
         'billet',
         'getBilletsByReservation',
         {'reservationId': reservationId},
@@ -300,15 +326,15 @@ class EndpointCinemas extends _i2.EndpointRef {
   @override
   String get name => 'cinemas';
 
-  _i3.Future<List<_i6.Cinema>> getCinemas() =>
-      caller.callServerEndpoint<List<_i6.Cinema>>(
+  _i3.Future<List<_i7.Cinema>> getCinemas() =>
+      caller.callServerEndpoint<List<_i7.Cinema>>(
         'cinemas',
         'getCinemas',
         {},
       );
 
-  _i3.Future<_i6.Cinema?> getCinemaById(int id) =>
-      caller.callServerEndpoint<_i6.Cinema?>(
+  _i3.Future<_i7.Cinema?> getCinemaById(int id) =>
+      caller.callServerEndpoint<_i7.Cinema?>(
         'cinemas',
         'getCinemaById',
         {'id': id},
@@ -322,22 +348,22 @@ class EndpointEvenements extends _i2.EndpointRef {
   @override
   String get name => 'evenements';
 
-  _i3.Future<List<_i7.Evenement>> getEvenements() =>
-      caller.callServerEndpoint<List<_i7.Evenement>>(
+  _i3.Future<List<_i8.Evenement>> getEvenements() =>
+      caller.callServerEndpoint<List<_i8.Evenement>>(
         'evenements',
         'getEvenements',
         {},
       );
 
-  _i3.Future<_i7.Evenement?> getEvenementById(int id) =>
-      caller.callServerEndpoint<_i7.Evenement?>(
+  _i3.Future<_i8.Evenement?> getEvenementById(int id) =>
+      caller.callServerEndpoint<_i8.Evenement?>(
         'evenements',
         'getEvenementById',
         {'id': id},
       );
 
-  _i3.Future<List<_i7.Evenement>> searchEvenements(String query) =>
-      caller.callServerEndpoint<List<_i7.Evenement>>(
+  _i3.Future<List<_i8.Evenement>> searchEvenements(String query) =>
+      caller.callServerEndpoint<List<_i8.Evenement>>(
         'evenements',
         'searchEvenements',
         {'query': query},
@@ -351,22 +377,22 @@ class EndpointFilms extends _i2.EndpointRef {
   @override
   String get name => 'films';
 
-  _i3.Future<List<_i8.Film>> getFilms() =>
-      caller.callServerEndpoint<List<_i8.Film>>(
+  _i3.Future<List<_i9.Film>> getFilms() =>
+      caller.callServerEndpoint<List<_i9.Film>>(
         'films',
         'getFilms',
         {},
       );
 
-  _i3.Future<_i8.Film?> getFilmById(int id) =>
-      caller.callServerEndpoint<_i8.Film?>(
+  _i3.Future<_i9.Film?> getFilmById(int id) =>
+      caller.callServerEndpoint<_i9.Film?>(
         'films',
         'getFilmById',
         {'id': id},
       );
 
-  _i3.Future<List<_i8.Film>> searchFilms(String query) =>
-      caller.callServerEndpoint<List<_i8.Film>>(
+  _i3.Future<List<_i9.Film>> searchFilms(String query) =>
+      caller.callServerEndpoint<List<_i9.Film>>(
         'films',
         'searchFilms',
         {'query': query},
@@ -380,8 +406,8 @@ class EndpointOptions extends _i2.EndpointRef {
   @override
   String get name => 'options';
 
-  _i3.Future<List<_i9.OptionSupplementaire>> getOptions() =>
-      caller.callServerEndpoint<List<_i9.OptionSupplementaire>>(
+  _i3.Future<List<_i10.OptionSupplementaire>> getOptions() =>
+      caller.callServerEndpoint<List<_i10.OptionSupplementaire>>(
         'options',
         'getOptions',
         {},
@@ -395,11 +421,11 @@ class EndpointPaiement extends _i2.EndpointRef {
   @override
   String get name => 'paiement';
 
-  _i3.Future<_i10.Paiement?> effectuerPaiement(
+  _i3.Future<_i11.Paiement?> effectuerPaiement(
     int reservationId,
     double montant,
     String methode,
-  ) => caller.callServerEndpoint<_i10.Paiement?>(
+  ) => caller.callServerEndpoint<_i11.Paiement?>(
     'paiement',
     'effectuerPaiement',
     {
@@ -429,18 +455,18 @@ class EndpointProfil extends _i2.EndpointRef {
   @override
   String get name => 'profil';
 
-  _i3.Future<_i11.Utilisateur?> getProfil() =>
-      caller.callServerEndpoint<_i11.Utilisateur?>(
+  _i3.Future<_i12.Utilisateur?> getProfil() =>
+      caller.callServerEndpoint<_i12.Utilisateur?>(
         'profil',
         'getProfil',
         {},
       );
 
-  _i3.Future<_i11.Utilisateur?> updateProfil(
+  _i3.Future<_i12.Utilisateur?> updateProfil(
     String nom,
     String? telephone,
     DateTime? dateNaissance,
-  ) => caller.callServerEndpoint<_i11.Utilisateur?>(
+  ) => caller.callServerEndpoint<_i12.Utilisateur?>(
     'profil',
     'updateProfil',
     {
@@ -450,8 +476,8 @@ class EndpointProfil extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<_i11.Utilisateur?> updatePhotoProfil(String photoBase64) =>
-      caller.callServerEndpoint<_i11.Utilisateur?>(
+  _i3.Future<_i12.Utilisateur?> updatePhotoProfil(String photoBase64) =>
+      caller.callServerEndpoint<_i12.Utilisateur?>(
         'profil',
         'updatePhotoProfil',
         {'photoBase64': photoBase64},
@@ -477,13 +503,13 @@ class EndpointReservation extends _i2.EndpointRef {
   @override
   String get name => 'reservation';
 
-  _i3.Future<_i12.Reservation?> creerReservation({
+  _i3.Future<_i13.Reservation?> creerReservation({
     int? seanceId,
     int? evenementId,
     String? typeReservation,
     required double montantTotal,
     int? codePromoId,
-  }) => caller.callServerEndpoint<_i12.Reservation?>(
+  }) => caller.callServerEndpoint<_i13.Reservation?>(
     'reservation',
     'creerReservation',
     {
@@ -495,8 +521,8 @@ class EndpointReservation extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<List<_i12.Reservation>> getMesReservations() =>
-      caller.callServerEndpoint<List<_i12.Reservation>>(
+  _i3.Future<List<_i13.Reservation>> getMesReservations() =>
+      caller.callServerEndpoint<List<_i13.Reservation>>(
         'reservation',
         'getMesReservations',
         {},
@@ -509,8 +535,8 @@ class EndpointReservation extends _i2.EndpointRef {
         {'reservationId': reservationId},
       );
 
-  _i3.Future<_i13.CodePromo?> validerCodePromo(String code) =>
-      caller.callServerEndpoint<_i13.CodePromo?>(
+  _i3.Future<_i14.CodePromo?> validerCodePromo(String code) =>
+      caller.callServerEndpoint<_i14.CodePromo?>(
         'reservation',
         'validerCodePromo',
         {'code': code},
@@ -524,8 +550,8 @@ class EndpointSalles extends _i2.EndpointRef {
   @override
   String get name => 'salles';
 
-  _i3.Future<List<_i14.Salle>> getSalles() =>
-      caller.callServerEndpoint<List<_i14.Salle>>(
+  _i3.Future<List<_i15.Salle>> getSalles() =>
+      caller.callServerEndpoint<List<_i15.Salle>>(
         'salles',
         'getSalles',
         {},
@@ -539,11 +565,21 @@ class EndpointSeances extends _i2.EndpointRef {
   @override
   String get name => 'seances';
 
-  _i3.Future<List<_i15.Seance>> getSeancesByFilm(int filmId) =>
-      caller.callServerEndpoint<List<_i15.Seance>>(
+  _i3.Future<List<_i16.Seance>> getSeancesByFilm(int filmId) =>
+      caller.callServerEndpoint<List<_i16.Seance>>(
         'seances',
         'getSeancesByFilm',
         {'filmId': filmId},
+      );
+
+  /// Retourne les séances correspondant à une liste d'IDs.
+  /// Utilisé par la HomePage pour personnaliser les recommandations :
+  /// Reservation.seanceId → getSeancesByIds → Seance.filmId → Film.genre
+  _i3.Future<List<_i16.Seance>> getSeancesByIds(List<int> ids) =>
+      caller.callServerEndpoint<List<_i16.Seance>>(
+        'seances',
+        'getSeancesByIds',
+        {'ids': ids},
       );
 }
 
@@ -554,8 +590,8 @@ class EndpointSieges extends _i2.EndpointRef {
   @override
   String get name => 'sieges';
 
-  _i3.Future<List<_i16.Siege>> getSiegesBySalle(int salleId) =>
-      caller.callServerEndpoint<List<_i16.Siege>>(
+  _i3.Future<List<_i17.Siege>> getSiegesBySalle(int salleId) =>
+      caller.callServerEndpoint<List<_i17.Siege>>(
         'sieges',
         'getSiegesBySalle',
         {'salleId': salleId},
@@ -595,8 +631,8 @@ class EndpointSupport extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<List<_i17.DemandeSupport>> getDemandes() =>
-      caller.callServerEndpoint<List<_i17.DemandeSupport>>(
+  _i3.Future<List<_i18.DemandeSupport>> getDemandes() =>
+      caller.callServerEndpoint<List<_i18.DemandeSupport>>(
         'support',
         'getDemandes',
         {},
@@ -613,8 +649,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i18.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i18.Greeting>(
+  _i3.Future<_i19.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i19.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -652,7 +688,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i19.Protocol(),
+         _i20.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

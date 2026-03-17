@@ -340,7 +340,68 @@ class Endpoints extends _i1.EndpointDispatch {
     connectors['avis'] = _i1.EndpointConnector(
       name: 'avis',
       endpoint: endpoints['avis']!,
-      methodConnectors: {},
+      methodConnectors: {
+        'soumettreAvis': _i1.MethodConnector(
+          name: 'soumettreAvis',
+          params: {
+            'filmId': _i1.ParameterDescription(
+              name: 'filmId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'note': _i1.ParameterDescription(
+              name: 'note',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['avis'] as _i4.AvisEndpoint).soumettreAvis(
+                session,
+                params['filmId'],
+                params['note'],
+              ),
+        ),
+        'getMonAvis': _i1.MethodConnector(
+          name: 'getMonAvis',
+          params: {
+            'filmId': _i1.ParameterDescription(
+              name: 'filmId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['avis'] as _i4.AvisEndpoint).getMonAvis(
+                session,
+                params['filmId'],
+              ),
+        ),
+        'getStatsFilm': _i1.MethodConnector(
+          name: 'getStatsFilm',
+          params: {
+            'filmId': _i1.ParameterDescription(
+              name: 'filmId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['avis'] as _i4.AvisEndpoint).getStatsFilm(
+                session,
+                params['filmId'],
+              ),
+        ),
+      },
     );
     connectors['billet'] = _i1.EndpointConnector(
       name: 'billet',
@@ -837,6 +898,25 @@ class Endpoints extends _i1.EndpointDispatch {
                   .getSeancesByFilm(
                     session,
                     params['filmId'],
+                  ),
+        ),
+        'getSeancesByIds': _i1.MethodConnector(
+          name: 'getSeancesByIds',
+          params: {
+            'ids': _i1.ParameterDescription(
+              name: 'ids',
+              type: _i1.getType<List<int>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['seances'] as _i14.SeancesEndpoint)
+                  .getSeancesByIds(
+                    session,
+                    params['ids'],
                   ),
         ),
       },

@@ -2,7 +2,7 @@
 import '../../../../main.dart';
 
 class ReservationRemoteDatasource {
-  // ─── SIEGES ───
+  // ─── SIEGES ───────────────────────────────────────────
   Future<List<Siege>> getSiegesBySalle(int salleId) async {
     return await client.sieges.getSiegesBySalle(salleId);
   }
@@ -15,7 +15,7 @@ class ReservationRemoteDatasource {
     return await client.sieges.getSiegesReservesByEvenement(evenementId);
   }
 
-  // ─── RESERVATIONS ───
+  // ─── RESERVATIONS ─────────────────────────────────────
   Future<Reservation?> creerReservation({
     int? seanceId,
     int? evenementId,
@@ -32,6 +32,8 @@ class ReservationRemoteDatasource {
     );
   }
 
+  // PAS de try/catch ici — l'erreur remonte au FutureProvider
+  // qui l'affiche correctement dans l'UI avec .error(...)
   Future<List<Reservation>> getMesReservations() async {
     return await client.reservation.getMesReservations();
   }
@@ -44,13 +46,14 @@ class ReservationRemoteDatasource {
     return await client.reservation.validerCodePromo(code);
   }
 
-  // ─── PAIEMENTS ───
+  // ─── PAIEMENTS ────────────────────────────────────────
   Future<Paiement?> effectuerPaiement(
       int reservationId, double montant, String methode) async {
-    return await client.paiement.effectuerPaiement(reservationId, montant, methode);
+    return await client.paiement
+        .effectuerPaiement(reservationId, montant, methode);
   }
 
-  // ─── BILLETS ───
+  // ─── BILLETS ──────────────────────────────────────────
   Future<List<Billet>> getMesBillets() async {
     return await client.billet.getMesBillets();
   }
@@ -62,7 +65,8 @@ class ReservationRemoteDatasource {
   Future<bool> validerBillet(String qrCode) async {
     return await client.billet.validerBillet(qrCode);
   }
-  // OPTIONS
+
+  // ─── OPTIONS ──────────────────────────────────────────
   Future<List<OptionSupplementaire>> getOptions() async {
     return await client.options.getOptions();
   }

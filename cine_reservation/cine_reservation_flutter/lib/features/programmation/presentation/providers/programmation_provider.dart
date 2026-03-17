@@ -10,11 +10,13 @@ final filmsProvider = FutureProvider<List<Film>>((ref) async {
   }
 });
 
-final filmDetailProvider = FutureProvider.family<Film?, int>((ref, id) async {
+final filmDetailProvider =
+FutureProvider.family<Film?, int>((ref, id) async {
   return await client.films.getFilmById(id);
 });
 
-final seancesFilmProvider = FutureProvider.family<List<Seance>, int>((ref, filmId) async {
+final seancesFilmProvider =
+FutureProvider.family<List<Seance>, int>((ref, filmId) async {
   try {
     return await client.seances.getSeancesByFilm(filmId);
   } catch (e) {
@@ -22,7 +24,21 @@ final seancesFilmProvider = FutureProvider.family<List<Seance>, int>((ref, filmI
   }
 });
 
-final optionsProvider = FutureProvider<List<OptionSupplementaire>>((ref) async {
+/// Charge les séances correspondant à une liste d'IDs.
+/// Utilisé par HomePage pour croiser :
+/// Reservation.seanceId → Seance.filmId → Film.genre
+final seancesByIdsProvider =
+FutureProvider.family<List<Seance>, List<int>>((ref, ids) async {
+  if (ids.isEmpty) return [];
+  try {
+    return await client.seances.getSeancesByIds(ids);
+  } catch (e) {
+    return [];
+  }
+});
+
+final optionsProvider =
+FutureProvider<List<OptionSupplementaire>>((ref) async {
   try {
     return await client.options.getOptions();
   } catch (e) {
@@ -40,7 +56,7 @@ final allCinemasProvider = FutureProvider<List<Cinema>>((ref) async {
 
 final allSallesProvider = FutureProvider<List<Salle>>((ref) async {
   try {
-    return await client.salles.getSalles(); 
+    return await client.salles.getSalles();
   } catch (e) {
     return [];
   }
