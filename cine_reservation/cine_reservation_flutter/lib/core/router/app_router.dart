@@ -40,6 +40,9 @@ import '../../features/admin/presentation/pages/manage_users_page.dart';
 import '../../features/admin/presentation/pages/manage_support_page.dart';
 import '../../features/admin/presentation/pages/manage_reservations_page.dart';
 import '../../features/admin/presentation/pages/manage_promos_page.dart';
+import '../../features/admin/presentation/pages/manage_faq_page.dart';
+import '../../features/admin/presentation/pages/reports_page.dart';
+import '../../features/admin/presentation/pages/global_revenues_page.dart';
 
 // ✅ PAGES SPÉCIFIQUES POUR TANGER
 import '../../features/admin_tanger/presentation/pages/manage_films_tanger_page.dart';
@@ -96,7 +99,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/events/add', builder: (context, state) => const AddEventFormPage()),
       GoRoute(path: '/admin/events/reservations', builder: (context, state) => const ManageReservationsEventsPage()),
       GoRoute(path: '/admin/events/revenus', builder: (context, state) => const RevenuesEventsPage()),
-      // Pour la modification
       GoRoute(path: '/admin/events/edit', builder: (context, state) => AddEventFormPage(event: state.extra as Evenement?)),
 
       // ─── ROUTES ADMIN STANDARDS (SUPER ADMIN) ───
@@ -111,6 +113,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/support', builder: (context, state) => const ManageSupportPage()),
       GoRoute(path: '/admin/reservations', builder: (context, state) => const ManageReservationsPage()),
       GoRoute(path: '/admin/promos', builder: (context, state) => const ManagePromosPage()),
+      GoRoute(path: '/admin/faq', builder: (context, state) => const ManageFaqPage()),
+      GoRoute(path: '/admin/reports', builder: (context, state) => const ReportsPage()),
+      GoRoute(path: '/admin/revenues', builder: (context, state) => const GlobalRevenuesPage()),
     ],
   );
 });

@@ -26,10 +26,10 @@ import 'package:cine_reservation_client/src/protocol/utilisateur.dart' as _i11;
 import 'package:cine_reservation_client/src/protocol/reservation.dart' as _i12;
 import 'package:cine_reservation_client/src/protocol/demande_support.dart'
     as _i13;
+import 'package:cine_reservation_client/src/protocol/faq.dart' as _i14;
 import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dart'
-    as _i14;
-import 'package:cine_reservation_client/src/protocol/code_promo.dart' as _i15;
-import 'package:cine_reservation_client/src/protocol/faq.dart' as _i16;
+    as _i15;
+import 'package:cine_reservation_client/src/protocol/code_promo.dart' as _i16;
 import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
     as _i17;
 import 'protocol.dart' as _i18;
@@ -516,6 +516,18 @@ class EndpointAdmin extends _i2.EndpointRef {
         {'userId': userId},
       );
 
+  _i3.Future<void> modifierUtilisateurRole(
+    int userId,
+    String newRole,
+  ) => caller.callServerEndpoint<void>(
+    'admin',
+    'modifierUtilisateurRole',
+    {
+      'userId': userId,
+      'newRole': newRole,
+    },
+  );
+
   _i3.Future<List<_i12.Reservation>> getAllReservations() =>
       caller.callServerEndpoint<List<_i12.Reservation>>(
         'admin',
@@ -568,24 +580,51 @@ class EndpointAdmin extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<List<_i14.OptionSupplementaire>> getAllOptions() =>
-      caller.callServerEndpoint<List<_i14.OptionSupplementaire>>(
+  _i3.Future<List<_i14.Faq>> getAdminFaqs() =>
+      caller.callServerEndpoint<List<_i14.Faq>>(
+        'admin',
+        'getAdminFaqs',
+        {},
+      );
+
+  _i3.Future<_i14.Faq> ajouterFaq(_i14.Faq faq) =>
+      caller.callServerEndpoint<_i14.Faq>(
+        'admin',
+        'ajouterFaq',
+        {'faq': faq},
+      );
+
+  _i3.Future<_i14.Faq> modifierFaq(_i14.Faq faq) =>
+      caller.callServerEndpoint<_i14.Faq>(
+        'admin',
+        'modifierFaq',
+        {'faq': faq},
+      );
+
+  _i3.Future<void> supprimerFaq(int id) => caller.callServerEndpoint<void>(
+    'admin',
+    'supprimerFaq',
+    {'id': id},
+  );
+
+  _i3.Future<List<_i15.OptionSupplementaire>> getAllOptions() =>
+      caller.callServerEndpoint<List<_i15.OptionSupplementaire>>(
         'admin',
         'getAllOptions',
         {},
       );
 
-  _i3.Future<_i14.OptionSupplementaire> ajouterOption(
-    _i14.OptionSupplementaire o,
-  ) => caller.callServerEndpoint<_i14.OptionSupplementaire>(
+  _i3.Future<_i15.OptionSupplementaire> ajouterOption(
+    _i15.OptionSupplementaire o,
+  ) => caller.callServerEndpoint<_i15.OptionSupplementaire>(
     'admin',
     'ajouterOption',
     {'o': o},
   );
 
-  _i3.Future<_i14.OptionSupplementaire> modifierOption(
-    _i14.OptionSupplementaire o,
-  ) => caller.callServerEndpoint<_i14.OptionSupplementaire>(
+  _i3.Future<_i15.OptionSupplementaire> modifierOption(
+    _i15.OptionSupplementaire o,
+  ) => caller.callServerEndpoint<_i15.OptionSupplementaire>(
     'admin',
     'modifierOption',
     {'o': o},
@@ -597,22 +636,22 @@ class EndpointAdmin extends _i2.EndpointRef {
     {'id': id},
   );
 
-  _i3.Future<List<_i15.CodePromo>> getAllCodesPromo() =>
-      caller.callServerEndpoint<List<_i15.CodePromo>>(
+  _i3.Future<List<_i16.CodePromo>> getAllCodesPromo() =>
+      caller.callServerEndpoint<List<_i16.CodePromo>>(
         'admin',
         'getAllCodesPromo',
         {},
       );
 
-  _i3.Future<_i15.CodePromo> ajouterCodePromo(_i15.CodePromo cp) =>
-      caller.callServerEndpoint<_i15.CodePromo>(
+  _i3.Future<_i16.CodePromo> ajouterCodePromo(_i16.CodePromo cp) =>
+      caller.callServerEndpoint<_i16.CodePromo>(
         'admin',
         'ajouterCodePromo',
         {'cp': cp},
       );
 
-  _i3.Future<_i15.CodePromo> modifierCodePromo(_i15.CodePromo cp) =>
-      caller.callServerEndpoint<_i15.CodePromo>(
+  _i3.Future<_i16.CodePromo> modifierCodePromo(_i16.CodePromo cp) =>
+      caller.callServerEndpoint<_i16.CodePromo>(
         'admin',
         'modifierCodePromo',
         {'cp': cp},
@@ -767,8 +806,8 @@ class EndpointFaq extends _i2.EndpointRef {
   @override
   String get name => 'faq';
 
-  _i3.Future<List<_i16.Faq>> getAllFaqs() =>
-      caller.callServerEndpoint<List<_i16.Faq>>(
+  _i3.Future<List<_i14.Faq>> getAllFaqs() =>
+      caller.callServerEndpoint<List<_i14.Faq>>(
         'faq',
         'getAllFaqs',
         {},
@@ -811,8 +850,8 @@ class EndpointOptions extends _i2.EndpointRef {
   @override
   String get name => 'options';
 
-  _i3.Future<List<_i14.OptionSupplementaire>> getOptions() =>
-      caller.callServerEndpoint<List<_i14.OptionSupplementaire>>(
+  _i3.Future<List<_i15.OptionSupplementaire>> getOptions() =>
+      caller.callServerEndpoint<List<_i15.OptionSupplementaire>>(
         'options',
         'getOptions',
         {},

@@ -30,13 +30,14 @@ import 'package:cine_reservation_server/src/generated/salle.dart' as _i17;
 import 'package:cine_reservation_server/src/generated/seance.dart' as _i18;
 import 'package:cine_reservation_server/src/generated/film.dart' as _i19;
 import 'package:cine_reservation_server/src/generated/evenement.dart' as _i20;
+import 'package:cine_reservation_server/src/generated/faq.dart' as _i21;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
-    as _i21;
-import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i22;
+    as _i22;
+import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i23;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i23;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i24;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i25;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -922,6 +923,31 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['userId'],
                   ),
         ),
+        'modifierUtilisateurRole': _i1.MethodConnector(
+          name: 'modifierUtilisateurRole',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'newRole': _i1.ParameterDescription(
+              name: 'newRole',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .modifierUtilisateurRole(
+                    session,
+                    params['userId'],
+                    params['newRole'],
+                  ),
+        ),
         'getAllReservations': _i1.MethodConnector(
           name: 'getAllReservations',
           params: {},
@@ -1030,6 +1056,71 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['resp'],
                   ),
         ),
+        'getAdminFaqs': _i1.MethodConnector(
+          name: 'getAdminFaqs',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).getAdminFaqs(
+                session,
+              ),
+        ),
+        'ajouterFaq': _i1.MethodConnector(
+          name: 'ajouterFaq',
+          params: {
+            'faq': _i1.ParameterDescription(
+              name: 'faq',
+              type: _i1.getType<_i21.Faq>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).ajouterFaq(
+                session,
+                params['faq'],
+              ),
+        ),
+        'modifierFaq': _i1.MethodConnector(
+          name: 'modifierFaq',
+          params: {
+            'faq': _i1.ParameterDescription(
+              name: 'faq',
+              type: _i1.getType<_i21.Faq>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).modifierFaq(
+                session,
+                params['faq'],
+              ),
+        ),
+        'supprimerFaq': _i1.MethodConnector(
+          name: 'supprimerFaq',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).supprimerFaq(
+                session,
+                params['id'],
+              ),
+        ),
         'getAllOptions': _i1.MethodConnector(
           name: 'getAllOptions',
           params: {},
@@ -1045,7 +1136,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'o': _i1.ParameterDescription(
               name: 'o',
-              type: _i1.getType<_i21.OptionSupplementaire>(),
+              type: _i1.getType<_i22.OptionSupplementaire>(),
               nullable: false,
             ),
           },
@@ -1064,7 +1155,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'o': _i1.ParameterDescription(
               name: 'o',
-              type: _i1.getType<_i21.OptionSupplementaire>(),
+              type: _i1.getType<_i22.OptionSupplementaire>(),
               nullable: false,
             ),
           },
@@ -1112,7 +1203,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cp': _i1.ParameterDescription(
               name: 'cp',
-              type: _i1.getType<_i22.CodePromo>(),
+              type: _i1.getType<_i23.CodePromo>(),
               nullable: false,
             ),
           },
@@ -1131,7 +1222,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cp': _i1.ParameterDescription(
               name: 'cp',
-              type: _i1.getType<_i22.CodePromo>(),
+              type: _i1.getType<_i23.CodePromo>(),
               nullable: false,
             ),
           },
@@ -1643,9 +1734,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i23.Endpoints()
+    modules['serverpod_auth_idp'] = _i24.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i24.Endpoints()
+    modules['serverpod_auth_core'] = _i25.Endpoints()
       ..initializeEndpoints(server);
   }
 }

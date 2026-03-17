@@ -42,10 +42,10 @@ import 'package:cine_reservation_client/src/protocol/utilisateur.dart' as _i29;
 import 'package:cine_reservation_client/src/protocol/reservation.dart' as _i30;
 import 'package:cine_reservation_client/src/protocol/demande_support.dart'
     as _i31;
+import 'package:cine_reservation_client/src/protocol/faq.dart' as _i32;
 import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dart'
-    as _i32;
-import 'package:cine_reservation_client/src/protocol/code_promo.dart' as _i33;
-import 'package:cine_reservation_client/src/protocol/faq.dart' as _i34;
+    as _i33;
+import 'package:cine_reservation_client/src/protocol/code_promo.dart' as _i34;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i35;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -296,14 +296,17 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i32.OptionSupplementaire>) {
+    if (t == List<_i32.Faq>) {
+      return (data as List).map((e) => deserialize<_i32.Faq>(e)).toList() as T;
+    }
+    if (t == List<_i33.OptionSupplementaire>) {
       return (data as List)
-              .map((e) => deserialize<_i32.OptionSupplementaire>(e))
+              .map((e) => deserialize<_i33.OptionSupplementaire>(e))
               .toList()
           as T;
     }
-    if (t == List<_i33.CodePromo>) {
-      return (data as List).map((e) => deserialize<_i33.CodePromo>(e)).toList()
+    if (t == List<_i34.CodePromo>) {
+      return (data as List).map((e) => deserialize<_i34.CodePromo>(e)).toList()
           as T;
     }
     if (t == List<Map<String, dynamic>>) {
@@ -311,9 +314,6 @@ class Protocol extends _i1.SerializationManager {
               .map((e) => deserialize<Map<String, dynamic>>(e))
               .toList()
           as T;
-    }
-    if (t == List<_i34.Faq>) {
-      return (data as List).map((e) => deserialize<_i34.Faq>(e)).toList() as T;
     }
     try {
       return _i35.Protocol().deserialize<T>(data, t);

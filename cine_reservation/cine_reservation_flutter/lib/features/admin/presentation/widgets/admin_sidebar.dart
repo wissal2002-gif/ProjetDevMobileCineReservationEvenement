@@ -22,7 +22,6 @@ class AdminSidebar extends ConsumerWidget {
           final String email = (user?.email ?? "").toLowerCase().trim();
           final String role = user?.role ?? 'client';
           
-          // RECONNAISSANCE AMÉLIORÉE
           final bool isSuperAdmin = email == 'elbouzidi.imane@etu.uae.ac.ma' || role == 'super_admin';
           final bool isAdminTanger = email == 'elbouzidiimane794@gmail.com' || (role == 'admin_local' && user?.cinemaId == 9);
           final bool isAdminCasa = email == 'elbouzidiingenieurimanee@gmail.com' || (role == 'admin_local' && user?.cinemaId == 2);
@@ -36,7 +35,6 @@ class AdminSidebar extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   children: [
-                    // ✅ REDIRECTION INTELLIGENTE SELON LE RÔLE
                     _navItem(context, Icons.dashboard_outlined, "Tableau de Bord", 
                       isSuperAdmin ? "/admin" : (isAdminTanger ? "/admin/tanger" : (isRespEvents ? "/admin/events" : "/admin"))),
                     
@@ -46,22 +44,20 @@ class AdminSidebar extends ConsumerWidget {
                       _navItem(context, Icons.business_outlined, "Gestion Cinémas", "/admin/cinemas"),
                       _navItem(context, Icons.people_outline, "Utilisateurs & Rôles", "/admin/users"),
                       _navItem(context, Icons.local_offer_outlined, "Codes Promotions", "/admin/promos"),
+                      _navItem(context, Icons.help_outline_rounded, "Gérer FAQ", "/admin/faq"),
+                      
+                      _sectionTitle("ANALYSE & RAPPORTS"),
+                      _navItem(context, Icons.assessment_outlined, "Rapports Activités", "/admin/reports"),
+                      _navItem(context, Icons.monetization_on_outlined, "Revenus Globaux", "/admin/revenues"),
                     ],
 
-                    // --- ESPACE ADMIN LOCAL (TANGER OU CASA) ---
+                    // --- ESPACE ADMIN LOCAL ---
                     if (isAdminTanger || isAdminCasa || isSuperAdmin) ...[
                       _sectionTitle(isSuperAdmin ? "GESTION LOCALE (DEBUG)" : "GESTION DU SITE"),
                       _navItem(context, Icons.movie_outlined, "Gérer Films & Séances", "/admin/seances"),
                       _navItem(context, Icons.grid_on_outlined, "Salles & Sièges", "/admin/sieges"),
                       _navItem(context, Icons.fastfood_outlined, "Snacks & Options", "/admin/options"),
                       _navItem(context, Icons.confirmation_number_outlined, "Réservations", "/admin/reservations"),
-                      _navItem(context, Icons.badge_outlined, "Gérer le Staff", "/admin/users"),
-                    ],
-
-                    // --- ESPACE ÉVÉNEMENTS ---
-                    if (isRespEvents || isSuperAdmin) ...[
-                      _sectionTitle("SPECTACLES & FESTIVALS"),
-                      _navItem(context, Icons.event_note_outlined, "Gestion Événements", "/admin/events/manage"),
                     ],
 
                     const Divider(color: Colors.white10, height: 40, indent: 20, endIndent: 20),

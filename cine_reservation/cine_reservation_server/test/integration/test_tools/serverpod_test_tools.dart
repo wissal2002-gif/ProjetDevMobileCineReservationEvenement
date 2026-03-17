@@ -26,10 +26,10 @@ import 'package:cine_reservation_server/src/generated/utilisateur.dart' as _i11;
 import 'package:cine_reservation_server/src/generated/reservation.dart' as _i12;
 import 'package:cine_reservation_server/src/generated/demande_support.dart'
     as _i13;
+import 'package:cine_reservation_server/src/generated/faq.dart' as _i14;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
-    as _i14;
-import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i15;
-import 'package:cine_reservation_server/src/generated/faq.dart' as _i16;
+    as _i15;
+import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i16;
 import 'package:cine_reservation_server/src/generated/greetings/greeting.dart'
     as _i17;
 import 'package:cine_reservation_server/src/generated/protocol.dart';
@@ -1672,6 +1672,41 @@ class _AdminEndpoint {
     });
   }
 
+  _i3.Future<void> modifierUtilisateurRole(
+    _i1.TestSessionBuilder sessionBuilder,
+    int userId,
+    String newRole,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'modifierUtilisateurRole',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'modifierUtilisateurRole',
+          parameters: _i1.testObjectToJson({
+            'userId': userId,
+            'newRole': newRole,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<List<_i12.Reservation>> getAllReservations(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
@@ -1864,7 +1899,130 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i14.OptionSupplementaire>> getAllOptions(
+  _i3.Future<List<_i14.Faq>> getAdminFaqs(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'getAdminFaqs',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'getAdminFaqs',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i14.Faq>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i14.Faq> ajouterFaq(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i14.Faq faq,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'ajouterFaq',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'ajouterFaq',
+          parameters: _i1.testObjectToJson({'faq': faq}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i14.Faq>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i14.Faq> modifierFaq(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i14.Faq faq,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'modifierFaq',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'modifierFaq',
+          parameters: _i1.testObjectToJson({'faq': faq}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i14.Faq>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> supprimerFaq(
+    _i1.TestSessionBuilder sessionBuilder,
+    int id,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'supprimerFaq',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'supprimerFaq',
+          parameters: _i1.testObjectToJson({'id': id}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i15.OptionSupplementaire>> getAllOptions(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1886,7 +2044,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i14.OptionSupplementaire>>);
+                as _i3.Future<List<_i15.OptionSupplementaire>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1894,9 +2052,9 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i14.OptionSupplementaire> ajouterOption(
+  _i3.Future<_i15.OptionSupplementaire> ajouterOption(
     _i1.TestSessionBuilder sessionBuilder,
-    _i14.OptionSupplementaire o,
+    _i15.OptionSupplementaire o,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1917,7 +2075,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.OptionSupplementaire>);
+                as _i3.Future<_i15.OptionSupplementaire>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1925,9 +2083,9 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i14.OptionSupplementaire> modifierOption(
+  _i3.Future<_i15.OptionSupplementaire> modifierOption(
     _i1.TestSessionBuilder sessionBuilder,
-    _i14.OptionSupplementaire o,
+    _i15.OptionSupplementaire o,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1948,7 +2106,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.OptionSupplementaire>);
+                as _i3.Future<_i15.OptionSupplementaire>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1987,7 +2145,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i15.CodePromo>> getAllCodesPromo(
+  _i3.Future<List<_i16.CodePromo>> getAllCodesPromo(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2009,7 +2167,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i15.CodePromo>>);
+                as _i3.Future<List<_i16.CodePromo>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2017,9 +2175,9 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i15.CodePromo> ajouterCodePromo(
+  _i3.Future<_i16.CodePromo> ajouterCodePromo(
     _i1.TestSessionBuilder sessionBuilder,
-    _i15.CodePromo cp,
+    _i16.CodePromo cp,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2040,7 +2198,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i15.CodePromo>);
+                as _i3.Future<_i16.CodePromo>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2048,9 +2206,9 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i15.CodePromo> modifierCodePromo(
+  _i3.Future<_i16.CodePromo> modifierCodePromo(
     _i1.TestSessionBuilder sessionBuilder,
-    _i15.CodePromo cp,
+    _i16.CodePromo cp,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2071,7 +2229,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i15.CodePromo>);
+                as _i3.Future<_i16.CodePromo>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2587,7 +2745,7 @@ class _FaqEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i16.Faq>> getAllFaqs(
+  _i3.Future<List<_i14.Faq>> getAllFaqs(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2609,7 +2767,7 @@ class _FaqEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.Faq>>);
+                as _i3.Future<List<_i14.Faq>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2731,7 +2889,7 @@ class _OptionsEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i14.OptionSupplementaire>> getOptions(
+  _i3.Future<List<_i15.OptionSupplementaire>> getOptions(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2753,7 +2911,7 @@ class _OptionsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i14.OptionSupplementaire>>);
+                as _i3.Future<List<_i15.OptionSupplementaire>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

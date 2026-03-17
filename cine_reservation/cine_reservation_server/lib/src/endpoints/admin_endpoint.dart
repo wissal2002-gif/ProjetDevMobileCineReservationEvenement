@@ -100,6 +100,7 @@ class AdminEndpoint extends Endpoint {
     }
   }
 
+  // --- GESTION CINÉMAS ---
   Future<List<Cinema>> getAllCinemas(Session session) async {
     final user = await _getRequiredUser(session);
     if (user.role == 'super_admin' || user.role == 'resp_evenements') return await Cinema.db.find(session);
@@ -114,6 +115,7 @@ class AdminEndpoint extends Endpoint {
     await Cinema.db.deleteWhere(session, where: (t) => t.id.equals(id));
   }
 
+  // --- SALLES & SIÈGES ---
   Future<List<Salle>> getAllSalles(Session session) async {
     final user = await _getRequiredUser(session);
     if (user.role == 'super_admin' || user.role == 'resp_evenements') return await Salle.db.find(session);
@@ -139,6 +141,7 @@ class AdminEndpoint extends Endpoint {
     await Siege.db.insert(session, sList);
   }
 
+  // --- SÉANCES ---
   Future<List<Seance>> getAllSeances(Session session) async {
     final user = await _getRequiredUser(session);
     if (user.role == 'super_admin' || user.role == 'resp_evenements') return await Seance.db.find(session, orderBy: (t) => t.dateHeure);
@@ -159,16 +162,19 @@ class AdminEndpoint extends Endpoint {
     return await Seance.db.find(session, where: (t) => t.salleId.inSet(sIds));
   }
 
+  // --- FILMS ---
   Future<List<Film>> getAllFilms(Session session) async => await Film.db.find(session, orderBy: (t) => t.titre);
   Future<Film> ajouterFilm(Session session, Film f) async => await Film.db.insertRow(session, f);
   Future<Film> modifierFilm(Session session, Film f) async => await Film.db.updateRow(session, f);
   Future<void> supprimerFilm(Session session, int id) async => await Film.db.deleteWhere(session, where: (t) => t.id.equals(id));
 
+  // --- ÉVÉNEMENTS ---
   Future<List<Evenement>> getAllEvenements(Session session) async => await Evenement.db.find(session, orderBy: (t) => t.dateDebut);
   Future<Evenement> ajouterEvenement(Session session, Evenement ev) async => await Evenement.db.insertRow(session, ev);
   Future<Evenement> modifierEvenement(Session session, Evenement ev) async => await Evenement.db.updateRow(session, ev);
   Future<void> supprimerEvenement(Session session, int id) async => await Evenement.db.deleteWhere(session, where: (t) => t.id.equals(id));
 
+  // --- UTILISATEURS ---
   Future<List<Utilisateur>> getAllUtilisateurs(Session session) async => await Utilisateur.db.find(session);
   Future<List<Utilisateur>> getManagedUsers(Session session) async {
     final user = await _getRequiredUser(session);
@@ -187,6 +193,17 @@ class AdminEndpoint extends Endpoint {
   Future<void> supprimerUtilisateur(Session session, int id) async => await Utilisateur.db.deleteWhere(session, where: (t) => t.id.equals(id));
   Future<List<Reservation>> getHistoriqueUtilisateur(Session session, int userId) async => await Reservation.db.find(session, where: (t) => t.utilisateurId.equals(userId), orderBy: (t) => t.dateReservation, orderDescending: true);
 
+  Future<void> modifierUtilisateurRole(Session session, int userId, String newRole) async {
+    final user = await _getRequiredUser(session);
+    if (user.role != 'super_admin') throw Exception('Non autorisé');
+    final u = await Utilisateur.db.findById(session, userId);
+    if (u != null) {
+      u.role = newRole;
+      await Utilisateur.db.updateRow(session, u);
+    }
+  }
+
+  // --- RÉSERVATIONS ---
   Future<List<Reservation>> getAllReservations(Session session) async {
     final user = await _getRequiredUser(session);
     if (user.role == 'super_admin') return await Reservation.db.find(session, orderBy: (t) => t.dateReservation, orderDescending: true);
@@ -210,7 +227,6 @@ class AdminEndpoint extends Endpoint {
       res.montantApresReduction = amt;
       await Reservation.db.updateRow(session, res);
 
-      // --- Envoi de l'email de notification ---
       try {
         final user = await Utilisateur.db.findById(session, res.utilisateurId);
         if (user != null) {
@@ -225,7 +241,6 @@ class AdminEndpoint extends Endpoint {
               titre = film?.titre ?? "Séance Cinéma";
             }
           }
-
           await EmailService.sendRefundNotification(
             toEmail: user.email,
             nomUtilisateur: user.nom,
@@ -254,12 +269,20 @@ class AdminEndpoint extends Endpoint {
     return (count / salle.capacite) * 100;
   }
 
+  // --- SUPPORT ---
   Future<List<DemandeSupport>> getAllDemandesSupport(Session session) async => await DemandeSupport.db.find(session, orderBy: (t) => t.createdAt, orderDescending: true);
   Future<void> repondreDemande(Session session, int id, String resp) async {
     final d = await DemandeSupport.db.findById(session, id);
     if (d != null) { d.reponse = resp; d.statut = 'traité'; await DemandeSupport.db.updateRow(session, d); }
   }
 
+  // --- FAQ ---
+  Future<List<Faq>> getAdminFaqs(Session session) async => await Faq.db.find(session, orderBy: (t) => t.ordre);
+  Future<Faq> ajouterFaq(Session session, Faq faq) async => await Faq.db.insertRow(session, faq);
+  Future<Faq> modifierFaq(Session session, Faq faq) async => await Faq.db.updateRow(session, faq);
+  Future<void> supprimerFaq(Session session, int id) async => await Faq.db.deleteWhere(session, where: (t) => t.id.equals(id));
+
+  // --- OPTIONS ---
   Future<List<OptionSupplementaire>> getAllOptions(Session session) async {
     final user = await _getRequiredUser(session);
     if (user.role == 'super_admin' || user.role == 'resp_evenements') return await OptionSupplementaire.db.find(session);
@@ -270,6 +293,7 @@ class AdminEndpoint extends Endpoint {
   Future<OptionSupplementaire> modifierOption(Session session, OptionSupplementaire o) async => await OptionSupplementaire.db.updateRow(session, o);
   Future<void> supprimerOption(Session session, int id) async => await OptionSupplementaire.db.deleteWhere(session, where: (t) => t.id.equals(id));
 
+  // --- PROMOTIONS ---
   Future<List<CodePromo>> getAllCodesPromo(Session session) async => await CodePromo.db.find(session, orderBy: (t) => t.code);
   Future<CodePromo> ajouterCodePromo(Session session, CodePromo cp) async => await CodePromo.db.insertRow(session, cp);
   Future<CodePromo> modifierCodePromo(Session session, CodePromo cp) async => await CodePromo.db.updateRow(session, cp);
@@ -324,7 +348,6 @@ class AdminEndpoint extends Endpoint {
 
     for (var res in reservations) {
       final user = await Utilisateur.db.findById(session, res.utilisateurId);
-      
       Map<String, dynamic> data = {
         'resId': res.id,
         'utilisateurId': res.utilisateurId,
@@ -338,7 +361,6 @@ class AdminEndpoint extends Endpoint {
         'userEmail': user?.email ?? "N/A",
         'userPhone': user?.telephone ?? "N/A",
       };
-
       if (res.evenementId != null) {
         final ev = await Evenement.db.findById(session, res.evenementId!);
         if (ev != null) {
