@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
+import '../services/email_service.dart';
 
 class AdminEndpoint extends Endpoint {
   // Helper pour récupérer l'utilisateur connecté
@@ -204,7 +205,39 @@ class AdminEndpoint extends Endpoint {
 
   Future<void> rembourserReservation(Session session, int resId, double amt) async {
     final res = await Reservation.db.findById(session, resId);
-    if (res != null) { res.statut = 'rembourse'; res.montantApresReduction = amt; await Reservation.db.updateRow(session, res); }
+    if (res != null) {
+      res.statut = 'rembourse';
+      res.montantApresReduction = amt;
+      await Reservation.db.updateRow(session, res);
+
+      // --- Envoi de l'email de notification ---
+      try {
+        final user = await Utilisateur.db.findById(session, res.utilisateurId);
+        if (user != null) {
+          String titre = "Votre réservation";
+          if (res.evenementId != null) {
+            final ev = await Evenement.db.findById(session, res.evenementId!);
+            titre = ev?.titre ?? "Événement";
+          } else if (res.seanceId != null) {
+            final seance = await Seance.db.findById(session, res.seanceId!);
+            if (seance != null) {
+              final film = await Film.db.findById(session, seance.filmId);
+              titre = film?.titre ?? "Séance Cinéma";
+            }
+          }
+
+          await EmailService.sendRefundNotification(
+            toEmail: user.email,
+            nomUtilisateur: user.nom,
+            titre: titre,
+            montantRembourse: amt,
+            raison: "Annulation de la réservation #${res.id}",
+          );
+        }
+      } catch (e) {
+        print("Erreur envoi email remboursement: $e");
+      }
+    }
   }
 
   Future<List<Siege>> getSiegesByReservation(Session session, int resId) async {
