@@ -7,8 +7,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../providers/admin_provider.dart';
 
 class ManageCinemasPage extends ConsumerStatefulWidget {
-  const ManageCinemasPage({super.key});
-
+  final int? cinemaId; // ✅ Ajoute ceci
+  const ManageCinemasPage({super.key, this.cinemaId});
   @override
   ConsumerState<ManageCinemasPage> createState() => _ManageCinemasPageState();
 }

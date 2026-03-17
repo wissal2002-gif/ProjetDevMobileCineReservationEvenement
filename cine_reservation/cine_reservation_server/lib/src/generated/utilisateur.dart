@@ -25,6 +25,7 @@ abstract class Utilisateur
     this.preferences,
     String? statut,
     String? role,
+    this.cinemaId,
     int? pointsFidelite,
     this.photoProfil,
   }) : statut = statut ?? 'actif',
@@ -41,6 +42,7 @@ abstract class Utilisateur
     List<String>? preferences,
     String? statut,
     String? role,
+    int? cinemaId,
     int? pointsFidelite,
     String? photoProfil,
   }) = _UtilisateurImpl;
@@ -64,6 +66,7 @@ abstract class Utilisateur
             ),
       statut: jsonSerialization['statut'] as String?,
       role: jsonSerialization['role'] as String?,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
       pointsFidelite: jsonSerialization['pointsFidelite'] as int?,
       photoProfil: jsonSerialization['photoProfil'] as String?,
     );
@@ -92,6 +95,8 @@ abstract class Utilisateur
 
   String? role;
 
+  int? cinemaId;
+
   int? pointsFidelite;
 
   String? photoProfil;
@@ -112,6 +117,7 @@ abstract class Utilisateur
     List<String>? preferences,
     String? statut,
     String? role,
+    int? cinemaId,
     int? pointsFidelite,
     String? photoProfil,
   });
@@ -128,6 +134,7 @@ abstract class Utilisateur
       if (preferences != null) 'preferences': preferences?.toJson(),
       if (statut != null) 'statut': statut,
       if (role != null) 'role': role,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       if (pointsFidelite != null) 'pointsFidelite': pointsFidelite,
       if (photoProfil != null) 'photoProfil': photoProfil,
     };
@@ -146,6 +153,7 @@ abstract class Utilisateur
       if (preferences != null) 'preferences': preferences?.toJson(),
       if (statut != null) 'statut': statut,
       if (role != null) 'role': role,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       if (pointsFidelite != null) 'pointsFidelite': pointsFidelite,
       if (photoProfil != null) 'photoProfil': photoProfil,
     };
@@ -194,6 +202,7 @@ class _UtilisateurImpl extends Utilisateur {
     List<String>? preferences,
     String? statut,
     String? role,
+    int? cinemaId,
     int? pointsFidelite,
     String? photoProfil,
   }) : super._(
@@ -206,6 +215,7 @@ class _UtilisateurImpl extends Utilisateur {
          preferences: preferences,
          statut: statut,
          role: role,
+         cinemaId: cinemaId,
          pointsFidelite: pointsFidelite,
          photoProfil: photoProfil,
        );
@@ -224,6 +234,7 @@ class _UtilisateurImpl extends Utilisateur {
     Object? preferences = _Undefined,
     Object? statut = _Undefined,
     Object? role = _Undefined,
+    Object? cinemaId = _Undefined,
     Object? pointsFidelite = _Undefined,
     Object? photoProfil = _Undefined,
   }) {
@@ -241,6 +252,7 @@ class _UtilisateurImpl extends Utilisateur {
           : this.preferences?.map((e0) => e0).toList(),
       statut: statut is String? ? statut : this.statut,
       role: role is String? ? role : this.role,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
       pointsFidelite: pointsFidelite is int?
           ? pointsFidelite
           : this.pointsFidelite,
@@ -295,6 +307,11 @@ class UtilisateurUpdateTable extends _i1.UpdateTable<UtilisateurTable> {
     value,
   );
 
+  _i1.ColumnValue<int, int> cinemaId(int? value) => _i1.ColumnValue(
+    table.cinemaId,
+    value,
+  );
+
   _i1.ColumnValue<int, int> pointsFidelite(int? value) => _i1.ColumnValue(
     table.pointsFidelite,
     value,
@@ -343,6 +360,10 @@ class UtilisateurTable extends _i1.Table<int?> {
       this,
       hasDefault: true,
     );
+    cinemaId = _i1.ColumnInt(
+      'cinemaId',
+      this,
+    );
     pointsFidelite = _i1.ColumnInt(
       'pointsFidelite',
       this,
@@ -372,6 +393,8 @@ class UtilisateurTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString role;
 
+  late final _i1.ColumnInt cinemaId;
+
   late final _i1.ColumnInt pointsFidelite;
 
   late final _i1.ColumnString photoProfil;
@@ -387,6 +410,7 @@ class UtilisateurTable extends _i1.Table<int?> {
     preferences,
     statut,
     role,
+    cinemaId,
     pointsFidelite,
     photoProfil,
   ];

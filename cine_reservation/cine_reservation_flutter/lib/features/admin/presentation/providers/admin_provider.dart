@@ -3,25 +3,42 @@ import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../main.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
-// --- Vérification Admin réactive ---
+// --- VÉRIFICATION ADMIN RÉACTIVE ---
 final isUserAdminProvider = FutureProvider<bool>((ref) async {
-  final authState = ref.watch(authProvider);
+  final authState = ref.watch(authProvider); // Réactif à la connexion
   if (!authState.isAuthenticated) return false;
+  
   try {
     final user = await client.admin.getMonProfil();
-    return user?.role == 'admin';
+    if (user == null) return false;
+    return user.role == 'super_admin' || user.role == 'admin_local' || user.role == 'resp_evenements' || user.role == 'admin';
   } catch (e) {
     return false;
   }
 });
 
-// --- Statistiques Dashboard ---
-final adminStatsProvider = FutureProvider<Map<String, int>>((ref) async {
+// --- PROFIL ADMIN RÉACTIF ---
+final adminProfileProvider = FutureProvider<Utilisateur?>((ref) async {
+  final authState = ref.watch(authProvider); // TRÈS IMPORTANT : Force le rechargement après login
+  if (!authState.isAuthenticated) return null;
   try {
-    return await client.admin.getAdminStats();
+    return await client.admin.getMonProfil();
   } catch (e) {
-    throw Exception('Erreur statistiques : $e');
+    return null;
   }
+});
+
+// --- Dashboard ---
+final dashboardDataProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  return await client.admin.getDashboardData();
+});
+
+final adminStatsProvider = FutureProvider<Map<String, int>>((ref) async {
+  return await client.admin.getAdminStats();
+});
+
+final dashboardActionsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  return await client.admin.getDashboardActions();
 });
 
 // --- Cinémas & Salles ---
@@ -34,37 +51,36 @@ final sallesProvider = FutureProvider.family<List<Salle>, int>((ref, cinemaId) a
 });
 
 final allSallesProvider = FutureProvider<List<Salle>>((ref) async {
-  return await client.admin.getAllSalles();
+  return await client.admin.getSalles();
 });
 
-// --- Sièges ---
 final siegesBySalleProvider = FutureProvider.family<List<Siege>, int>((ref, salleId) async {
   return await client.admin.getSiegesBySalle(salleId);
 });
 
-// --- Films & Séances ---
+// --- Séances & Films ---
 final allSeancesProvider = FutureProvider<List<Seance>>((ref) async {
   return await client.admin.getAllSeances();
 });
 
-final seancesByFilmProvider = FutureProvider.family<List<Seance>, int>((ref, filmId) async {
-  return await client.admin.getSeancesByFilm(filmId);
+final allFilmsProvider = FutureProvider<List<Film>>((ref) async {
+  return await client.admin.getAllFilms();
 });
 
-final seancesByCinemaProvider = FutureProvider.family<List<Seance>, int>((ref, cinemaId) async {
-  return await client.admin.getSeancesByCinema(cinemaId);
+// --- Événements ---
+final allEvenementsProvider = FutureProvider<List<Evenement>>((ref) async {
+  return await client.admin.getAllEvenements();
 });
 
-// --- Utilisateurs ---
+// --- Utilisateurs & Réservations ---
 final allUtilisateursProvider = FutureProvider<List<Utilisateur>>((ref) async {
-  return await client.admin.getAllUtilisateurs();
+  return await client.admin.getManagedUsers();
 });
 
 final userHistoryProvider = FutureProvider.family<List<Reservation>, int>((ref, userId) async {
   return await client.admin.getHistoriqueUtilisateur(userId);
 });
 
-// --- Réservations & Remplissage ---
 final allReservationsProvider = FutureProvider<List<Reservation>>((ref) async {
   return await client.admin.getAllReservations();
 });
@@ -73,23 +89,13 @@ final reservationSiegesProvider = FutureProvider.family<List<Siege>, int>((ref, 
   return await client.admin.getSiegesByReservation(resId);
 });
 
-final remplissageSeanceProvider = FutureProvider.family<double, int>((ref, seanceId) async {
-  return await client.admin.getTauxRemplissageSeance(seanceId);
-});
-
-// --- Événements ---
-final allEvenementsProvider = FutureProvider<List<Evenement>>((ref) async {
-  return await client.admin.getAllEvenements();
-});
-
-// --- Options & Snacks ---
-final allOptionsProvider = FutureProvider<List<OptionSupplementaire>>((ref) async {
-  return await client.admin.getAllOptions();
-});
-
-// --- Support Client ---
 final allDemandesSupportProvider = FutureProvider<List<DemandeSupport>>((ref) async {
   return await client.admin.getAllDemandesSupport();
+});
+
+// --- OPTIONS & SNACKS ---
+final allOptionsProvider = FutureProvider<List<OptionSupplementaire>>((ref) async {
+  return await client.admin.getAllOptions();
 });
 
 // --- PROMOTIONS ---
@@ -103,4 +109,7 @@ final codePromoStatsProvider = FutureProvider.family<Map<String, dynamic>, int>(
 
 final globalPromoSummaryProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   return await client.admin.getGlobalPromoSummary();
+});
+final staffTangerProvider = FutureProvider<List<Utilisateur>>((ref) async {
+  return await client.admin.getStaffTanger();
 });

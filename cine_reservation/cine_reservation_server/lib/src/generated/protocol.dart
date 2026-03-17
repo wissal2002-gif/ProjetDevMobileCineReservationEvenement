@@ -37,14 +37,14 @@ import 'salle.dart' as _i22;
 import 'seance.dart' as _i23;
 import 'siege.dart' as _i24;
 import 'utilisateur.dart' as _i25;
-import 'package:cine_reservation_server/src/generated/film.dart' as _i26;
-import 'package:cine_reservation_server/src/generated/cinema.dart' as _i27;
-import 'package:cine_reservation_server/src/generated/salle.dart' as _i28;
-import 'package:cine_reservation_server/src/generated/siege.dart' as _i29;
-import 'package:cine_reservation_server/src/generated/seance.dart' as _i30;
-import 'package:cine_reservation_server/src/generated/utilisateur.dart' as _i31;
-import 'package:cine_reservation_server/src/generated/reservation.dart' as _i32;
-import 'package:cine_reservation_server/src/generated/evenement.dart' as _i33;
+import 'package:cine_reservation_server/src/generated/cinema.dart' as _i26;
+import 'package:cine_reservation_server/src/generated/salle.dart' as _i27;
+import 'package:cine_reservation_server/src/generated/siege.dart' as _i28;
+import 'package:cine_reservation_server/src/generated/seance.dart' as _i29;
+import 'package:cine_reservation_server/src/generated/film.dart' as _i30;
+import 'package:cine_reservation_server/src/generated/evenement.dart' as _i31;
+import 'package:cine_reservation_server/src/generated/utilisateur.dart' as _i32;
+import 'package:cine_reservation_server/src/generated/reservation.dart' as _i33;
 import 'package:cine_reservation_server/src/generated/demande_support.dart'
     as _i34;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
@@ -1981,6 +1981,12 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: '\'client\'::text',
         ),
         _i2.ColumnDefinition(
+          name: 'cinemaId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _i2.ColumnDefinition(
           name: 'pointsFidelite',
           columnType: _i2.ColumnType.bigint,
           isNullable: true,
@@ -2033,6 +2039,19 @@ class Protocol extends _i1.SerializationManagerServer {
           ],
           type: 'btree',
           isUnique: true,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'utilisateur_cinema_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'cinemaId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
           isPrimary: false,
         ),
       ],
@@ -2206,39 +2225,51 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i26.Film>) {
-      return (data as List).map((e) => deserialize<_i26.Film>(e)).toList() as T;
-    }
-    if (t == List<_i27.Cinema>) {
-      return (data as List).map((e) => deserialize<_i27.Cinema>(e)).toList()
+    if (t == Map<String, dynamic>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
+          )
           as T;
     }
-    if (t == List<_i28.Salle>) {
-      return (data as List).map((e) => deserialize<_i28.Salle>(e)).toList()
+    if (t == Map<String, int>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<int>(v)),
+          )
           as T;
     }
-    if (t == List<_i29.Siege>) {
-      return (data as List).map((e) => deserialize<_i29.Siege>(e)).toList()
+    if (t == List<_i26.Cinema>) {
+      return (data as List).map((e) => deserialize<_i26.Cinema>(e)).toList()
           as T;
     }
-    if (t == List<_i30.Seance>) {
-      return (data as List).map((e) => deserialize<_i30.Seance>(e)).toList()
+    if (t == List<_i27.Salle>) {
+      return (data as List).map((e) => deserialize<_i27.Salle>(e)).toList()
           as T;
     }
-    if (t == List<_i31.Utilisateur>) {
+    if (t == List<_i28.Siege>) {
+      return (data as List).map((e) => deserialize<_i28.Siege>(e)).toList()
+          as T;
+    }
+    if (t == List<_i29.Seance>) {
+      return (data as List).map((e) => deserialize<_i29.Seance>(e)).toList()
+          as T;
+    }
+    if (t == List<_i30.Film>) {
+      return (data as List).map((e) => deserialize<_i30.Film>(e)).toList() as T;
+    }
+    if (t == List<_i31.Evenement>) {
+      return (data as List).map((e) => deserialize<_i31.Evenement>(e)).toList()
+          as T;
+    }
+    if (t == List<_i32.Utilisateur>) {
       return (data as List)
-              .map((e) => deserialize<_i31.Utilisateur>(e))
+              .map((e) => deserialize<_i32.Utilisateur>(e))
               .toList()
           as T;
     }
-    if (t == List<_i32.Reservation>) {
+    if (t == List<_i33.Reservation>) {
       return (data as List)
-              .map((e) => deserialize<_i32.Reservation>(e))
+              .map((e) => deserialize<_i33.Reservation>(e))
               .toList()
-          as T;
-    }
-    if (t == List<_i33.Evenement>) {
-      return (data as List).map((e) => deserialize<_i33.Evenement>(e)).toList()
           as T;
     }
     if (t == List<_i34.DemandeSupport>) {
@@ -2257,16 +2288,10 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data as List).map((e) => deserialize<_i36.CodePromo>(e)).toList()
           as T;
     }
-    if (t == Map<String, dynamic>) {
-      return (data as Map).map(
-            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
-          )
-          as T;
-    }
-    if (t == Map<String, int>) {
-      return (data as Map).map(
-            (k, v) => MapEntry(deserialize<String>(k), deserialize<int>(v)),
-          )
+    if (t == List<Map<String, dynamic>>) {
+      return (data as List)
+              .map((e) => deserialize<Map<String, dynamic>>(e))
+              .toList()
           as T;
     }
     if (t == List<_i37.Faq>) {

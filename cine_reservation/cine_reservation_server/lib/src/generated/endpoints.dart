@@ -25,19 +25,18 @@ import '../endpoints/salles_endpoint.dart' as _i12;
 import '../endpoints/seances_endpoint.dart' as _i13;
 import '../endpoints/support_endpoint.dart' as _i14;
 import '../greetings/greeting_endpoint.dart' as _i15;
-import 'package:cine_reservation_server/src/generated/film.dart' as _i16;
-import 'package:cine_reservation_server/src/generated/cinema.dart' as _i17;
-import 'package:cine_reservation_server/src/generated/salle.dart' as _i18;
-import 'package:cine_reservation_server/src/generated/siege.dart' as _i19;
-import 'package:cine_reservation_server/src/generated/seance.dart' as _i20;
-import 'package:cine_reservation_server/src/generated/evenement.dart' as _i21;
+import 'package:cine_reservation_server/src/generated/cinema.dart' as _i16;
+import 'package:cine_reservation_server/src/generated/salle.dart' as _i17;
+import 'package:cine_reservation_server/src/generated/seance.dart' as _i18;
+import 'package:cine_reservation_server/src/generated/film.dart' as _i19;
+import 'package:cine_reservation_server/src/generated/evenement.dart' as _i20;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
-    as _i22;
-import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i23;
+    as _i21;
+import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i22;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i24;
+    as _i23;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
-    as _i25;
+    as _i24;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -336,78 +335,62 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'admin',
       endpoint: endpoints['admin']!,
       methodConnectors: {
-        'ajouterFilm': _i1.MethodConnector(
-          name: 'ajouterFilm',
-          params: {
-            'film': _i1.ParameterDescription(
-              name: 'film',
-              type: _i1.getType<_i16.Film>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint).ajouterFilm(
-                session,
-                params['film'],
-              ),
-        ),
-        'modifierFilm': _i1.MethodConnector(
-          name: 'modifierFilm',
-          params: {
-            'film': _i1.ParameterDescription(
-              name: 'film',
-              type: _i1.getType<_i16.Film>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint).modifierFilm(
-                session,
-                params['film'],
-              ),
-        ),
-        'supprimerFilm': _i1.MethodConnector(
-          name: 'supprimerFilm',
-          params: {
-            'id': _i1.ParameterDescription(
-              name: 'id',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['admin'] as _i4.AdminEndpoint).supprimerFilm(
-                    session,
-                    params['id'],
-                  ),
-        ),
-        'getAllFilms': _i1.MethodConnector(
-          name: 'getAllFilms',
+        'getDashboardTitle': _i1.MethodConnector(
+          name: 'getDashboardTitle',
           params: {},
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint).getAllFilms(
-                session,
-              ),
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getDashboardTitle(session),
+        ),
+        'getDashboardData': _i1.MethodConnector(
+          name: 'getDashboardData',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getDashboardData(session),
+        ),
+        'getDashboardActions': _i1.MethodConnector(
+          name: 'getDashboardActions',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getDashboardActions(session),
+        ),
+        'getAdminStats': _i1.MethodConnector(
+          name: 'getAdminStats',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getAdminStats(session),
+        ),
+        'getAllCinemas': _i1.MethodConnector(
+          name: 'getAllCinemas',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getAllCinemas(session),
         ),
         'ajouterCinema': _i1.MethodConnector(
           name: 'ajouterCinema',
           params: {
-            'cinema': _i1.ParameterDescription(
-              name: 'cinema',
-              type: _i1.getType<_i17.Cinema>(),
+            'c': _i1.ParameterDescription(
+              name: 'c',
+              type: _i1.getType<_i16.Cinema>(),
               nullable: false,
             ),
           },
@@ -418,15 +401,15 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).ajouterCinema(
                     session,
-                    params['cinema'],
+                    params['c'],
                   ),
         ),
         'modifierCinema': _i1.MethodConnector(
           name: 'modifierCinema',
           params: {
-            'cinema': _i1.ParameterDescription(
-              name: 'cinema',
-              type: _i1.getType<_i17.Cinema>(),
+            'c': _i1.ParameterDescription(
+              name: 'c',
+              type: _i1.getType<_i16.Cinema>(),
               nullable: false,
             ),
           },
@@ -437,7 +420,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).modifierCinema(
                     session,
-                    params['cinema'],
+                    params['c'],
                   ),
         ),
         'supprimerCinema': _i1.MethodConnector(
@@ -459,22 +442,52 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['id'],
                   ),
         ),
-        'getAllCinemas': _i1.MethodConnector(
-          name: 'getAllCinemas',
+        'getAllSalles': _i1.MethodConnector(
+          name: 'getAllSalles',
           params: {},
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
-                  .getAllCinemas(session),
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).getAllSalles(
+                session,
+              ),
+        ),
+        'getSalles': _i1.MethodConnector(
+          name: 'getSalles',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).getSalles(session),
+        ),
+        'getSallesByCinema': _i1.MethodConnector(
+          name: 'getSallesByCinema',
+          params: {
+            'cinemaId': _i1.ParameterDescription(
+              name: 'cinemaId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).getSallesByCinema(
+                    session,
+                    params['cinemaId'],
+                  ),
         ),
         'ajouterSalle': _i1.MethodConnector(
           name: 'ajouterSalle',
           params: {
-            'salle': _i1.ParameterDescription(
-              name: 'salle',
-              type: _i1.getType<_i18.Salle>(),
+            's': _i1.ParameterDescription(
+              name: 's',
+              type: _i1.getType<_i17.Salle>(),
               nullable: false,
             ),
           },
@@ -484,15 +497,15 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['admin'] as _i4.AdminEndpoint).ajouterSalle(
                 session,
-                params['salle'],
+                params['s'],
               ),
         ),
         'modifierSalle': _i1.MethodConnector(
           name: 'modifierSalle',
           params: {
-            'salle': _i1.ParameterDescription(
-              name: 'salle',
-              type: _i1.getType<_i18.Salle>(),
+            's': _i1.ParameterDescription(
+              name: 's',
+              type: _i1.getType<_i17.Salle>(),
               nullable: false,
             ),
           },
@@ -503,7 +516,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).modifierSalle(
                     session,
-                    params['salle'],
+                    params['s'],
                   ),
         ),
         'supprimerSalle': _i1.MethodConnector(
@@ -525,36 +538,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['id'],
                   ),
         ),
-        'getSallesByCinema': _i1.MethodConnector(
-          name: 'getSallesByCinema',
-          params: {
-            'cinemaId': _i1.ParameterDescription(
-              name: 'cinemaId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['admin'] as _i4.AdminEndpoint).getSallesByCinema(
-                    session,
-                    params['cinemaId'],
-                  ),
-        ),
-        'getAllSalles': _i1.MethodConnector(
-          name: 'getAllSalles',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint).getAllSalles(
-                session,
-              ),
-        ),
         'getSiegesBySalle': _i1.MethodConnector(
           name: 'getSiegesBySalle',
           params: {
@@ -572,43 +555,6 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['admin'] as _i4.AdminEndpoint).getSiegesBySalle(
                     session,
                     params['salleId'],
-                  ),
-        ),
-        'ajouterSiege': _i1.MethodConnector(
-          name: 'ajouterSiege',
-          params: {
-            'siege': _i1.ParameterDescription(
-              name: 'siege',
-              type: _i1.getType<_i19.Siege>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint).ajouterSiege(
-                session,
-                params['siege'],
-              ),
-        ),
-        'supprimerSiege': _i1.MethodConnector(
-          name: 'supprimerSiege',
-          params: {
-            'id': _i1.ParameterDescription(
-              name: 'id',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['admin'] as _i4.AdminEndpoint).supprimerSiege(
-                    session,
-                    params['id'],
                   ),
         ),
         'genererSiegesPourSalle': _i1.MethodConnector(
@@ -642,12 +588,22 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['siegesParRangee'],
                   ),
         ),
+        'getAllSeances': _i1.MethodConnector(
+          name: 'getAllSeances',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getAllSeances(session),
+        ),
         'ajouterSeance': _i1.MethodConnector(
           name: 'ajouterSeance',
           params: {
-            'seance': _i1.ParameterDescription(
-              name: 'seance',
-              type: _i1.getType<_i20.Seance>(),
+            's': _i1.ParameterDescription(
+              name: 's',
+              type: _i1.getType<_i18.Seance>(),
               nullable: false,
             ),
           },
@@ -658,15 +614,15 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).ajouterSeance(
                     session,
-                    params['seance'],
+                    params['s'],
                   ),
         ),
         'modifierSeance': _i1.MethodConnector(
           name: 'modifierSeance',
           params: {
-            'seance': _i1.ParameterDescription(
-              name: 'seance',
-              type: _i1.getType<_i20.Seance>(),
+            's': _i1.ParameterDescription(
+              name: 's',
+              type: _i1.getType<_i18.Seance>(),
               nullable: false,
             ),
           },
@@ -677,7 +633,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).modifierSeance(
                     session,
-                    params['seance'],
+                    params['s'],
                   ),
         ),
         'supprimerSeance': _i1.MethodConnector(
@@ -698,16 +654,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['id'],
                   ),
-        ),
-        'getAllSeances': _i1.MethodConnector(
-          name: 'getAllSeances',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
-                  .getAllSeances(session),
         ),
         'getSeancesByFilm': _i1.MethodConnector(
           name: 'getSeancesByFilm',
@@ -731,8 +677,8 @@ class Endpoints extends _i1.EndpointDispatch {
         'getSeancesByCinema': _i1.MethodConnector(
           name: 'getSeancesByCinema',
           params: {
-            'cinemaId': _i1.ParameterDescription(
-              name: 'cinemaId',
+            'id': _i1.ParameterDescription(
+              name: 'id',
               type: _i1.getType<int>(),
               nullable: false,
             ),
@@ -744,7 +690,140 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).getSeancesByCinema(
                     session,
-                    params['cinemaId'],
+                    params['id'],
+                  ),
+        ),
+        'getAllFilms': _i1.MethodConnector(
+          name: 'getAllFilms',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).getAllFilms(
+                session,
+              ),
+        ),
+        'ajouterFilm': _i1.MethodConnector(
+          name: 'ajouterFilm',
+          params: {
+            'f': _i1.ParameterDescription(
+              name: 'f',
+              type: _i1.getType<_i19.Film>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).ajouterFilm(
+                session,
+                params['f'],
+              ),
+        ),
+        'modifierFilm': _i1.MethodConnector(
+          name: 'modifierFilm',
+          params: {
+            'f': _i1.ParameterDescription(
+              name: 'f',
+              type: _i1.getType<_i19.Film>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).modifierFilm(
+                session,
+                params['f'],
+              ),
+        ),
+        'supprimerFilm': _i1.MethodConnector(
+          name: 'supprimerFilm',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).supprimerFilm(
+                    session,
+                    params['id'],
+                  ),
+        ),
+        'getAllEvenements': _i1.MethodConnector(
+          name: 'getAllEvenements',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getAllEvenements(session),
+        ),
+        'ajouterEvenement': _i1.MethodConnector(
+          name: 'ajouterEvenement',
+          params: {
+            'ev': _i1.ParameterDescription(
+              name: 'ev',
+              type: _i1.getType<_i20.Evenement>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).ajouterEvenement(
+                    session,
+                    params['ev'],
+                  ),
+        ),
+        'modifierEvenement': _i1.MethodConnector(
+          name: 'modifierEvenement',
+          params: {
+            'ev': _i1.ParameterDescription(
+              name: 'ev',
+              type: _i1.getType<_i20.Evenement>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).modifierEvenement(
+                    session,
+                    params['ev'],
+                  ),
+        ),
+        'supprimerEvenement': _i1.MethodConnector(
+          name: 'supprimerEvenement',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).supprimerEvenement(
+                    session,
+                    params['id'],
                   ),
         ),
         'getAllUtilisateurs': _i1.MethodConnector(
@@ -757,24 +836,15 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['admin'] as _i4.AdminEndpoint)
                   .getAllUtilisateurs(session),
         ),
-        'suspendreUtilisateur': _i1.MethodConnector(
-          name: 'suspendreUtilisateur',
-          params: {
-            'id': _i1.ParameterDescription(
-              name: 'id',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
+        'getManagedUsers': _i1.MethodConnector(
+          name: 'getManagedUsers',
+          params: {},
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['admin'] as _i4.AdminEndpoint)
-                  .suspendreUtilisateur(
-                    session,
-                    params['id'],
-                  ),
+                  .getManagedUsers(session),
         ),
         'activerUtilisateur': _i1.MethodConnector(
           name: 'activerUtilisateur',
@@ -791,6 +861,25 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).activerUtilisateur(
+                    session,
+                    params['id'],
+                  ),
+        ),
+        'suspendreUtilisateur': _i1.MethodConnector(
+          name: 'suspendreUtilisateur',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .suspendreUtilisateur(
                     session,
                     params['id'],
                   ),
@@ -817,8 +906,8 @@ class Endpoints extends _i1.EndpointDispatch {
         'getHistoriqueUtilisateur': _i1.MethodConnector(
           name: 'getHistoriqueUtilisateur',
           params: {
-            'utilisateurId': _i1.ParameterDescription(
-              name: 'utilisateurId',
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
               type: _i1.getType<int>(),
               nullable: false,
             ),
@@ -830,19 +919,8 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['admin'] as _i4.AdminEndpoint)
                   .getHistoriqueUtilisateur(
                     session,
-                    params['utilisateurId'],
+                    params['userId'],
                   ),
-        ),
-        'getMonProfil': _i1.MethodConnector(
-          name: 'getMonProfil',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint).getMonProfil(
-                session,
-              ),
         ),
         'getAllReservations': _i1.MethodConnector(
           name: 'getAllReservations',
@@ -857,13 +935,13 @@ class Endpoints extends _i1.EndpointDispatch {
         'rembourserReservation': _i1.MethodConnector(
           name: 'rembourserReservation',
           params: {
-            'reservationId': _i1.ParameterDescription(
-              name: 'reservationId',
+            'resId': _i1.ParameterDescription(
+              name: 'resId',
               type: _i1.getType<int>(),
               nullable: false,
             ),
-            'montant': _i1.ParameterDescription(
-              name: 'montant',
+            'amt': _i1.ParameterDescription(
+              name: 'amt',
               type: _i1.getType<double>(),
               nullable: false,
             ),
@@ -875,34 +953,15 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['admin'] as _i4.AdminEndpoint)
                   .rembourserReservation(
                     session,
-                    params['reservationId'],
-                    params['montant'],
-                  ),
-        ),
-        'getTauxRemplissageSeance': _i1.MethodConnector(
-          name: 'getTauxRemplissageSeance',
-          params: {
-            'seanceId': _i1.ParameterDescription(
-              name: 'seanceId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
-                  .getTauxRemplissageSeance(
-                    session,
-                    params['seanceId'],
+                    params['resId'],
+                    params['amt'],
                   ),
         ),
         'getSiegesByReservation': _i1.MethodConnector(
           name: 'getSiegesByReservation',
           params: {
-            'reservationId': _i1.ParameterDescription(
-              name: 'reservationId',
+            'resId': _i1.ParameterDescription(
+              name: 'resId',
               type: _i1.getType<int>(),
               nullable: false,
             ),
@@ -914,62 +973,14 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['admin'] as _i4.AdminEndpoint)
                   .getSiegesByReservation(
                     session,
-                    params['reservationId'],
+                    params['resId'],
                   ),
         ),
-        'getAllEvenements': _i1.MethodConnector(
-          name: 'getAllEvenements',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
-                  .getAllEvenements(session),
-        ),
-        'ajouterEvenement': _i1.MethodConnector(
-          name: 'ajouterEvenement',
+        'getTauxRemplissageSeance': _i1.MethodConnector(
+          name: 'getTauxRemplissageSeance',
           params: {
-            'evenement': _i1.ParameterDescription(
-              name: 'evenement',
-              type: _i1.getType<_i21.Evenement>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['admin'] as _i4.AdminEndpoint).ajouterEvenement(
-                    session,
-                    params['evenement'],
-                  ),
-        ),
-        'modifierEvenement': _i1.MethodConnector(
-          name: 'modifierEvenement',
-          params: {
-            'evenement': _i1.ParameterDescription(
-              name: 'evenement',
-              type: _i1.getType<_i21.Evenement>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['admin'] as _i4.AdminEndpoint).modifierEvenement(
-                    session,
-                    params['evenement'],
-                  ),
-        ),
-        'supprimerEvenement': _i1.MethodConnector(
-          name: 'supprimerEvenement',
-          params: {
-            'id': _i1.ParameterDescription(
-              name: 'id',
+            'sId': _i1.ParameterDescription(
+              name: 'sId',
               type: _i1.getType<int>(),
               nullable: false,
             ),
@@ -978,10 +989,10 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['admin'] as _i4.AdminEndpoint).supprimerEvenement(
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getTauxRemplissageSeance(
                     session,
-                    params['id'],
+                    params['sId'],
                   ),
         ),
         'getAllDemandesSupport': _i1.MethodConnector(
@@ -1002,8 +1013,8 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<int>(),
               nullable: false,
             ),
-            'reponse': _i1.ParameterDescription(
-              name: 'reponse',
+            'resp': _i1.ParameterDescription(
+              name: 'resp',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -1016,7 +1027,7 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['admin'] as _i4.AdminEndpoint).repondreDemande(
                     session,
                     params['id'],
-                    params['reponse'],
+                    params['resp'],
                   ),
         ),
         'getAllOptions': _i1.MethodConnector(
@@ -1032,9 +1043,9 @@ class Endpoints extends _i1.EndpointDispatch {
         'ajouterOption': _i1.MethodConnector(
           name: 'ajouterOption',
           params: {
-            'option': _i1.ParameterDescription(
-              name: 'option',
-              type: _i1.getType<_i22.OptionSupplementaire>(),
+            'o': _i1.ParameterDescription(
+              name: 'o',
+              type: _i1.getType<_i21.OptionSupplementaire>(),
               nullable: false,
             ),
           },
@@ -1045,15 +1056,15 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).ajouterOption(
                     session,
-                    params['option'],
+                    params['o'],
                   ),
         ),
         'modifierOption': _i1.MethodConnector(
           name: 'modifierOption',
           params: {
-            'option': _i1.ParameterDescription(
-              name: 'option',
-              type: _i1.getType<_i22.OptionSupplementaire>(),
+            'o': _i1.ParameterDescription(
+              name: 'o',
+              type: _i1.getType<_i21.OptionSupplementaire>(),
               nullable: false,
             ),
           },
@@ -1064,7 +1075,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).modifierOption(
                     session,
-                    params['option'],
+                    params['o'],
                   ),
         ),
         'supprimerOption': _i1.MethodConnector(
@@ -1101,7 +1112,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cp': _i1.ParameterDescription(
               name: 'cp',
-              type: _i1.getType<_i23.CodePromo>(),
+              type: _i1.getType<_i22.CodePromo>(),
               nullable: false,
             ),
           },
@@ -1120,7 +1131,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cp': _i1.ParameterDescription(
               name: 'cp',
-              type: _i1.getType<_i23.CodePromo>(),
+              type: _i1.getType<_i22.CodePromo>(),
               nullable: false,
             ),
           },
@@ -1156,8 +1167,8 @@ class Endpoints extends _i1.EndpointDispatch {
         'getCodePromoStats': _i1.MethodConnector(
           name: 'getCodePromoStats',
           params: {
-            'codePromoId': _i1.ParameterDescription(
-              name: 'codePromoId',
+            'id': _i1.ParameterDescription(
+              name: 'id',
               type: _i1.getType<int>(),
               nullable: false,
             ),
@@ -1169,7 +1180,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _i4.AdminEndpoint).getCodePromoStats(
                     session,
-                    params['codePromoId'],
+                    params['id'],
                   ),
         ),
         'getGlobalPromoSummary': _i1.MethodConnector(
@@ -1182,15 +1193,110 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['admin'] as _i4.AdminEndpoint)
                   .getGlobalPromoSummary(session),
         ),
-        'getAdminStats': _i1.MethodConnector(
-          name: 'getAdminStats',
+        'getStaffTanger': _i1.MethodConnector(
+          name: 'getStaffTanger',
           params: {},
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['admin'] as _i4.AdminEndpoint)
-                  .getAdminStats(session),
+                  .getStaffTanger(session),
+        ),
+        'ajouterStaff': _i1.MethodConnector(
+          name: 'ajouterStaff',
+          params: {
+            'nom': _i1.ParameterDescription(
+              name: 'nom',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'email': _i1.ParameterDescription(
+              name: 'email',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).ajouterStaff(
+                session,
+                params['nom'],
+                params['email'],
+              ),
+        ),
+        'traiterRemboursement': _i1.MethodConnector(
+          name: 'traiterRemboursement',
+          params: {
+            'reservationId': _i1.ParameterDescription(
+              name: 'reservationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .traiterRemboursement(
+                    session,
+                    params['reservationId'],
+                  ),
+        ),
+        'genererSiegesAutomatique': _i1.MethodConnector(
+          name: 'genererSiegesAutomatique',
+          params: {
+            'salleId': _i1.ParameterDescription(
+              name: 'salleId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'nbRangees': _i1.ParameterDescription(
+              name: 'nbRangees',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'nbColonnes': _i1.ParameterDescription(
+              name: 'nbColonnes',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .genererSiegesAutomatique(
+                    session,
+                    salleId: params['salleId'],
+                    nbRangees: params['nbRangees'],
+                    nbColonnes: params['nbColonnes'],
+                  ),
+        ),
+        'getMonProfil': _i1.MethodConnector(
+          name: 'getMonProfil',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint).getMonProfil(
+                session,
+              ),
+        ),
+        'getReservationsDetailed': _i1.MethodConnector(
+          name: 'getReservationsDetailed',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getReservationsDetailed(session),
         ),
       },
     );
@@ -1527,9 +1633,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i24.Endpoints()
+    modules['serverpod_auth_idp'] = _i23.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i25.Endpoints()
+    modules['serverpod_auth_core'] = _i24.Endpoints()
       ..initializeEndpoints(server);
   }
 }

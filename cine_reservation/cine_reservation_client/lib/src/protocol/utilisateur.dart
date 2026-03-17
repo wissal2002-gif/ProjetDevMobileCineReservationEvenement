@@ -24,6 +24,7 @@ abstract class Utilisateur implements _i1.SerializableModel {
     this.preferences,
     String? statut,
     String? role,
+    this.cinemaId,
     int? pointsFidelite,
     this.photoProfil,
   }) : statut = statut ?? 'actif',
@@ -40,6 +41,7 @@ abstract class Utilisateur implements _i1.SerializableModel {
     List<String>? preferences,
     String? statut,
     String? role,
+    int? cinemaId,
     int? pointsFidelite,
     String? photoProfil,
   }) = _UtilisateurImpl;
@@ -63,6 +65,7 @@ abstract class Utilisateur implements _i1.SerializableModel {
             ),
       statut: jsonSerialization['statut'] as String?,
       role: jsonSerialization['role'] as String?,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
       pointsFidelite: jsonSerialization['pointsFidelite'] as int?,
       photoProfil: jsonSerialization['photoProfil'] as String?,
     );
@@ -89,6 +92,8 @@ abstract class Utilisateur implements _i1.SerializableModel {
 
   String? role;
 
+  int? cinemaId;
+
   int? pointsFidelite;
 
   String? photoProfil;
@@ -106,6 +111,7 @@ abstract class Utilisateur implements _i1.SerializableModel {
     List<String>? preferences,
     String? statut,
     String? role,
+    int? cinemaId,
     int? pointsFidelite,
     String? photoProfil,
   });
@@ -122,6 +128,7 @@ abstract class Utilisateur implements _i1.SerializableModel {
       if (preferences != null) 'preferences': preferences?.toJson(),
       if (statut != null) 'statut': statut,
       if (role != null) 'role': role,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       if (pointsFidelite != null) 'pointsFidelite': pointsFidelite,
       if (photoProfil != null) 'photoProfil': photoProfil,
     };
@@ -146,6 +153,7 @@ class _UtilisateurImpl extends Utilisateur {
     List<String>? preferences,
     String? statut,
     String? role,
+    int? cinemaId,
     int? pointsFidelite,
     String? photoProfil,
   }) : super._(
@@ -158,6 +166,7 @@ class _UtilisateurImpl extends Utilisateur {
          preferences: preferences,
          statut: statut,
          role: role,
+         cinemaId: cinemaId,
          pointsFidelite: pointsFidelite,
          photoProfil: photoProfil,
        );
@@ -176,6 +185,7 @@ class _UtilisateurImpl extends Utilisateur {
     Object? preferences = _Undefined,
     Object? statut = _Undefined,
     Object? role = _Undefined,
+    Object? cinemaId = _Undefined,
     Object? pointsFidelite = _Undefined,
     Object? photoProfil = _Undefined,
   }) {
@@ -193,6 +203,7 @@ class _UtilisateurImpl extends Utilisateur {
           : this.preferences?.map((e0) => e0).toList(),
       statut: statut is String? ? statut : this.statut,
       role: role is String? ? role : this.role,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
       pointsFidelite: pointsFidelite is int?
           ? pointsFidelite
           : this.pointsFidelite,

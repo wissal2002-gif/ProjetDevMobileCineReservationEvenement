@@ -2,164 +2,415 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 
 class AdminEndpoint extends Endpoint {
-  // FILMS
-  Future<Film> ajouterFilm(Session session, Film film) async {
-    return await Film.db.insertRow(session, film);
+  // Helper pour récupérer l'utilisateur connecté
+  Future<Utilisateur> _getRequiredUser(Session session) async {
+    final authInfo = session.authenticated;
+    if (authInfo == null) throw Exception('Non authentifié');
+    final user = await Utilisateur.db.findFirstRow(session,
+        where: (t) => t.authUserId.equals(authInfo.userIdentifier));
+    if (user == null) throw Exception('Utilisateur non trouvé');
+    return user;
   }
 
-  Future<Film> modifierFilm(Session session, Film film) async {
-    return await Film.db.updateRow(session, film);
+  // --- DASHBOARD & TITRE ---
+  Future<String> getDashboardTitle(Session session) async {
+    final user = await _getRequiredUser(session);
+    if (user.role == 'super_admin') return "ADMINISTRATION GLOBALE";
+    if (user.role == 'admin_local' && user.cinemaId != null) {
+      final cinema = await Cinema.db.findById(session, user.cinemaId!);
+      return "ADMIN CINÉVENT ${cinema?.nom ?? 'LOCAL'}".toUpperCase();
+    }
+    return "ESPACE ADMINISTRATION";
   }
 
-  Future<void> supprimerFilm(Session session, int id) async {
-    await Film.db.deleteWhere(session, where: (t) => t.id.equals(id));
+  Future<Map<String, dynamic>> getDashboardData(Session session) async {
+    final user = await _getRequiredUser(session);
+    return {
+      'adminTitle': await getDashboardTitle(session),
+      'stats': await getAdminStats(session),
+      'actions': await getDashboardActions(session),
+      'role': user.role,
+    };
   }
 
-  Future<List<Film>> getAllFilms(Session session) async {
-    return await Film.db.find(session, orderBy: (t) => t.titre);
+  Future<Map<String, int>> getDashboardActions(Session session) async {
+    final user = await _getRequiredUser(session);
+    final pendingSupport = await DemandeSupport.db
+        .count(session, where: (t) => t.statut.notEquals('traité'));
+
+    int cancelledRes = 0;
+    if (user.role == 'super_admin') {
+      cancelledRes = await Reservation.db
+          .count(session, where: (t) => t.statut.equals('annule'));
+    } else if (user.cinemaId != null) {
+      final salles = await Salle.db
+          .find(session, where: (t) => t.cinemaId.equals(user.cinemaId));
+      final sIds = salles.map((s) => s.id!).toSet();
+      if (sIds.isNotEmpty) {
+        cancelledRes = await Reservation.db.count(session,
+            where: (t) => (t.seanceId.inSet(sIds)) & t.statut.equals('annule'));
+      }
+    }
+    return {
+      'pendingSupport': pendingSupport,
+      'cancelledReservations': cancelledRes,
+      'totalItems': pendingSupport + cancelledRes,
+    };
   }
 
-  // CINEMAS
-  Future<Cinema> ajouterCinema(Session session, Cinema cinema) async {
-    return await Cinema.db.insertRow(session, cinema);
+  Future<Map<String, int>> getAdminStats(Session session) async {
+    final user = await _getRequiredUser(session);
+    if (user.role == 'super_admin') {
+      return {
+        'totalFilms': await Film.db.count(session),
+        'totalEvents': await Evenement.db.count(session),
+        'totalUsers': await Utilisateur.db.count(session),
+        'totalReservations': await Reservation.db.count(session),
+      };
+    } else {
+      // Logique locale Tanger
+      final salles = await Salle.db.find(session, where: (t) => t.cinemaId.equals(user.cinemaId));
+      final sIds = salles.map((s) => s.id!).toSet();
+
+      // ✅ Correction ici : ajoutez <Seance> devant les crochets []
+      final seances = sIds.isEmpty
+          ? <Seance>[]
+          : await Seance.db.find(session, where: (t) => t.salleId.inSet(sIds));
+
+      final seanceIds = seances.map((s) => s.id!).toSet();
+
+      final eventCount = await Evenement.db.count(session, where: (t) => t.cinemaId.equals(user.cinemaId));
+
+      int resCount = seanceIds.isEmpty
+          ? 0
+          : await Reservation.db.count(session, where: (t) => t.seanceId.inSet(seanceIds));
+
+      return {
+        'totalFilms': await Film.db.count(session),
+        'totalEvents': eventCount,
+        'totalUsers': await Utilisateur.db.count(session, where: (t) => t.cinemaId.equals(user.cinemaId)),
+        'totalReservations': resCount,
+      };
+    }
+  }
+  // --- GESTION CINÉMAS ---
+  Future<List<Cinema>> getAllCinemas(Session session) async {
+    final user = await _getRequiredUser(session);
+    if (user.role == 'super_admin') return await Cinema.db.find(session);
+    if (user.cinemaId != null) {
+      return await Cinema.db
+          .find(session, where: (t) => t.id.equals(user.cinemaId));
+    }
+    return [];
   }
 
-  Future<Cinema> modifierCinema(Session session, Cinema cinema) async {
-    return await Cinema.db.updateRow(session, cinema);
-  }
-
+  Future<Cinema> ajouterCinema(Session session, Cinema c) async =>
+      await Cinema.db.insertRow(session, c);
+  Future<Cinema> modifierCinema(Session session, Cinema c) async =>
+      await Cinema.db.updateRow(session, c);
   Future<void> supprimerCinema(Session session, int id) async {
     await Salle.db.deleteWhere(session, where: (t) => t.cinemaId.equals(id));
     await Cinema.db.deleteWhere(session, where: (t) => t.id.equals(id));
   }
 
-  Future<List<Cinema>> getAllCinemas(Session session) async {
-    return await Cinema.db.find(session, orderBy: (t) => t.nom);
-  }
-
-  // SALLES
-  Future<Salle> ajouterSalle(Session session, Salle salle) async {
-    return await Salle.db.insertRow(session, salle);
-  }
-
-  Future<Salle> modifierSalle(Session session, Salle salle) async {
-    return await Salle.db.updateRow(session, salle);
-  }
-
-  Future<void> supprimerSalle(Session session, int id) async {
-    await Siege.db.deleteWhere(session, where: (t) => t.salleId.equals(id));
-    await Salle.db.deleteWhere(session, where: (t) => t.id.equals(id));
-  }
-
-  Future<List<Salle>> getSallesByCinema(Session session, int cinemaId) async {
-    return await Salle.db.find(session,
-        where: (t) => t.cinemaId.equals(cinemaId));
-  }
-
+  // --- SALLES & SIÈGES ---
   Future<List<Salle>> getAllSalles(Session session) async {
-    return await Salle.db.find(session);
+    final user = await _getRequiredUser(session);
+    if (user.role == 'super_admin') return await Salle.db.find(session);
+    return await Salle.db
+        .find(session, where: (t) => t.cinemaId.equals(user.cinemaId));
   }
 
-  // SIEGES
-  Future<List<Siege>> getSiegesBySalle(Session session, int salleId) async {
-    return await Siege.db.find(session,
-        where: (t) => t.salleId.equals(salleId), orderBy: (t) => t.numero);
-  }
+  Future<List<Salle>> getSalles(Session session) async =>
+      await getAllSalles(session);
 
-  Future<Siege> ajouterSiege(Session session, Siege siege) async {
-    return await Siege.db.insertRow(session, siege);
-  }
+  Future<List<Salle>> getSallesByCinema(Session session, int cinemaId) async =>
+      await Salle.db.find(session, where: (t) => t.cinemaId.equals(cinemaId));
+  Future<Salle> ajouterSalle(Session session, Salle s) async =>
+      await Salle.db.insertRow(session, s);
+  Future<Salle> modifierSalle(Session session, Salle s) async =>
+      await Salle.db.updateRow(session, s);
+  Future<void> supprimerSalle(Session session, int id) async =>
+      await Salle.db.deleteWhere(session, where: (t) => t.id.equals(id));
 
-  Future<void> supprimerSiege(Session session, int id) async {
-    await Siege.db.deleteWhere(session, where: (t) => t.id.equals(id));
-  }
-
+  Future<List<Siege>> getSiegesBySalle(Session session, int salleId) async =>
+      await Siege.db.find(session,
+          where: (t) => t.salleId.equals(salleId), orderBy: (t) => t.numero);
   Future<void> genererSiegesPourSalle(
       Session session, int salleId, int nbRangees, int siegesParRangee) async {
     await Siege.db.deleteWhere(session, where: (t) => t.salleId.equals(salleId));
-    List<Siege> sieges = [];
-    List<String> alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    for (int r = 0; r < nbRangees; r++) {
-      String rangee = alphabet[r];
-      for (int s = 1; s <= siegesParRangee; s++) {
-        sieges.add(Siege(
-            salleId: salleId,
-            rangee: rangee,
-            numero: "$rangee$s",
-            type: 'standard'));
+    List<Siege> sList = [];
+    List<String> abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    for (int i = 0; i < nbRangees; i++) {
+      for (int j = 1; j <= siegesParRangee; j++) {
+        sList.add(Siege(
+            salleId: salleId, rangee: abc[i], numero: "${abc[i]}$j", type: 'standard'));
       }
     }
-    await Siege.db.insert(session, sieges);
+    await Siege.db.insert(session, sList);
   }
 
-  // SEANCES
-  Future<Seance> ajouterSeance(Session session, Seance seance) async {
-    return await Seance.db.insertRow(session, seance);
-  }
-
-  Future<Seance> modifierSeance(Session session, Seance seance) async {
-    return await Seance.db.updateRow(session, seance);
-  }
-
-  Future<void> supprimerSeance(Session session, int id) async {
-    await Seance.db.deleteWhere(session, where: (t) => t.id.equals(id));
-  }
-
+  // --- SÉANCES ---
   Future<List<Seance>> getAllSeances(Session session) async {
-    return await Seance.db.find(session, orderBy: (t) => t.dateHeure);
-  }
-
-  Future<List<Seance>> getSeancesByFilm(Session session, int filmId) async {
-    return await Seance.db.find(session,
-        where: (t) => t.filmId.equals(filmId), orderBy: (t) => t.dateHeure);
-  }
-
-  Future<List<Seance>> getSeancesByCinema(Session session, int cinemaId) async {
-    final salles = await Salle.db
-        .find(session, where: (t) => t.cinemaId.equals(cinemaId));
-    final salleIds = salles.map((s) => s.id!).toSet();
-    if (salleIds.isEmpty) return [];
-    return await Seance.db.find(session,
-        where: (t) => t.salleId.inSet(salleIds), orderBy: (t) => t.dateHeure);
-  }
-
-  // UTILISATEURS
-  Future<List<Utilisateur>> getAllUtilisateurs(Session session) async {
-    return await Utilisateur.db.find(session, orderBy: (t) => t.nom);
-  }
-
-  Future<Utilisateur> suspendreUtilisateur(Session session, int id) async {
-    final u = await Utilisateur.db.findById(session, id);
-    if (u != null) {
-      u.statut = 'suspendu';
-      return await Utilisateur.db.updateRow(session, u);
+    final user = await _getRequiredUser(session);
+    if (user.role == 'super_admin') {
+      return await Seance.db.find(session, orderBy: (t) => t.dateHeure);
     }
-    throw Exception("Non trouvé");
+    final salles = await Salle.db
+        .find(session, where: (t) => t.cinemaId.equals(user.cinemaId));
+    final sIds = salles.map((s) => s.id!).toSet();
+    if (sIds.isEmpty) return [];
+    return await Seance.db
+        .find(session, where: (t) => t.salleId.inSet(sIds), orderBy: (t) => t.dateHeure);
   }
 
-  Future<Utilisateur> activerUtilisateur(Session session, int id) async {
+  Future<Seance> ajouterSeance(Session session, Seance s) async =>
+      await Seance.db.insertRow(session, s);
+  Future<Seance> modifierSeance(Session session, Seance s) async =>
+      await Seance.db.updateRow(session, s);
+  Future<void> supprimerSeance(Session session, int id) async =>
+      await Seance.db.deleteWhere(session, where: (t) => t.id.equals(id));
+  Future<List<Seance>> getSeancesByFilm(Session session, int filmId) async =>
+      await Seance.db.find(session, where: (t) => t.filmId.equals(filmId));
+  Future<List<Seance>> getSeancesByCinema(Session session, int id) async {
+    final salles = await Salle.db.find(session, where: (t) => t.cinemaId.equals(id));
+    final sIds = salles.map((s) => s.id!).toSet();
+    if (sIds.isEmpty) return [];
+    return await Seance.db.find(session, where: (t) => t.salleId.inSet(sIds));
+  }
+
+  // --- FILMS ---
+  Future<List<Film>> getAllFilms(Session session) async =>
+      await Film.db.find(session, orderBy: (t) => t.titre);
+  Future<Film> ajouterFilm(Session session, Film f) async =>
+      await Film.db.insertRow(session, f);
+  Future<Film> modifierFilm(Session session, Film f) async =>
+      await Film.db.updateRow(session, f);
+  Future<void> supprimerFilm(Session session, int id) async =>
+      await Film.db.deleteWhere(session, where: (t) => t.id.equals(id));
+
+  // --- ÉVÉNEMENTS ---
+  Future<List<Evenement>> getAllEvenements(Session session) async =>
+      await Evenement.db.find(session, orderBy: (t) => t.dateDebut);
+  Future<Evenement> ajouterEvenement(Session session, Evenement ev) async =>
+      await Evenement.db.insertRow(session, ev);
+  Future<Evenement> modifierEvenement(Session session, Evenement ev) async =>
+      await Evenement.db.updateRow(session, ev);
+  Future<void> supprimerEvenement(Session session, int id) async =>
+      await Evenement.db.deleteWhere(session, where: (t) => t.id.equals(id));
+
+  // --- UTILISATEURS ---
+  Future<List<Utilisateur>> getAllUtilisateurs(Session session) async =>
+      await Utilisateur.db.find(session);
+  Future<List<Utilisateur>> getManagedUsers(Session session) async {
+    final user = await _getRequiredUser(session);
+    if (user.role == 'super_admin') return await Utilisateur.db.find(session);
+    return await Utilisateur.db
+        .find(session, where: (t) => t.cinemaId.equals(user.cinemaId));
+  }
+
+  Future<void> activerUtilisateur(Session session, int id) async {
     final u = await Utilisateur.db.findById(session, id);
     if (u != null) {
       u.statut = 'actif';
-      return await Utilisateur.db.updateRow(session, u);
+      await Utilisateur.db.updateRow(session, u);
     }
-    throw Exception("Non trouvé");
   }
 
-  Future<void> supprimerUtilisateur(Session session, int id) async {
-    await Utilisateur.db.deleteWhere(session, where: (t) => t.id.equals(id));
+  Future<void> suspendreUtilisateur(Session session, int id) async {
+    final u = await Utilisateur.db.findById(session, id);
+    if (u != null) {
+      u.statut = 'suspendu';
+      await Utilisateur.db.updateRow(session, u);
+    }
   }
 
+  Future<void> supprimerUtilisateur(Session session, int id) async =>
+      await Utilisateur.db.deleteWhere(session, where: (t) => t.id.equals(id));
   Future<List<Reservation>> getHistoriqueUtilisateur(
-      Session session, int utilisateurId) async {
-    return await Reservation.db.find(session,
-        where: (t) => t.utilisateurId.equals(utilisateurId),
-        orderBy: (t) => t.dateReservation,
-        orderDescending: true);
+          Session session, int userId) async =>
+      await Reservation.db.find(session,
+          where: (t) => t.utilisateurId.equals(userId),
+          orderBy: (t) => t.dateReservation,
+          orderDescending: true);
+
+  // --- RÉSERVATIONS ---
+  // Dans admin_endpoint.dart
+  Future<List<Reservation>> getAllReservations(Session session) async {
+    final user = await _getRequiredUser(session);
+
+    if (user.role == 'super_admin') {
+      return await Reservation.db.find(session, orderBy: (t) => t.dateReservation, orderDescending: true);
+    }
+
+    if (user.cinemaId != null) {
+      // On récupère les IDs des SÉANCES de ce cinéma (et pas seulement les salles)
+      final salles = await Salle.db.find(session, where: (t) => t.cinemaId.equals(user.cinemaId));
+      final sIds = salles.map((s) => s.id!).toSet();
+
+      if (sIds.isEmpty) return [];
+
+      final seances = await Seance.db.find(session, where: (t) => t.salleId.inSet(sIds));
+      final seanceIds = seances.map((s) => s.id!).toSet();
+
+      if (seanceIds.isEmpty) return [];
+
+      return await Reservation.db.find(session,
+          where: (t) => t.seanceId.inSet(seanceIds),
+          orderBy: (t) => t.dateReservation,
+          orderDescending: true);
+    }
+    return [];
   }
 
+  Future<void> rembourserReservation(
+      Session session, int resId, double amt) async {
+    final res = await Reservation.db.findById(session, resId);
+    if (res != null) {
+      res.statut = 'rembourse';
+      res.montantApresReduction = amt;
+      await Reservation.db.updateRow(session, res);
+    }
+  }
+
+  Future<List<Siege>> getSiegesByReservation(Session session, int resId) async {
+    final rels = await ReservationSiege.db
+        .find(session, where: (t) => t.reservationId.equals(resId));
+    final sIds = rels.map((r) => r.siegeId).toSet();
+    return sIds.isEmpty ? [] : await Siege.db.find(session, where: (t) => t.id.inSet(sIds));
+  }
+
+  Future<double> getTauxRemplissageSeance(Session session, int sId) async {
+    final s = await Seance.db.findById(session, sId);
+    final salle = await Salle.db.findById(session, s?.salleId ?? 0);
+    if (salle == null) return 0.0;
+    final count = await Reservation.db.count(session,
+        where: (t) =>
+            t.seanceId.equals(sId) & t.statut.notEquals('annule'));
+    return (count / salle.capacite) * 100;
+  }
+
+  // --- SUPPORT ---
+  Future<List<DemandeSupport>> getAllDemandesSupport(Session session) async =>
+      await DemandeSupport.db
+          .find(session, orderBy: (t) => t.createdAt, orderDescending: true);
+
+  Future<void> repondreDemande(Session session, int id, String resp) async {
+    final d = await DemandeSupport.db.findById(session, id);
+    if (d != null) {
+      d.reponse = resp;
+      d.statut = 'traité';
+      await DemandeSupport.db.updateRow(session, d);
+    }
+  }
+
+  // --- OPTIONS ---
+  Future<List<OptionSupplementaire>> getAllOptions(Session session) async {
+    final user = await _getRequiredUser(session);
+    if (user.role == 'super_admin') return await OptionSupplementaire.db.find(session);
+    return await OptionSupplementaire.db
+        .find(session, where: (t) => t.cinemaId.equals(user.cinemaId));
+  }
+
+  Future<OptionSupplementaire> ajouterOption(
+          Session session, OptionSupplementaire o) async =>
+      await OptionSupplementaire.db.insertRow(session, o);
+  Future<OptionSupplementaire> modifierOption(
+          Session session, OptionSupplementaire o) async =>
+      await OptionSupplementaire.db.updateRow(session, o);
+  Future<void> supprimerOption(Session session, int id) async =>
+      await OptionSupplementaire.db
+          .deleteWhere(session, where: (t) => t.id.equals(id));
+
+  // --- PROMOTIONS ---
+  Future<List<CodePromo>> getAllCodesPromo(Session session) async =>
+      await CodePromo.db.find(session, orderBy: (t) => t.code);
+  Future<CodePromo> ajouterCodePromo(Session session, CodePromo cp) async =>
+      await CodePromo.db.insertRow(session, cp);
+  Future<CodePromo> modifierCodePromo(Session session, CodePromo cp) async =>
+      await CodePromo.db.updateRow(session, cp);
+  Future<void> supprimerCodePromo(Session session, int id) async =>
+      await CodePromo.db.deleteWhere(session, where: (t) => t.id.equals(id));
+
+  Future<Map<String, dynamic>> getCodePromoStats(
+      Session session, int id) async {
+    final usages = await Reservation.db
+        .find(session, where: (t) => t.codePromoId.equals(id));
+    return {
+      'totalUsages': usages.length,
+      'uniqueUsers': usages.map((r) => r.utilisateurId).toSet().length,
+      'totalReduction': usages.fold(
+          0.0,
+          (sum, r) =>
+              sum +
+              (r.montantTotal -
+                  (r.montantApresReduction ?? r.montantTotal))),
+      'lastUsage': usages.isEmpty
+          ? null
+          : usages
+              .map((r) => r.dateReservation)
+              .reduce((a, b) => a.isAfter(b) ? a : b)
+              .toIso8601String(),
+    };
+  }
+
+  Future<Map<String, dynamic>> getGlobalPromoSummary(Session session) async {
+    final promos =
+        await CodePromo.db.find(session, where: (t) => t.actif.equals(true));
+    return {'activeCodes': promos.length, 'todayUsages': 0, 'totalSavings': 0.0};
+  }
+
+  // --- TANGER SPECIFICS ---
+  Future<List<Utilisateur>> getStaffTanger(Session session) async =>
+      await Utilisateur.db.find(session,
+          where: (t) => t.cinemaId.equals(9) & t.role.equals('staff_scanner'));
+  Future<void> ajouterStaff(Session session, String nom, String email) async =>
+      await Utilisateur.db.insertRow(
+          session,
+          Utilisateur(
+              nom: nom,
+              email: email,
+              role: 'staff_scanner',
+              cinemaId: 9,
+              statut: 'actif'));
+  Future<void> traiterRemboursement(Session session, int reservationId) async {
+    final res = await Reservation.db.findById(session, reservationId);
+    if (res != null) {
+      res.statut = 'rembourse';
+      await Reservation.db.updateRow(session, res);
+    }
+  }
+  // Dans admin_endpoint.dart
+  // ✅ Mise à jour de la méthode pour être plus performante et propre
+  Future<void> genererSiegesAutomatique(Session session, {
+    required int salleId,
+    required int nbRangees,
+    required int nbColonnes,
+  }) async {
+    // 1. Supprimer les anciens sièges de cette salle pour éviter les doublons
+    await Siege.db.deleteWhere(session, where: (t) => t.salleId.equals(salleId));
+
+    List<Siege> sList = [];
+    final alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    for (int r = 0; r < nbRangees; r++) {
+      String lettreRangee = alphabet[r];
+      for (int c = 1; c <= nbColonnes; c++) {
+        sList.add(Siege(
+          salleId: salleId,
+          numero: "$lettreRangee-$c",
+          rangee: lettreRangee,
+          type: 'standard',
+        ));
+      }
+    }
+    // 2. Insertion groupée (beaucoup plus rapide pour le Web)
+    await Siege.db.insert(session, sList);
+  }
+
+  // --- PROFIL ---
   Future<Utilisateur?> getMonProfil(Session session) async {
-    final authInfo = await session.authenticated;
+    final authInfo = session.authenticated;
     if (authInfo == null) return null;
     final user = await Utilisateur.db.findFirstRow(session,
         where: (t) => t.authUserId.equals(authInfo.userIdentifier));
@@ -168,169 +419,45 @@ class AdminEndpoint extends Endpoint {
     }
     return user;
   }
+  Future<List<Map<String, dynamic>>> getReservationsDetailed(Session session) async {
+    // 1. On récupère d'abord les réservations (en utilisant votre filtrage Tanger déjà existant)
+    final reservations = await getAllReservations(session);    List<Map<String, dynamic>> detailedList = [];
 
-  // RESERVATIONS
-  Future<List<Reservation>> getAllReservations(Session session) async {
-    return await Reservation.db.find(session,
-        orderBy: (t) => t.dateReservation, orderDescending: true);
-  }
+    for (var res in reservations) {
+      // 2. On va chercher l'utilisateur lié à cette réservation
+      final user = await Utilisateur.db.findById(session, res.utilisateurId);
 
-  Future<void> rembourserReservation(
-      Session session, int reservationId, double montant) async {
-    final res = await Reservation.db.findById(session, reservationId);
-    if (res != null) {
-      res.statut = 'rembourse';
-      res.montantApresReduction = montant;
-      await Reservation.db.updateRow(session, res);
+      String filmTitle = "N/A";
+      String salleName = "N/A";
+      DateTime? seanceDate;
+
+      // 3. On va chercher la séance, puis le film et la salle
+      if (res.seanceId != null) {
+        final seance = await Seance.db.findById(session, res.seanceId!);
+        if (seance != null) {
+          seanceDate = seance.dateHeure;
+
+          final film = await Film.db.findById(session, seance.filmId);
+          filmTitle = film?.titre ?? "Film inconnu";
+
+          final salle = await Salle.db.findById(session, seance.salleId);
+          salleName = salle?.codeSalle ?? "Salle inconnue";
+        }
+      }
+
+      // 4. On prépare le "paquet" de données pour Flutter
+      // On convertit tout en types simples (String, int, DateTime) pour Serverpod
+      detailedList.add({
+        'reservation': res, // L'objet de base (montant, statut, id)
+        'userName': user?.nom ?? "Inconnu",
+        'userEmail': user?.email ?? "Non renseigné",
+        'userPhone': user?.telephone ?? "Non renseigné",
+        'filmTitle': filmTitle,
+        'salleName': salleName,
+        'seanceDate': seanceDate,
+      });
     }
-  }
 
-  Future<double> getTauxRemplissageSeance(Session session, int seanceId) async {
-    final seance = await Seance.db.findById(session, seanceId);
-    if (seance == null) return 0.0;
-    final salle = await Salle.db.findById(session, seance.salleId);
-    if (salle == null) return 0.0;
-    final count = await Reservation.db.count(session,
-        where: (t) =>
-            t.seanceId.equals(seanceId) & t.statut.notEquals('annule'));
-    return (count / salle.capacite) * 100;
-  }
-
-  Future<List<Siege>> getSiegesByReservation(
-      Session session, int reservationId) async {
-    final rels = await ReservationSiege.db
-        .find(session, where: (t) => t.reservationId.equals(reservationId));
-    final ids = rels.map((r) => r.siegeId).toSet();
-    if (ids.isEmpty) return [];
-    return await Siege.db.find(session, where: (t) => t.id.inSet(ids));
-  }
-
-  // EVENEMENTS
-  Future<List<Evenement>> getAllEvenements(Session session) async {
-    return await Evenement.db.find(session, orderBy: (t) => t.dateDebut);
-  }
-
-  Future<Evenement> ajouterEvenement(
-      Session session, Evenement evenement) async {
-    return await Evenement.db.insertRow(session, evenement);
-  }
-
-  Future<Evenement> modifierEvenement(
-      Session session, Evenement evenement) async {
-    return await Evenement.db.updateRow(session, evenement);
-  }
-
-  Future<void> supprimerEvenement(Session session, int id) async {
-    await Evenement.db.deleteWhere(session, where: (t) => t.id.equals(id));
-  }
-
-  // SUPPORT
-  Future<List<DemandeSupport>> getAllDemandesSupport(Session session) async {
-    return await DemandeSupport.db.find(session,
-        orderBy: (t) => t.createdAt, orderDescending: true);
-  }
-
-  Future<void> repondreDemande(Session session, int id, String reponse) async {
-    final d = await DemandeSupport.db.findById(session, id);
-    if (d != null) {
-      d.reponse = reponse;
-      d.statut = 'traité';
-      d.updatedAt = DateTime.now();
-      await DemandeSupport.db.updateRow(session, d);
-    }
-  }
-
-  // OPTIONS
-  Future<List<OptionSupplementaire>> getAllOptions(Session session) async {
-    return await OptionSupplementaire.db.find(session);
-  }
-
-  Future<OptionSupplementaire> ajouterOption(
-      Session session, OptionSupplementaire option) async {
-    return await OptionSupplementaire.db.insertRow(session, option);
-  }
-
-  Future<OptionSupplementaire> modifierOption(
-      Session session, OptionSupplementaire option) async {
-    return await OptionSupplementaire.db.updateRow(session, option);
-  }
-
-  Future<void> supprimerOption(Session session, int id) async {
-    await OptionSupplementaire.db
-        .deleteWhere(session, where: (t) => t.id.equals(id));
-  }
-
-  // PROMOTIONS
-  Future<List<CodePromo>> getAllCodesPromo(Session session) async {
-    return await CodePromo.db.find(session, orderBy: (t) => t.code);
-  }
-
-  Future<CodePromo> ajouterCodePromo(Session session, CodePromo cp) async {
-    return await CodePromo.db.insertRow(session, cp);
-  }
-
-  Future<CodePromo> modifierCodePromo(Session session, CodePromo cp) async {
-    return await CodePromo.db.updateRow(session, cp);
-  }
-
-  Future<void> supprimerCodePromo(Session session, int id) async {
-    await CodePromo.db.deleteWhere(session, where: (t) => t.id.equals(id));
-  }
-
-  Future<Map<String, dynamic>> getCodePromoStats(
-      Session session, int codePromoId) async {
-    final usages = await Reservation.db
-        .find(session, where: (t) => t.codePromoId.equals(codePromoId));
-    final uniqueUsers = usages.map((r) => r.utilisateurId).toSet().length;
-    DateTime? lastUse;
-    if (usages.isNotEmpty) {
-      lastUse = usages
-          .map((r) => r.dateReservation)
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-    }
-    return {
-      'totalUsages': usages.length,
-      'uniqueUsers': uniqueUsers,
-      'totalReduction': usages.fold(
-          0.0,
-          (sum, r) =>
-              sum +
-              (r.montantTotal -
-                  (r.montantApresReduction ?? r.montantTotal))),
-      'lastUsage': lastUse?.toIso8601String(),
-    };
-  }
-
-  Future<Map<String, dynamic>> getGlobalPromoSummary(Session session) async {
-    final activeCodes =
-        await CodePromo.db.count(session, where: (t) => t.actif.equals(true));
-    
-    // Correction ici : On utilise une boucle simple pour compter les usages du jour car Serverpod n'aime pas greaterThan dans ColumnDateTime parfois
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    
-    final allRes = await Reservation.db.find(session, where: (t) => t.codePromoId.notEquals(null));
-    final todayUsages = allRes.where((r) => r.dateReservation.isAfter(today)).length;
-    
-    final totalSavings = allRes.fold(
-        0.0,
-        (sum, r) =>
-            sum + (r.montantTotal - (r.montantApresReduction ?? r.montantTotal)));
-
-    return {
-      'activeCodes': activeCodes,
-      'todayUsages': todayUsages,
-      'totalSavings': totalSavings,
-    };
-  }
-
-  // STATISTIQUES GLOBALES
-  Future<Map<String, int>> getAdminStats(Session session) async {
-    return {
-      'totalFilms': await Film.db.count(session),
-      'totalEvents': await Evenement.db.count(session),
-      'totalUsers': await Utilisateur.db.count(session),
-      'totalReservations': await Reservation.db.count(session),
-    };
+    return detailedList;
   }
 }

@@ -8,8 +8,8 @@ import '../providers/admin_provider.dart';
 import 'package:intl/intl.dart';
 
 class ManageSeancesPage extends ConsumerStatefulWidget {
-  const ManageSeancesPage({super.key});
-
+  final int? cinemaId; // ✅ Ajoute ceci
+  const ManageSeancesPage({super.key, this.cinemaId});
   @override
   ConsumerState<ManageSeancesPage> createState() => _ManageSeancesPageState();
 }

@@ -32,14 +32,14 @@ import 'salle.dart' as _i19;
 import 'seance.dart' as _i20;
 import 'siege.dart' as _i21;
 import 'utilisateur.dart' as _i22;
-import 'package:cine_reservation_client/src/protocol/film.dart' as _i23;
-import 'package:cine_reservation_client/src/protocol/cinema.dart' as _i24;
-import 'package:cine_reservation_client/src/protocol/salle.dart' as _i25;
-import 'package:cine_reservation_client/src/protocol/siege.dart' as _i26;
-import 'package:cine_reservation_client/src/protocol/seance.dart' as _i27;
-import 'package:cine_reservation_client/src/protocol/utilisateur.dart' as _i28;
-import 'package:cine_reservation_client/src/protocol/reservation.dart' as _i29;
-import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i30;
+import 'package:cine_reservation_client/src/protocol/cinema.dart' as _i23;
+import 'package:cine_reservation_client/src/protocol/salle.dart' as _i24;
+import 'package:cine_reservation_client/src/protocol/siege.dart' as _i25;
+import 'package:cine_reservation_client/src/protocol/seance.dart' as _i26;
+import 'package:cine_reservation_client/src/protocol/film.dart' as _i27;
+import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i28;
+import 'package:cine_reservation_client/src/protocol/utilisateur.dart' as _i29;
+import 'package:cine_reservation_client/src/protocol/reservation.dart' as _i30;
 import 'package:cine_reservation_client/src/protocol/demande_support.dart'
     as _i31;
 import 'package:cine_reservation_client/src/protocol/option%20supplementaire.dart'
@@ -243,39 +243,51 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i23.Film>) {
-      return (data as List).map((e) => deserialize<_i23.Film>(e)).toList() as T;
-    }
-    if (t == List<_i24.Cinema>) {
-      return (data as List).map((e) => deserialize<_i24.Cinema>(e)).toList()
+    if (t == Map<String, dynamic>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
+          )
           as T;
     }
-    if (t == List<_i25.Salle>) {
-      return (data as List).map((e) => deserialize<_i25.Salle>(e)).toList()
+    if (t == Map<String, int>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<int>(v)),
+          )
           as T;
     }
-    if (t == List<_i26.Siege>) {
-      return (data as List).map((e) => deserialize<_i26.Siege>(e)).toList()
+    if (t == List<_i23.Cinema>) {
+      return (data as List).map((e) => deserialize<_i23.Cinema>(e)).toList()
           as T;
     }
-    if (t == List<_i27.Seance>) {
-      return (data as List).map((e) => deserialize<_i27.Seance>(e)).toList()
+    if (t == List<_i24.Salle>) {
+      return (data as List).map((e) => deserialize<_i24.Salle>(e)).toList()
           as T;
     }
-    if (t == List<_i28.Utilisateur>) {
+    if (t == List<_i25.Siege>) {
+      return (data as List).map((e) => deserialize<_i25.Siege>(e)).toList()
+          as T;
+    }
+    if (t == List<_i26.Seance>) {
+      return (data as List).map((e) => deserialize<_i26.Seance>(e)).toList()
+          as T;
+    }
+    if (t == List<_i27.Film>) {
+      return (data as List).map((e) => deserialize<_i27.Film>(e)).toList() as T;
+    }
+    if (t == List<_i28.Evenement>) {
+      return (data as List).map((e) => deserialize<_i28.Evenement>(e)).toList()
+          as T;
+    }
+    if (t == List<_i29.Utilisateur>) {
       return (data as List)
-              .map((e) => deserialize<_i28.Utilisateur>(e))
+              .map((e) => deserialize<_i29.Utilisateur>(e))
               .toList()
           as T;
     }
-    if (t == List<_i29.Reservation>) {
+    if (t == List<_i30.Reservation>) {
       return (data as List)
-              .map((e) => deserialize<_i29.Reservation>(e))
+              .map((e) => deserialize<_i30.Reservation>(e))
               .toList()
-          as T;
-    }
-    if (t == List<_i30.Evenement>) {
-      return (data as List).map((e) => deserialize<_i30.Evenement>(e)).toList()
           as T;
     }
     if (t == List<_i31.DemandeSupport>) {
@@ -294,16 +306,10 @@ class Protocol extends _i1.SerializationManager {
       return (data as List).map((e) => deserialize<_i33.CodePromo>(e)).toList()
           as T;
     }
-    if (t == Map<String, dynamic>) {
-      return (data as Map).map(
-            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
-          )
-          as T;
-    }
-    if (t == Map<String, int>) {
-      return (data as Map).map(
-            (k, v) => MapEntry(deserialize<String>(k), deserialize<int>(v)),
-          )
+    if (t == List<Map<String, dynamic>>) {
+      return (data as List)
+              .map((e) => deserialize<Map<String, dynamic>>(e))
+              .toList()
           as T;
     }
     if (t == List<_i34.Faq>) {

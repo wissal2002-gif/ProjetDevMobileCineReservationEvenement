@@ -5,6 +5,9 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../main.dart';
 import '../providers/admin_provider.dart';
 
+// ✅ IMPORT CORRIGÉ : Chemin vers la sidebar Tanger
+import '../../../admin_tanger/presentation/widgets/tanger_sidebar.dart';
+
 class ManageOptionsPage extends ConsumerWidget {
   const ManageOptionsPage({super.key});
 
@@ -14,39 +17,55 @@ class ManageOptionsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text("GESTION DES OPTIONS & SNACKS"),
-        centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.accent,
-        onPressed: () => _showOptionDialog(context, ref),
-        label: const Text("Ajouter", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        icon: const Icon(Icons.fastfood, color: Colors.black),
-      ),
-      body: optionsAsync.when(
-        data: (options) => options.isEmpty
-            ? const Center(child: Text("Aucun snack configuré", style: TextStyle(color: Colors.white54)))
-            : ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: options.length,
-          itemBuilder: (context, index) => _buildOptionRow(context, ref, options[index]),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
-        error: (e, _) => Center(child: Text("Erreur: $e", style: const TextStyle(color: Colors.red))),
+      body: Row(
+        children: [
+          // ✅ Sidebar fixe à gauche
+          const SizedBox(width: 280, child: TangerSidebar()),
+
+          // ✅ Contenu à droite
+          Expanded(
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: AppBar(
+                title: const Text("GESTION GLOBALE DES OPTIONS"),
+                centerTitle: true,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+              ),
+              floatingActionButton: FloatingActionButton.extended(
+                heroTag: "fab_global_options",
+                backgroundColor: AppColors.accent,
+                onPressed: () => _showOptionDialog(context, ref),
+                label: const Text("Ajouter", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.fastfood, color: Colors.black),
+              ),
+              body: optionsAsync.when(
+                data: (options) => options.isEmpty
+                    ? const Center(child: Text("Aucun snack configuré", style: TextStyle(color: Colors.white54)))
+                    : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: options.length,
+                  itemBuilder: (context, index) => _buildOptionRow(context, ref, options[index]),
+                ),
+                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
+                error: (e, _) => Center(child: Text("Erreur: $e", style: const TextStyle(color: Colors.red))),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildOptionRow(BuildContext context, WidgetRef ref, OptionSupplementaire item) {
     final cinemasAsync = ref.watch(allCinemasProvider);
-    
-    final String cinemaName = item.cinemaId == null 
-        ? "Tous les cinémas" 
+
+    final String cinemaName = item.cinemaId == null
+        ? "Tous les cinémas"
         : cinemasAsync.maybeWhen(
-            data: (cinemas) => cinemas.firstWhere((c) => c.id == item.cinemaId, orElse: () => Cinema(nom: "Inconnu", adresse: "", ville: "")).nom,
-            orElse: () => "Chargement..."
-          );
+        data: (cinemas) => cinemas.firstWhere((c) => c.id == item.cinemaId, orElse: () => Cinema(nom: "Inconnu", adresse: "", ville: "")).nom,
+        orElse: () => "Chargement..."
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -77,7 +96,7 @@ class ManageOptionsPage extends ConsumerWidget {
               ),
             ),
           ),
-          
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -120,9 +139,8 @@ class ManageOptionsPage extends ConsumerWidget {
     final prixCtrl = TextEditingController(text: option?.prix.toString() ?? "");
     final imgCtrl = TextEditingController(text: option?.image);
     final descCtrl = TextEditingController(text: option?.description);
-    
-    // Sécurité Dropdown : normalisation drink -> boisson et vérification existence
-    final List<String> categories = ['snack', 'boisson', 'service', 'vip', 'drink'];
+
+    final List<String> categories = ['snack', 'boisson', 'service', 'vip'];
     String selectedCategorie = option?.categorie ?? 'snack';
     if (!categories.contains(selectedCategorie)) selectedCategorie = 'snack';
 
@@ -145,14 +163,14 @@ class ManageOptionsPage extends ConsumerWidget {
                   TextField(controller: nomCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Nom")),
                   TextField(controller: prixCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Prix (DH)"), keyboardType: TextInputType.number),
                   TextField(controller: imgCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "URL Image")),
-                  
+
                   const SizedBox(height: 15),
                   DropdownButtonFormField<String>(
                     value: selectedCategorie,
                     dropdownColor: AppColors.cardBg,
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(labelText: "Catégorie"),
-                    items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat == 'drink' ? 'BOISSON (UK)' : cat.toUpperCase()))).toList(),
+                    items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat.toUpperCase()))).toList(),
                     onChanged: (val) => setDialogState(() => selectedCategorie = val!),
                   ),
 
@@ -174,7 +192,7 @@ class ManageOptionsPage extends ConsumerWidget {
                   ),
 
                   TextField(controller: descCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Description"), maxLines: 2),
-                  
+
                   SwitchListTile(
                     title: const Text("Disponible", style: TextStyle(color: Colors.white70, fontSize: 14)),
                     value: isDisponible,
@@ -190,7 +208,7 @@ class ManageOptionsPage extends ConsumerWidget {
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
                 onPressed: () async {
                   if (nomCtrl.text.isEmpty || prixCtrl.text.isEmpty) return;
-                  
+
                   final newOption = OptionSupplementaire(
                     id: option?.id,
                     nom: nomCtrl.text,

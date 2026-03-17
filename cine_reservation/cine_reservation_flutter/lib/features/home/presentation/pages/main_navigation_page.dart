@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../admin/presentation/providers/admin_provider.dart';
-import '../../../profil/pages/profil_page.dart'; // Import rétabli
+import '../../../profil/pages/profil_page.dart'; 
 import 'home_page.dart';
 import '../../../programmation/presentation/pages/films_list_page.dart';
 import '../../../evenements/presentation/pages/evenements_page.dart';
@@ -19,18 +18,23 @@ class MainNavigationPage extends ConsumerStatefulWidget {
 class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
   int _selectedIndex = 0;
 
+  // Couleurs en dur pour éviter les problèmes avec le fichier thème
+  final Color kBackground = const Color(0xFF0D0A08);
+  final Color kAccent = const Color(0xFF8B7355);
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final isAdmin = ref.watch(isUserAdminProvider).value ?? false;
+    final isAdminAsync = ref.watch(isUserAdminProvider);
+    final adminProfile = ref.watch(adminProfileProvider).value;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: kBackground,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(80),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.background,
+            color: kBackground,
             border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
           ),
           child: SafeArea(
@@ -45,10 +49,10 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.2),
+                            color: kAccent.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.confirmation_number, color: AppColors.accent, size: 24),
+                          child: Icon(Icons.confirmation_number, color: kAccent, size: 24),
                         ),
                         const SizedBox(width: 12),
                         const Text(
@@ -67,18 +71,25 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
 
                   const SizedBox(width: 24),
 
-                  if (isAdmin)
+                  if (isAdminAsync.value ?? false)
                     Padding(
                       padding: const EdgeInsets.only(right: 16),
                       child: TextButton.icon(
-                        onPressed: () => context.push('/admin'),
-                        icon: const Icon(Icons.admin_panel_settings, color: AppColors.accent, size: 20),
-                        label: const Text(
+                        onPressed: () {
+                          final email = (adminProfile?.email ?? "").toLowerCase().trim();
+                          if (email == 'elbouzidiimane794@gmail.com') {
+                            context.push('/admin/tanger');
+                          } else {
+                            context.push('/admin');
+                          }
+                        },
+                        icon: Icon(Icons.admin_panel_settings, color: kAccent, size: 20),
+                        label: Text(
                           "ADMIN",
-                          style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: kAccent, fontWeight: FontWeight.bold),
                         ),
                         style: TextButton.styleFrom(
-                          backgroundColor: AppColors.accent.withOpacity(0.1),
+                          backgroundColor: kAccent.withOpacity(0.1),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                       ),
@@ -96,7 +107,7 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
                     ElevatedButton(
                       onPressed: () => context.go('/register'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
+                        backgroundColor: kAccent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -124,14 +135,14 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
           const FilmsListPage(),
           const EvenementsPage(),
           const Center(child: Text("Mes Réservations", style: TextStyle(color: Colors.white))),
-          const ProfilPage(), // Vraie page Profil rétablie
+          const ProfilPage(),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.go('/support'),
         label: const Text("Aide", style: TextStyle(fontWeight: FontWeight.bold)),
         icon: const Icon(Icons.help_outline),
-        backgroundColor: AppColors.accent,
+        backgroundColor: kAccent,
       ),
     );
   }
@@ -146,7 +157,7 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? AppColors.accent : Colors.transparent,
+              color: isSelected ? kAccent : Colors.transparent,
               width: 2,
             ),
           ),

@@ -8,8 +8,8 @@ import 'package:intl/intl.dart';
 import '../../../../main.dart';
 
 class ManageEventsPage extends ConsumerWidget {
-  const ManageEventsPage({super.key});
-
+  final int? cinemaId; // ✅ Ajoute ceci
+  const ManageEventsPage({super.key, this.cinemaId});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(allEvenementsProvider);

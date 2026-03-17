@@ -6,9 +6,11 @@ import '../../../../main.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/admin_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 class ManageFilmsPage extends ConsumerStatefulWidget {
-  const ManageFilmsPage({super.key});
+  final int? cinemaId; // null = Global, 1 = Tanger, etc.
+  const ManageFilmsPage({super.key, this.cinemaId});
 
   @override
   ConsumerState<ManageFilmsPage> createState() => _ManageFilmsPageState();
@@ -24,13 +26,21 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("ADMIN : GESTION EXPERTE FILMS"),
+        title: Text(widget.cinemaId == null ? "GESTION GLOBALE FILMS" : "GESTION FILMS - LOCAL"),
+        backgroundColor: const Color(0xFF1A1A1A),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add_to_photos, color: AppColors.accent),
-            onPressed: () => _showExpertFilmDialog(context),
-            tooltip: "Ajouter un nouveau film",
-          )
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: ElevatedButton.icon(
+              onPressed: () => _showExpertFilmDialog(context),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text("NOUVEAU"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8B7355),
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
         ],
       ),
       body: filmsAsync.when(
@@ -46,11 +56,13 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: film.affiche != null && film.affiche!.isNotEmpty
-                      ? Image.network(film.affiche!, width: 45, height: 70, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.movie))
+                      ? Image.network(film.affiche!, width: 45, height: 70, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.movie))
                       : const Icon(Icons.movie, color: Colors.white24),
                 ),
                 title: Text(film.titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                subtitle: Text("${film.genre ?? "N/A"} • ${film.duree ?? 0} min • ${film.langue}", style: const TextStyle(color: Colors.white54)),
+                subtitle: Text("${film.genre ?? "N/A"} • ${film.duree ?? 0} min • ${film.langue}",
+                    style: const TextStyle(color: Colors.white54, fontSize: 12)),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -105,8 +117,9 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
     );
   }
 
+  // --- LOGIQUE DE PROGRAMMATION DE SÉANCE ---
   void _showProgramDialog(BuildContext context, Film film) {
-    int? selectedCinemaId;
+    int? selectedCinemaId = widget.cinemaId; // On pré-sélectionne le cinéma si on est en mode local
     int? selectedSalleId;
     DateTime? selectedDate;
     TimeOfDay? selectedTime;
@@ -133,16 +146,19 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  cinemasAsync.when(
-                    data: (cinemas) => DropdownButtonFormField<int>(
-                      dropdownColor: AppColors.cardBg,
-                      decoration: const InputDecoration(labelText: "Cinéma", labelStyle: TextStyle(color: Colors.white70)),
-                      items: cinemas.map((c) => DropdownMenuItem(value: c.id, child: Text(c.nom, style: const TextStyle(color: Colors.white)))).toList(),
-                      onChanged: (val) => setDialogState(() { selectedCinemaId = val; selectedSalleId = null; }),
+                  // Si cinemaId est null, on laisse choisir le cinéma, sinon on le cache
+                  if (widget.cinemaId == null)
+                    cinemasAsync.when(
+                      data: (cinemas) => DropdownButtonFormField<int>(
+                        dropdownColor: AppColors.cardBg,
+                        decoration: const InputDecoration(labelText: "Cinéma", labelStyle: TextStyle(color: Colors.white70)),
+                        items: cinemas.map((c) => DropdownMenuItem(value: c.id, child: Text(c.nom, style: const TextStyle(color: Colors.white)))).toList(),
+                        onChanged: (val) => setDialogState(() { selectedCinemaId = val; selectedSalleId = null; }),
+                      ),
+                      loading: () => const LinearProgressIndicator(),
+                      error: (_, __) => const Text("Erreur cinémas"),
                     ),
-                    loading: () => const LinearProgressIndicator(),
-                    error: (_, __) => const Text("Erreur cinémas"),
-                  ),
+
                   if (selectedCinemaId != null)
                     ref.watch(sallesProvider(selectedCinemaId!)).when(
                       data: (salles) => DropdownButtonFormField<int>(
@@ -200,11 +216,7 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
                           value: selectedTypeSeance,
                           dropdownColor: AppColors.cardBg,
                           decoration: const InputDecoration(labelText: "Type Séance"),
-                          items: [
-                            DropdownMenuItem(value: "standard", child: Text("Standard", style: const TextStyle(color: Colors.white, fontSize: 12))),
-                            DropdownMenuItem(value: "avant_premiere", child: Text("Avant-première", style: const TextStyle(color: Colors.white, fontSize: 12))),
-                            DropdownMenuItem(value: "privee", child: Text("Séance privée", style: const TextStyle(color: Colors.white, fontSize: 12))),
-                          ].toList(),
+                          items: ["standard", "avant_premiere", "privee"].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(color: Colors.white, fontSize: 12)))).toList(),
                           onChanged: (v) => setDialogState(() => selectedTypeSeance = v!),
                         ),
                       ),
@@ -219,6 +231,7 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
                       Expanded(child: _adminTextField(prixReduitCtrl, "Prix Réduit", keyboardType: TextInputType.number)),
                     ],
                   ),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(child: _adminTextField(prixEnfantCtrl, "Enfant", keyboardType: TextInputType.number)),
@@ -253,7 +266,7 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
                     langue: selectedLangue,
                     typeProjection: selectedProjection,
                     typeSeance: selectedTypeSeance,
-                    placesDisponibles: 100, 
+                    placesDisponibles: 100,
                   );
                   await client.admin.ajouterSeance(seance);
                   if (context.mounted) Navigator.pop(context);
@@ -267,6 +280,7 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
     );
   }
 
+  // --- LOGIQUE D'AJOUT DE FILM ---
   void _showExpertFilmDialog(BuildContext context) {
     final titreCtrl = TextEditingController();
     final genreCtrl = TextEditingController();
@@ -298,9 +312,7 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
                   children: [
                     Expanded(child: _adminTextField(dureeCtrl, "Durée (min)", keyboardType: TextInputType.number)),
                     const SizedBox(width: 8),
-                    Expanded(
-                      child: _adminTextField(noteCtrl, "Note Moyenne (0-5)", keyboardType: TextInputType.number),
-                    ),
+                    Expanded(child: _adminTextField(noteCtrl, "Note Moyenne", keyboardType: TextInputType.number)),
                   ],
                 ),
                 Row(
@@ -309,7 +321,7 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
                       child: DropdownButtonFormField<String>(
                         value: selectedLangue,
                         dropdownColor: AppColors.cardBg,
-                        decoration: const InputDecoration(labelText: "Langue Film"),
+                        decoration: const InputDecoration(labelText: "Langue"),
                         items: ["VF", "VOSTFR", "VO"].map((l) => DropdownMenuItem(value: l, child: Text(l, style: const TextStyle(color: Colors.white)))).toList(),
                         onChanged: (v) => setDialogState(() => selectedLangue = v!),
                       ),
@@ -346,14 +358,14 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
                         icon: const Icon(Icons.date_range, size: 16),
                         label: Text(dateFin == null ? "Fin" : _dateFormat.format(dateFin!), style: const TextStyle(fontSize: 11)),
                         onPressed: () async {
-                          final d = await showDatePicker(context: context, initialDate: DateTime.now().add(const Duration(days: 30)), firstDate: DateTime(2020), lastDate: DateTime(2030));
+                          final d = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2030));
                           if (d != null) setDialogState(() => dateFin = d);
                         },
                       ),
                     ),
                   ],
                 ),
-                _adminTextField(synopsisCtrl, "Synopsis complet", maxLines: 4),
+                _adminTextField(synopsisCtrl, "Synopsis", maxLines: 3),
               ],
             ),
           ),
@@ -361,7 +373,7 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
             ElevatedButton(
               onPressed: () async {
-                final film = Film(
+                final f = Film(
                   titre: titreCtrl.text,
                   genre: genreCtrl.text,
                   duree: int.tryParse(dureeCtrl.text),
@@ -370,20 +382,14 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
                   affiche: afficheCtrl.text,
                   bandeAnnonce: trailerCtrl.text,
                   classification: selectedClassif,
-                  synopsis: synopsisCtrl.text,
-                  langue: selectedLangue,
+                  noteMoyenne: double.tryParse(noteCtrl.text) ?? 0.0,
                   dateDebut: dateDebut,
                   dateFin: dateFin,
-                  noteMoyenne: double.tryParse(noteCtrl.text) ?? 0.0,
-                  nombreAvis: 0,
+                  langue: selectedLangue,
                 );
-                try {
-                  await client.admin.ajouterFilm(film);
-                  ref.invalidate(prog.filmsProvider);
-                  if (context.mounted) Navigator.pop(context);
-                } catch (e) {
-                  print("Erreur: $e");
-                }
+                await client.admin.ajouterFilm(f);
+                ref.invalidate(prog.filmsProvider);
+                if (context.mounted) Navigator.pop(context);
               },
               child: const Text("Enregistrer"),
             ),
@@ -399,21 +405,16 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.cardBg,
         title: const Text("Supprimer ?", style: TextStyle(color: Colors.white)),
-        content: Text("Voulez-vous vraiment supprimer '$titre' et toutes ses séances ?", style: const TextStyle(color: Colors.white70)),
+        content: Text("Voulez-vous supprimer $titre ?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Non")),
+          TextButton(
             onPressed: () async {
-              try {
-                await client.admin.supprimerFilm(id);
-                ref.invalidate(prog.filmsProvider);
-                if (context.mounted) Navigator.pop(context);
-              } catch (e) {
-                print("Erreur: $e");
-              }
+              await client.admin.supprimerFilm(id);
+              ref.invalidate(prog.filmsProvider);
+              if (context.mounted) Navigator.pop(context);
             },
-            child: const Text("Confirmer"),
+            child: const Text("Oui, Supprimer", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -422,18 +423,17 @@ class _ManageFilmsPageState extends ConsumerState<ManageFilmsPage> {
 
   Widget _adminTextField(TextEditingController ctrl, String label, {int maxLines = 1, TextInputType keyboardType = TextInputType.text}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: TextField(
         controller: ctrl,
         maxLines: maxLines,
         keyboardType: keyboardType,
-        style: const TextStyle(color: Colors.white, fontSize: 14),
+        style: const TextStyle(color: Colors.white, fontSize: 13),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.white54, fontSize: 12),
           filled: true,
           fillColor: Colors.white.withOpacity(0.05),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
         ),
       ),

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../features/programmation/presentation/providers/programmation_provider.dart';
 import '../../../../features/evenements/presentation/providers/evenement_provider.dart';
-import '../../../../features/admin/presentation/providers/admin_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,6 +15,10 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   String _searchQuery = "";
+  // COULEURS D'ORIGINE EN DUR
+  final Color kBackground = const Color(0xFF0D0A08);
+  final Color kAccent = const Color(0xFF8B7355);
+  final Color kSecondary = const Color(0xFF2C1810);
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +26,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     final eventsAsync = ref.watch(evenementsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: kBackground,
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFF8B7355),
+        backgroundColor: kAccent,
         onPressed: () => context.push('/support'),
         icon: const Icon(Icons.help_outline, color: Colors.white),
         label: const Text("Aide", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -43,7 +45,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [const Color(0xFF2C1810).withOpacity(0.8), AppColors.background],
+                  colors: [kSecondary.withOpacity(0.8), kBackground],
                 ),
               ),
               child: Column(
@@ -58,7 +60,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   const SizedBox(height: 20),
                   TextButton.icon(
                     onPressed: () => context.push('/faq'),
-                    icon: const Icon(Icons.help_center_outlined, color: Color(0xFF8B7355)),
+                    icon: Icon(Icons.help_center_outlined, color: kAccent),
                     label: const Text(
                       "Une question ? Consultez notre FAQ",
                       style: TextStyle(color: Colors.white70, decoration: TextDecoration.underline),
@@ -80,12 +82,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                 data: (films) {
                   final filtered = films.where((f) {
                     final query = _searchQuery.toLowerCase();
-                    return f.titre.toLowerCase().contains(query) ||
-                        (f.genre?.toLowerCase().contains(query) ?? false);
+                    return f.titre.toLowerCase().contains(query) || (f.genre?.toLowerCase().contains(query) ?? false);
                   }).toList();
-
-                  if (filtered.isEmpty) return _buildNoResult();
-
+                  if (filtered.isEmpty) return const Center(child: Text("Aucun résultat", style: TextStyle(color: Colors.white24)));
                   return ListView.builder(
                     padding: const EdgeInsets.only(left: 20),
                     scrollDirection: Axis.horizontal,
@@ -93,14 +92,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                     itemBuilder: (context, index) => _buildFilmCard(context, filtered[index]),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
-                error: (e, s) => const Center(child: Text("Erreur")),
+                loading: () => Center(child: CircularProgressIndicator(color: kAccent)),
+                error: (e, s) => const Center(child: Text("Erreur", style: TextStyle(color: Colors.white24))),
               ),
             ),
           ),
 
           // ─── ÉVÉNEMENTS À L'AFFICHE ───
-          SliverToBoxAdapter(child: const SizedBox(height: 30)),
+          const SliverToBoxAdapter(child: SizedBox(height: 30)),
           SliverToBoxAdapter(
             child: _buildSectionHeader("Événements à l'affiche", () => widget.onNavigate?.call(2)),
           ),
@@ -111,13 +110,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                 data: (events) {
                   final filtered = events.where((e) {
                     final query = _searchQuery.toLowerCase();
-                    final matchesTitle = e.titre.toLowerCase().contains(query);
-                    final matchesLieu = (e.ville?.toLowerCase().contains(query) ?? false) || (e.lieu?.toLowerCase().contains(query) ?? false);
-                    return matchesTitle || matchesLieu;
+                    return e.titre.toLowerCase().contains(query) || (e.ville?.toLowerCase().contains(query) ?? false);
                   }).toList();
-
-                  if (filtered.isEmpty) return _buildNoResult();
-
+                  if (filtered.isEmpty) return const Center(child: Text("Aucun résultat", style: TextStyle(color: Colors.white24)));
                   return ListView.builder(
                     padding: const EdgeInsets.only(left: 20),
                     scrollDirection: Axis.horizontal,
@@ -125,8 +120,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                     itemBuilder: (context, index) => _buildHomeEventCard(context, filtered[index]),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
-                error: (e, s) => const Center(child: Text("Erreur de chargement")),
+                loading: () => Center(child: CircularProgressIndicator(color: kAccent)),
+                error: (e, s) => const Center(child: Text("Erreur de chargement", style: TextStyle(color: Colors.white24))),
               ),
             ),
           ),
@@ -139,76 +134,56 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget _buildMaquetteSearchBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.white)
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white)),
       child: Row(
         children: [
           const SizedBox(width: 15),
           const Icon(Icons.search, color: Colors.grey),
           const SizedBox(width: 15),
           Expanded(
-              child: TextField(
-                  onChanged: (value) {
-                    setState(() { _searchQuery = value; }); 
-                  },
-                  style: const TextStyle(color: Colors.black87),
-                  decoration: const InputDecoration(
-                      hintText: "Rechercher par nom ou lieu...",
-                      hintStyle: TextStyle(color: Colors.grey),
-                      border: InputBorder.none
-                  )
-              )
+            child: TextField(
+              onChanged: (value) => setState(() => _searchQuery = value),
+              style: const TextStyle(color: Colors.black87),
+              decoration: const InputDecoration(hintText: "Rechercher par nom ou lieu...", hintStyle: TextStyle(color: Colors.grey), border: InputBorder.none),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNoResult() {
-    return const Center(child: Text("Aucun résultat", style: TextStyle(color: Colors.white54)));
-  }
-
   Widget _buildSectionHeader(String title, VoidCallback onSeeAll) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
       child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-            TextButton(onPressed: onSeeAll, child: const Text("Voir tout", style: TextStyle(color: Colors.white54)))
-          ]
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+          TextButton(onPressed: onSeeAll, child: const Text("Voir tout", style: TextStyle(color: Colors.white54)))
+        ],
       ),
     );
   }
 
   Widget _buildFilmCard(BuildContext context, dynamic film) {
     return GestureDetector(
-        onTap: () => context.push('/film-detail', extra: film.id),
-        child: Container(
-            width: 150,
-            margin: const EdgeInsets.only(right: 20),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: ClipRRect(borderRadius: BorderRadius.circular(15), child: CachedNetworkImage(imageUrl: film.affiche ?? "", fit: BoxFit.cover))),
-                  const SizedBox(height: 8),
-                  Text(film.titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                ]
-            )
-        )
+      onTap: () => context.push('/film-detail', extra: film.id),
+      child: Container(
+        width: 150,
+        margin: const EdgeInsets.only(right: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: ClipRRect(borderRadius: BorderRadius.circular(15), child: CachedNetworkImage(imageUrl: film.affiche ?? "", fit: BoxFit.cover, errorWidget: (c,u,e) => const Icon(Icons.movie, color: Colors.white10)))),
+            const SizedBox(height: 8),
+            Text(film.titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildHomeEventCard(BuildContext context, dynamic event) {
-    // Construction de l'info lieu (Ville + Salle/Lieu tiers)
-    String displayLieu = event.ville ?? "";
-    if (event.lieu != null && event.lieu!.isNotEmpty) {
-      displayLieu += " • ${event.lieu}";
-    }
-
     return GestureDetector(
       onTap: () => context.push('/event-detail', extra: event.id),
       child: Container(
@@ -227,9 +202,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(event.titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text(displayLieu, style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                    const SizedBox(height: 2),
-                    Text("${event.prix} DH", style: const TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text("${event.ville} • ${event.prix} DH", style: TextStyle(color: kAccent, fontSize: 12, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
