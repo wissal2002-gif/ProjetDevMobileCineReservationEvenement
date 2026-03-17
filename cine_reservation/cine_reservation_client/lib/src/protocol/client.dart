@@ -692,6 +692,13 @@ class EndpointAdmin extends _i2.EndpointRef {
         'getReservationsDetailed',
         {},
       );
+
+  _i3.Future<List<_i11.Utilisateur>> getAllClients() =>
+      caller.callServerEndpoint<List<_i11.Utilisateur>>(
+        'admin',
+        'getAllClients',
+        {},
+      );
 }
 
 /// {@category Endpoint}

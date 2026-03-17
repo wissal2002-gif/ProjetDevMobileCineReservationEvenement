@@ -113,3 +113,6 @@ final globalPromoSummaryProvider = FutureProvider<Map<String, dynamic>>((ref) as
 final staffTangerProvider = FutureProvider<List<Utilisateur>>((ref) async {
   return await client.admin.getStaffTanger();
 });
+final allClientsProvider = FutureProvider<List<Utilisateur>>((ref) async {
+  return await client.admin.getAllClients();
+});

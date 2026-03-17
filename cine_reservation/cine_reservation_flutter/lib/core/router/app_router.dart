@@ -50,6 +50,8 @@ import '../../features/admin_tanger/presentation/pages/manage_staff_tanger_page.
 import '../../features/admin_tanger/presentation/pages/manage_seats_tanger_page.dart'; // Import ajouté
 import '../../features/admin_tanger/presentation/pages/tanger_dashboard_page.dart';
 import '../../features/admin_tanger/presentation/pages/manage_promos_tanger_page.dart';
+import '../../features/admin_tanger/presentation/pages/revenues_tanger_page.dart';
+
 
 // Dans la liste des routes :
 
@@ -114,6 +116,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/admin/tanger/sieges', // Ajout de la route pour les sièges
         builder: (context, state) => const ManageSeatsTangerPage(),
       ),
+      GoRoute(path: '/admin/tanger/revenus', builder: (_, __) => const RevenuesTangerPage()),
+
 
       // ─── ROUTES ADMIN STANDARDS (SUPER ADMIN) ───
       GoRoute(path: '/admin/films', builder: (context, state) => const ManageFilmsPage()),

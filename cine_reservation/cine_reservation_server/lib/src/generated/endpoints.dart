@@ -1298,6 +1298,16 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['admin'] as _i4.AdminEndpoint)
                   .getReservationsDetailed(session),
         ),
+        'getAllClients': _i1.MethodConnector(
+          name: 'getAllClients',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getAllClients(session),
+        ),
       },
     );
     connectors['avis'] = _i1.EndpointConnector(

@@ -11,12 +11,25 @@ class ManageReservationsTangerPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ✅ On utilise les providers EXISTANTS
-    final resAsync       = ref.watch(allReservationsProvider);
-    final usersAsync     = ref.watch(allUtilisateursProvider);
-    final seancesAsync   = ref.watch(allSeancesProvider);
-    final filmsAsync     = ref.watch(allFilmsProvider);
-    final sallesAsync    = ref.watch(allSallesProvider);
+    final resAsync     = ref.watch(allReservationsProvider);
+    final usersAsync = ref.watch(allClientsProvider);
+
+    final seancesAsync = ref.watch(allSeancesProvider);
+    final filmsAsync   = ref.watch(allFilmsProvider);
+    final sallesAsync  = ref.watch(allSallesProvider);
+
+    // ✅ Attendre que TOUS les providers soient chargés
+    final isLoading = resAsync.isLoading ||
+        usersAsync.isLoading ||
+        seancesAsync.isLoading ||
+        filmsAsync.isLoading ||
+        sallesAsync.isLoading;
+
+    final hasError = resAsync.hasError ||
+        usersAsync.hasError ||
+        seancesAsync.hasError ||
+        filmsAsync.hasError ||
+        sallesAsync.hasError;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0A08),
@@ -30,52 +43,44 @@ class ManageReservationsTangerPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ─── HEADER ───
-                  const Text("GESTION DES RÉSERVATIONS",
-                      style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-                  Text("Cinéma Mégarama Tanger — ID: 9",
-                      style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        const Text("GESTION DES RÉSERVATIONS",
+                            style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                        Text("Cinéma Mégarama Tanger — ID: 9",
+                            style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13)),
+                      ]),
+                      IconButton(
+                        icon: const Icon(Icons.refresh, color: Colors.white54),
+                        tooltip: "Rafraîchir",
+                        onPressed: () {
+                          ref.invalidate(allReservationsProvider);
+                          ref.invalidate(allUtilisateursProvider);
+                          ref.invalidate(allSeancesProvider);
+                          ref.invalidate(allFilmsProvider);
+                          ref.invalidate(allSallesProvider);
+                        },
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 30),
 
-                  // ─── LISTE ───
+                  // ─── CONTENU ───
                   Expanded(
-                    child: resAsync.when(
-                      loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
-                      error: (e, _) => Center(child: Text("Erreur: $e", style: const TextStyle(color: Colors.redAccent))),
-                      data: (reservations) {
-                        if (reservations.isEmpty) {
-                          return const Center(child: Text("Aucune réservation.", style: TextStyle(color: Colors.white24)));
-                        }
-
-                        // ─── On joint les données côté Flutter ───
-                        final users   = usersAsync.value ?? [];
-                        final seances = seancesAsync.value ?? [];
-                        final films   = filmsAsync.value ?? [];
-                        final salles  = sallesAsync.value ?? [];
-
-                        return ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: reservations.length,
-                          itemBuilder: (context, index) {
-                            final res = reservations[index];
-
-                            // Jointure locale
-                            final user   = users.firstWhere((u) => u.id == res.utilisateurId,
-                                orElse: () => Utilisateur(nom: "Inconnu", email: "N/A"));
-                            final seance = seances.firstWhere((s) => s.id == res.seanceId,
-                                orElse: () => Seance(filmId: 0, salleId: 0, dateHeure: DateTime.now(),
-                                    langue: "N/A", typeProjection: "N/A", typeSeance: "N/A",
-                                    placesDisponibles: 0, prixNormal: 0, prixReduit: 0,
-                                    prixSenior: 0, prixEnfant: 0));
-                            final film   = films.firstWhere((f) => f.id == seance.filmId,
-                                orElse: () => Film(titre: "Film inconnu"));
-                            final salle  = salles.firstWhere((s) => s.id == seance.salleId,
-                                orElse: () => Salle(cinemaId: 0, codeSalle: "Salle inconnue",
-                                    capacite: 0, typeProjection: "N/A"));
-
-                            return _buildResCard(context, ref, res, user, film, salle, seance);
-                          },
-                        );
-                      },
+                    child: isLoading
+                        ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+                        : hasError
+                        ? Center(child: Text(
+                        "Erreur de chargement",
+                        style: const TextStyle(color: Colors.redAccent)))
+                        : _buildList(context, ref,
+                      reservations: resAsync.value ?? [],
+                      users:        usersAsync.value ?? [],
+                      seances:      seancesAsync.value ?? [],
+                      films:        filmsAsync.value ?? [],
+                      salles:       sallesAsync.value ?? [],
                     ),
                   ),
                 ],
@@ -84,6 +89,57 @@ class ManageReservationsTangerPage extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildList(
+      BuildContext context,
+      WidgetRef ref, {
+        required List<Reservation> reservations,
+        required List<Utilisateur> users,
+        required List<Seance> seances,
+        required List<Film> films,
+        required List<Salle> salles,
+      }) {
+    if (reservations.isEmpty) {
+      return const Center(
+          child: Text("Aucune réservation.", style: TextStyle(color: Colors.white24)));
+    }
+
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      itemCount: reservations.length,
+      itemBuilder: (context, index) {
+        final res = reservations[index];
+
+        // ✅ Jointure locale avec données complètes
+        final user = users.firstWhere(
+              (u) => u.id == res.utilisateurId,
+          orElse: () => Utilisateur(nom: "Client #${res.utilisateurId}", email: "N/A"),
+        );
+
+        final seance = seances.firstWhere(
+              (s) => s.id == res.seanceId,
+          orElse: () => Seance(
+            filmId: 0, salleId: 0, dateHeure: DateTime.now(),
+            langue: "N/A", typeProjection: "N/A", typeSeance: "N/A",
+            placesDisponibles: 0, prixNormal: 0, prixReduit: 0,
+            prixSenior: 0, prixEnfant: 0,
+          ),
+        );
+
+        final film = films.firstWhere(
+              (f) => f.id == seance.filmId,
+          orElse: () => Film(titre: "Film #${seance.filmId}"),
+        );
+
+        final salle = salles.firstWhere(
+              (s) => s.id == seance.salleId,
+          orElse: () => Salle(cinemaId: 0, codeSalle: "Salle #${seance.salleId}", capacite: 0, typeProjection: "N/A"),
+        );
+
+        return _buildResCard(context, ref, res, user, film, salle, seance);
+      },
     );
   }
 
@@ -156,22 +212,23 @@ class ManageReservationsTangerPage extends ConsumerWidget {
               // ─── SÉANCE ───
               _sectionTitle("DÉTAILS DE LA SÉANCE"),
               const SizedBox(height: 8),
-              _infoRow(Icons.movie,         "Film",       film.titre),
-              _infoRow(Icons.meeting_room,  "Salle",      salle.codeSalle),
-              _infoRow(Icons.schedule,      "Date & Heure",
+              _infoRow(Icons.movie,        "Film",        film.titre),
+              _infoRow(Icons.meeting_room, "Salle",       salle.codeSalle),
+              _infoRow(Icons.schedule,     "Date & Heure",
                   DateFormat('dd/MM/yyyy à HH:mm').format(seance.dateHeure)),
-              _infoRow(Icons.videocam, "Projection", seance.typeProjection ?? "N/A"),
-              _infoRow(Icons.language, "Langue",     seance.langue ?? "N/A"),
+              _infoRow(Icons.videocam,     "Projection",  seance.typeProjection ?? "N/A"),
+              _infoRow(Icons.language,     "Langue",      seance.langue ?? "N/A"),
 
               const Divider(color: Colors.white10, height: 24),
 
               // ─── PAIEMENT ───
               _sectionTitle("PAIEMENT"),
               const SizedBox(height: 8),
-              _infoRow(Icons.payments,       "Montant Total", "${res.montantTotal} DH"),
+              _infoRow(Icons.payments,     "Montant Total", "${res.montantTotal} DH"),
               if (res.montantApresReduction != null)
                 _infoRow(Icons.currency_exchange, "Remboursé", "${res.montantApresReduction} DH"),
-              _infoRow(Icons.info_outline,   "Statut", (res.statut ?? 'inconnu').toUpperCase()),
+              _infoRow(Icons.info_outline, "Statut",
+                  (res.statut ?? 'inconnu').toUpperCase()),
 
               // ─── BOUTON REMBOURSEMENT ───
               if (isCancelled) ...[
@@ -230,14 +287,17 @@ class ManageReservationsTangerPage extends ConsumerWidget {
         const SizedBox(width: 8),
         SizedBox(width: 110,
             child: Text(label, style: const TextStyle(color: Colors.white38, fontSize: 13))),
-        Expanded(child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 13))),
+        Expanded(
+            child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 13))),
       ]),
     );
   }
 
-  void _showRefundDialog(BuildContext context, WidgetRef ref, Reservation res, Utilisateur user) {
-    final montantCtrl = TextEditingController(text: res.montantTotal.toString());
-    final raisonCtrl  = TextEditingController(
+  void _showRefundDialog(
+      BuildContext context, WidgetRef ref, Reservation res, Utilisateur user) {
+    final montantCtrl =
+    TextEditingController(text: res.montantTotal.toString());
+    final raisonCtrl = TextEditingController(
         text: "Annulation de la réservation #${res.id}");
 
     showDialog(
@@ -248,21 +308,21 @@ class ManageReservationsTangerPage extends ConsumerWidget {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            // Résumé client
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(8)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text("Client : ${user.nom}", style: const TextStyle(color: Colors.white70)),
-                Text("Email  : ${user.email}", style: const TextStyle(color: Colors.white38, fontSize: 12)),
-                Text("Tél    : ${user.telephone ?? 'N/A'}", style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                Text("Client : ${user.nom}",
+                    style: const TextStyle(color: Colors.white70)),
+                Text("Email  : ${user.email}",
+                    style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                Text("Tél    : ${user.telephone ?? 'N/A'}",
+                    style: const TextStyle(color: Colors.white38, fontSize: 12)),
               ]),
             ),
             const SizedBox(height: 16),
-
-            // Montant
             TextField(
               controller: montantCtrl,
               keyboardType: TextInputType.number,
@@ -278,8 +338,6 @@ class ManageReservationsTangerPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-
-            // Raison
             TextField(
               controller: raisonCtrl,
               maxLines: 2,
@@ -293,8 +351,6 @@ class ManageReservationsTangerPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-
-            // Info email
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -315,7 +371,8 @@ class ManageReservationsTangerPage extends ConsumerWidget {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text("ANNULER", style: TextStyle(color: Colors.white54))),
+              child: const Text("ANNULER",
+                  style: TextStyle(color: Colors.white54))),
           ElevatedButton.icon(
             icon: const Icon(Icons.currency_exchange, size: 16),
             label: const Text("CONFIRMER & ENVOYER EMAIL"),
@@ -324,12 +381,12 @@ class ManageReservationsTangerPage extends ConsumerWidget {
                 foregroundColor: Colors.white),
             onPressed: () async {
               try {
-                // ✅ Utilise rembourserReservation qui existe déjà
                 await client.admin.rembourserReservation(
                   res.id!,
                   double.tryParse(montantCtrl.text) ?? res.montantTotal,
                 );
                 ref.invalidate(allReservationsProvider);
+                ref.invalidate(allUtilisateursProvider);
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -339,7 +396,9 @@ class ManageReservationsTangerPage extends ConsumerWidget {
                 );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Erreur : $e"), backgroundColor: Colors.red),
+                  SnackBar(
+                      content: Text("Erreur : $e"),
+                      backgroundColor: Colors.red),
                 );
               }
             },

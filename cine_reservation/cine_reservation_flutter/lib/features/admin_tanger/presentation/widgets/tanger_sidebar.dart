@@ -40,6 +40,7 @@ class TangerSidebar extends StatelessWidget {
                 _sectionTitle("RESERVATIONS & STAFF"),
                 _navItem(context, Icons.confirmation_number_rounded, "Réservations", "/admin/tanger/reservations", currentRoute),
                 _navItem(context, Icons.badge_rounded, "Gestion Staff", "/admin/tanger/staff", currentRoute),
+                _navItem(context, Icons.account_balance_wallet_outlined, "Voir Revenus", "/admin/tanger/revenus", currentRoute),
               ],
             ),
           ),

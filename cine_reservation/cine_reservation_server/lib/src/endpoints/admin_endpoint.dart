@@ -460,4 +460,7 @@ class AdminEndpoint extends Endpoint {
 
     return detailedList;
   }
+  // ✅ Retourne TOUS les utilisateurs sans filtre
+  Future<List<Utilisateur>> getAllClients(Session session) async =>
+      await Utilisateur.db.find(session);
 }
