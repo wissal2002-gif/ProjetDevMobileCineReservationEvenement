@@ -22,10 +22,11 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
       _delaiAnnulCtrl, _fraisAnnulCtrl;
 
   String _type = 'concert';
+  final List<String> _validTypes = ['concert', 'theatre', 'festival', 'autre', 'sport'];
   String _statut = 'actif';
   int? _selectedCinemaId;
   int? _selectedSalleId; 
-  String? _selectedSalleName; // Pour stocker le nom de la salle
+  String? _selectedSalleName; 
   bool _isAtCinema = false;
   bool _annulationGratuite = true;
 
@@ -48,7 +49,15 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
     _fraisAnnulCtrl = TextEditingController(text: (widget.event?.fraisAnnulation ?? 0.0).toString());
 
     if (widget.event != null) {
-      _type = widget.event!.type ?? 'concert';
+      // ✅ FIX: Gérer les types qui ne sont pas dans la liste initiale (ex: 'sport')
+      final String incomingType = (widget.event!.type ?? 'concert').toLowerCase();
+      if (_validTypes.contains(incomingType)) {
+        _type = incomingType;
+      } else {
+        _validTypes.add(incomingType);
+        _type = incomingType;
+      }
+
       _statut = widget.event!.statut ?? 'actif';
       _isAtCinema = widget.event!.cinemaId != null;
       _selectedCinemaId = widget.event!.cinemaId;
@@ -162,7 +171,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                             setState(() {
                               _selectedSalleId = val;
                               final salle = snapshot.data!.firstWhere((s) => s.id == val);
-                              _selectedSalleName = "Salle ${salle.codeSalle}"; // On capture le nom
+                              _selectedSalleName = "Salle ${salle.codeSalle}"; 
                               _placesTotalCtrl.text = salle.capacite.toString();
                             });
                           },
@@ -270,7 +279,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
       value: _type,
       dropdownColor: AppColors.cardBg,
       style: const TextStyle(color: Colors.white),
-      items: ['concert', 'theatre', 'festival', 'autre'].map((t) => DropdownMenuItem(value: t, child: Text(t.toUpperCase()))).toList(),
+      items: _validTypes.map((t) => DropdownMenuItem(value: t, child: Text(t.toUpperCase()))).toList(),
       onChanged: (v) => setState(() => _type = v!),
       decoration: const InputDecoration(labelText: "Type d'événement"),
     );
@@ -289,7 +298,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
         description: _descCtrl.text.trim(),
         type: _type,
         cinemaId: _isAtCinema ? _selectedCinemaId : null,
-        lieu: _isAtCinema ? _selectedSalleName : _lieuCtrl.text.trim(), // On stocke le nom de la salle dans 'lieu'
+        lieu: _isAtCinema ? _selectedSalleName : _lieuCtrl.text.trim(),
         ville: _villeCtrl.text.trim(),
         dateDebut: _dateDebut,
         dateFin: _dateFin,

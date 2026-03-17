@@ -36,7 +36,9 @@ class AdminSidebar extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   children: [
-                    _navItem(context, Icons.dashboard_outlined, "Tableau de Bord", isSuperAdmin ? "/admin" : (isAdminTanger ? "/admin/tanger" : "/admin")),
+                    // ✅ REDIRECTION INTELLIGENTE SELON LE RÔLE
+                    _navItem(context, Icons.dashboard_outlined, "Tableau de Bord", 
+                      isSuperAdmin ? "/admin" : (isAdminTanger ? "/admin/tanger" : (isRespEvents ? "/admin/events" : "/admin"))),
                     
                     // --- ESPACE SUPER ADMIN ---
                     if (isSuperAdmin) ...[
@@ -59,7 +61,7 @@ class AdminSidebar extends ConsumerWidget {
                     // --- ESPACE ÉVÉNEMENTS ---
                     if (isRespEvents || isSuperAdmin) ...[
                       _sectionTitle("SPECTACLES & FESTIVALS"),
-                      _navItem(context, Icons.event_note_outlined, "Gestion Événements", "/admin/evenements"),
+                      _navItem(context, Icons.event_note_outlined, "Gestion Événements", "/admin/events/manage"),
                     ],
 
                     const Divider(color: Colors.white10, height: 40, indent: 20, endIndent: 20),
@@ -97,7 +99,7 @@ class AdminSidebar extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          CircleAvatar(radius: 30, backgroundColor: AppColors.accent.withOpacity(0.1), child: Text(name[0], style: const TextStyle(color: AppColors.accent, fontSize: 24, fontWeight: FontWeight.bold))),
+          CircleAvatar(radius: 30, backgroundColor: AppColors.accent.withOpacity(0.1), child: Text(name.isNotEmpty ? name[0] : "A", style: const TextStyle(color: AppColors.accent, fontSize: 24, fontWeight: FontWeight.bold))),
           const SizedBox(height: 16),
           Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 4),

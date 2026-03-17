@@ -47,14 +47,16 @@ import '../../features/admin_tanger/presentation/pages/manage_options_tanger_pag
 import '../../features/admin_tanger/presentation/pages/manage_reservations_tanger_page.dart';
 import '../../features/admin_tanger/presentation/pages/manage_seances_tanger_page.dart';
 import '../../features/admin_tanger/presentation/pages/manage_staff_tanger_page.dart';
-import '../../features/admin_tanger/presentation/pages/manage_seats_tanger_page.dart'; // Import ajouté
+import '../../features/admin_tanger/presentation/pages/manage_seats_tanger_page.dart';
 import '../../features/admin_tanger/presentation/pages/tanger_dashboard_page.dart';
 import '../../features/admin_tanger/presentation/pages/manage_promos_tanger_page.dart';
 import '../../features/admin_tanger/presentation/pages/revenues_tanger_page.dart';
 
-
-// Dans la liste des routes :
-
+// ✅ PAGES SPÉCIFIQUES POUR RESP. ÉVÉNEMENTS
+import '../../features/admin_events/presentation/pages/events_dashboard_page.dart';
+import '../../features/admin_events/presentation/pages/manage_events_events_page.dart';
+import '../../features/admin_events/presentation/pages/manage_reservations_events_page.dart';
+import '../../features/admin_events/presentation/pages/revenues_events_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -70,54 +72,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/film-detail', builder: (context, state) => FilmDetailPage(filmId: state.extra as int)),
       GoRoute(path: '/all-films', builder: (context, state) => const FilmsListPage()),
       GoRoute(path: '/event-detail', builder: (context, state) => EvenementDetailPage(evenementId: state.extra as int)),
-      GoRoute(
-          path: '/all-events',
-          builder: (context, state) => const EvenementsPage() // Vérifiez l'orthographe ici
-      ),
+      GoRoute(path: '/all-events', builder: (context, state) => const EvenementsPage()),
       GoRoute(path: '/support', builder: (context, state) => const ContactSupportPage()),
       GoRoute(path: '/faq', builder: (context, state) => const FaqPage()),
 
       // ─── ADMIN GLOBAL ───
-      GoRoute(
-          path: '/admin',
-          builder: (context, state) => const AdminDashboardPage()
-      ),
+      GoRoute(path: '/admin', builder: (context, state) => const AdminDashboardPage()),
 
       // ─── ADMIN TANGER (ID 9) ───
-      // Routes à plat pour une stabilité maximale sur Web/Chrome
-      GoRoute(
-        path: '/admin/tanger',
-        builder: (context, state) => const TangerDashboardPage(),
-      ),
-      GoRoute(
-        path: '/admin/tanger/films',
-        builder: (context, state) => const ManageFilmsTangerPage(),
-      ),
-      GoRoute(
-        path: '/admin/tanger/seances',
-        builder: (context, state) => const ManageSeancesTangerPage(),
-      ),
-      GoRoute(
-        path: '/admin/tanger/promos',  builder: (context, state) => const ManagePromosTangerPage(),
-      ),
-      GoRoute(
-        path: '/admin/tanger/reservations',
-        builder: (context, state) => const ManageReservationsTangerPage(),
-      ),
-      GoRoute(
-        path: '/admin/tanger/staff',
-        builder: (context, state) => const ManageStaffTangerPage(),
-      ),
-      GoRoute(
-        path: '/admin/tanger/salles',
-        builder: (context, state) => const ManageCinemasPage(cinemaId: 9),
-      ),
-      GoRoute(
-        path: '/admin/tanger/sieges', // Ajout de la route pour les sièges
-        builder: (context, state) => const ManageSeatsTangerPage(),
-      ),
+      GoRoute(path: '/admin/tanger', builder: (context, state) => const TangerDashboardPage()),
+      GoRoute(path: '/admin/tanger/films', builder: (context, state) => const ManageFilmsTangerPage()),
+      GoRoute(path: '/admin/tanger/seances', builder: (context, state) => const ManageSeancesTangerPage()),
+      GoRoute(path: '/admin/tanger/promos', builder: (context, state) => const ManagePromosTangerPage()),
+      GoRoute(path: '/admin/tanger/reservations', builder: (context, state) => const ManageReservationsTangerPage()),
+      GoRoute(path: '/admin/tanger/staff', builder: (context, state) => const ManageStaffTangerPage()),
+      GoRoute(path: '/admin/tanger/salles', builder: (context, state) => const ManageCinemasPage(cinemaId: 9)),
+      GoRoute(path: '/admin/tanger/sieges', builder: (context, state) => const ManageSeatsTangerPage()),
       GoRoute(path: '/admin/tanger/revenus', builder: (_, __) => const RevenuesTangerPage()),
 
+      // ─── ADMIN ÉVÉNEMENTS ───
+      GoRoute(path: '/admin/events', builder: (context, state) => const EventsDashboardPage()),
+      GoRoute(path: '/admin/events/manage', builder: (context, state) => const ManageEventsEventsPage()),
+      GoRoute(path: '/admin/events/add', builder: (context, state) => const AddEventFormPage()),
+      GoRoute(path: '/admin/events/reservations', builder: (context, state) => const ManageReservationsEventsPage()),
+      GoRoute(path: '/admin/events/revenus', builder: (context, state) => const RevenuesEventsPage()),
+      // Pour la modification
+      GoRoute(path: '/admin/events/edit', builder: (context, state) => AddEventFormPage(event: state.extra as Evenement?)),
 
       // ─── ROUTES ADMIN STANDARDS (SUPER ADMIN) ───
       GoRoute(path: '/admin/films', builder: (context, state) => const ManageFilmsPage()),

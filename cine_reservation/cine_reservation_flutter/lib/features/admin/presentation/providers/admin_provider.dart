@@ -85,6 +85,10 @@ final allReservationsProvider = FutureProvider<List<Reservation>>((ref) async {
   return await client.admin.getAllReservations();
 });
 
+final detailedReservationsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  return await client.admin.getReservationsDetailed();
+});
+
 final reservationSiegesProvider = FutureProvider.family<List<Siege>, int>((ref, resId) async {
   return await client.admin.getSiegesByReservation(resId);
 });
