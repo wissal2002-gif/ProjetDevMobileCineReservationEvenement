@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../admin/presentation/providers/admin_provider.dart';
 import '../widgets/tanger_sidebar.dart';
 
@@ -45,12 +46,14 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
                       flex: 3,
                       child: seancesAsync.when(
                         data: (seances) {
+                          final films = filmsAsync.value ?? [];
+                          final salles = sallesAsync.value ?? [];
                           final now = DateTime.now();
                           final today = seances.where((s) =>
                           s.dateHeure.day == now.day &&
                               s.dateHeure.month == now.month &&
                               s.dateHeure.year == now.year).toList();
-                          return _buildSeancesCard(today);
+                          return _buildSeancesCard(today, films, salles);
                         },
                         loading: () => _loadingCard("Séances aujourd'hui"),
                         error: (e, _) => _errorCard("$e"),
@@ -119,21 +122,21 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
   }
 
   Widget _buildStatCards(
-      AsyncValue<dynamic> filmsAsync,
-      AsyncValue<dynamic> seancesAsync,
-      AsyncValue<dynamic> sallesAsync,
-      AsyncValue<dynamic> reservationsAsync,
+      AsyncValue<List<Film>> filmsAsync,
+      AsyncValue<List<Seance>> seancesAsync,
+      AsyncValue<List<Salle>> sallesAsync,
+      AsyncValue<List<Reservation>> reservationsAsync,
       ) {
-    final films        = (filmsAsync.value as List?) ?? [];
-    final salles       = ((sallesAsync.value as List?) ?? [])
+    final films        = filmsAsync.value ?? [];
+    final salles       = (sallesAsync.value ?? [])
         .where((s) => s.cinemaId == tangerCinemaId).toList();
     final salleIds     = salles.map((s) => s.id).toSet();
-    final seances      = ((seancesAsync.value as List?) ?? [])
+    final seances      = (seancesAsync.value ?? [])
         .where((s) => salleIds.contains(s.salleId)).toList();
-    final reservations = (reservationsAsync.value as List?) ?? [];
+    final reservations = reservationsAsync.value ?? [];
     final revenu       = reservations
         .where((r) => r.statut == 'confirme')
-        .fold<double>(0, (sum, r) => sum + (r.montantTotal as double));
+        .fold<double>(0, (sum, r) => sum + r.montantTotal);
 
     return Row(children: [
       Expanded(child: _statCard("FILMS", "${films.length}", Icons.movie_filter_rounded,
@@ -183,7 +186,7 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
     );
   }
 
-  Widget _buildSeancesCard(List seances) {
+  Widget _buildSeancesCard(List<Seance> seances, List<Film> films, List<Salle> salles) {
     return _block(
       title: "🎬 Séances Aujourd'hui",
       subtitle: "${seances.length} séances programmées",
@@ -201,27 +204,32 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
                 style: TextStyle(color: Colors.white.withOpacity(0.3))),
           ]))
           : Column(
-          children: seances.take(5).map<Widget>((s) => ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.schedule, color: Colors.orange, size: 18),
-            ),
-            title: Text("Film #${s.filmId}",
-                style: const TextStyle(color: Colors.white, fontSize: 13)),
-            subtitle: Text("Salle #${s.salleId} • ${s.typeProjection}",
-                style: const TextStyle(color: Colors.white38, fontSize: 11)),
-            trailing: Text(DateFormat('HH:mm').format(s.dateHeure),
-                style: const TextStyle(color: Color(0xFF8B7355),
-                    fontWeight: FontWeight.bold, fontSize: 14)),
-          )).toList()),
+          children: seances.take(5).map<Widget>((s) {
+            final film = films.firstWhere((f) => f.id == s.filmId, orElse: () => Film(titre: "Film inconnu"));
+            final salle = salles.firstWhere((sa) => sa.id == s.salleId, orElse: () => Salle(cinemaId: 0, codeSalle: "?", capacite: 0, typeProjection: ""));
+            
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.schedule, color: Colors.orange, size: 18),
+              ),
+              title: Text(film.titre,
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+              subtitle: Text("Salle ${salle.codeSalle} • ${s.typeProjection}",
+                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              trailing: Text(DateFormat('HH:mm').format(s.dateHeure),
+                  style: const TextStyle(color: Color(0xFF8B7355),
+                      fontWeight: FontWeight.bold, fontSize: 14)),
+            );
+          }).toList()),
     );
   }
 
-  Widget _buildAlertsCard(List support) {
+  Widget _buildAlertsCard(List<DemandeSupport> support) {
     final pending = support.where((d) => d.statut == 'en_attente').length;
     return _block(
       title: "⚡ Actions Requises",
@@ -264,7 +272,7 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
     );
   }
 
-  Widget _buildRevenusChart(List reservations) {
+  Widget _buildRevenusChart(List<Reservation> reservations) {
     final now = DateTime.now();
     List<double> revenus = List.filled(7, 0);
     List<String> jours = [];
@@ -277,7 +285,7 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
       r.dateReservation.day == day.day &&
           r.dateReservation.month == day.month &&
           r.statut != 'annule')
-          .fold<double>(0, (sum, r) => sum + (r.montantTotal as double));
+          .fold<double>(0, (sum, r) => sum + r.montantTotal);
       revenus[6 - i] = dayRevenu;
     }
 
@@ -334,7 +342,7 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
     );
   }
 
-  Widget _buildLastReservations(List reservations) {
+  Widget _buildLastReservations(List<Reservation> reservations) {
     final recent = reservations.take(5).toList();
     return _block(
       title: "📋 Dernières Réservations",
@@ -387,7 +395,7 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
       decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.03),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.05))),
+          border: Border.all(color: Colors.white10)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

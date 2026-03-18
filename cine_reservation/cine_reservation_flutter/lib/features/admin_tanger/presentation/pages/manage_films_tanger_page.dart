@@ -123,28 +123,40 @@ class ManageFilmsTangerPage extends ConsumerWidget {
           film.genre ?? "Genre non défini",
           style: const TextStyle(color: Color(0xFF8B7355)),
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-          onPressed: () => _confirmDelete(context, ref, film),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, color: Colors.blueAccent),
+              onPressed: () => _showFilmDialog(context, ref, film: film),
+              tooltip: "Modifier le film",
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              onPressed: () => _confirmDelete(context, ref, film),
+              tooltip: "Supprimer le film",
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _showFilmDialog(BuildContext context, WidgetRef ref) {
-    final titreCtrl = TextEditingController();
-    final synopsisCtrl = TextEditingController();
-    final genreCtrl = TextEditingController();
-    final dureeCtrl = TextEditingController();
-    final realisateurCtrl = TextEditingController();
-    final castingCtrl = TextEditingController();
-    final afficheCtrl = TextEditingController();
-    final bandeAnnonceCtrl = TextEditingController();
-    final classificationCtrl = TextEditingController();
-    final langueCtrl = TextEditingController(text: "VF");
+  void _showFilmDialog(BuildContext context, WidgetRef ref, {Film? film}) {
+    final bool isEdit = film != null;
+    final titreCtrl = TextEditingController(text: film?.titre);
+    final synopsisCtrl = TextEditingController(text: film?.synopsis);
+    final genreCtrl = TextEditingController(text: film?.genre);
+    final dureeCtrl = TextEditingController(text: film?.duree?.toString());
+    final realisateurCtrl = TextEditingController(text: film?.realisateur);
+    final castingCtrl = TextEditingController(text: film?.casting);
+    final afficheCtrl = TextEditingController(text: film?.affiche);
+    final bandeAnnonceCtrl = TextEditingController(text: film?.bandeAnnonce);
+    final classificationCtrl = TextEditingController(text: film?.classification);
+    final langueCtrl = TextEditingController(text: film?.langue ?? "VF");
 
-    DateTime dateDebut = DateTime.now();
-    DateTime dateFin = DateTime.now().add(const Duration(days: 30));
+    DateTime dateDebut = film?.dateDebut ?? DateTime.now();
+    DateTime dateFin = film?.dateFin ?? DateTime.now().add(const Duration(days: 30));
 
     showDialog(
       context: context,
@@ -152,7 +164,8 @@ class ManageFilmsTangerPage extends ConsumerWidget {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           backgroundColor: const Color(0xFF1A1A1A),
-          title: const Text("AJOUTER UN FILM COMPLET", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: Text(isEdit ? "MODIFIER LE FILM" : "AJOUTER UN FILM COMPLET", 
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: 500,
             child: SingleChildScrollView(
@@ -199,7 +212,8 @@ class ManageFilmsTangerPage extends ConsumerWidget {
               onPressed: () async {
                 if (titreCtrl.text.isEmpty) return;
 
-                final film = Film(
+                final updatedFilm = Film(
+                  id: film?.id, // Important pour la modification
                   titre: titreCtrl.text,
                   synopsis: synopsisCtrl.text,
                   genre: genreCtrl.text,
@@ -212,12 +226,16 @@ class ManageFilmsTangerPage extends ConsumerWidget {
                   langue: langueCtrl.text,
                   dateDebut: dateDebut,
                   dateFin: dateFin,
-                  noteMoyenne: 0.0,
-                  nombreAvis: 0,
+                  noteMoyenne: film?.noteMoyenne ?? 0.0,
+                  nombreAvis: film?.nombreAvis ?? 0,
                 );
 
                 try {
-                  await client.admin.ajouterFilm(film);
+                  if (isEdit) {
+                    await client.admin.modifierFilm(updatedFilm);
+                  } else {
+                    await client.admin.ajouterFilm(updatedFilm);
+                  }
                   ref.invalidate(prog.filmsProvider);
                   if (context.mounted) Navigator.pop(dialogContext);
                 } catch (e) {
@@ -225,7 +243,7 @@ class ManageFilmsTangerPage extends ConsumerWidget {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B7355)),
-              child: const Text("ENREGISTRER LE FILM"),
+              child: Text(isEdit ? "ENREGISTRER LES MODIFICATIONS" : "ENREGISTRER LE FILM"),
             ),
           ],
         ),
@@ -255,7 +273,6 @@ class ManageFilmsTangerPage extends ConsumerWidget {
     );
   }
 
-  // ✅ UNE SEULE VERSION DE _FIELD (avec maxLines)
   Widget _field(TextEditingController ctrl, String label, {bool isNumber = false, int maxLines = 1}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

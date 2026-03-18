@@ -54,10 +54,6 @@ class AdminSidebar extends ConsumerWidget {
                     // --- ESPACE ADMIN LOCAL ---
                     if (isAdminTanger || isAdminCasa || isSuperAdmin) ...[
                       _sectionTitle(isSuperAdmin ? "GESTION LOCALE (DEBUG)" : "GESTION DU SITE"),
-                      _navItem(context, Icons.movie_outlined, "Gérer Films & Séances", "/admin/seances"),
-                      _navItem(context, Icons.grid_on_outlined, "Salles & Sièges", "/admin/sieges"),
-                      _navItem(context, Icons.fastfood_outlined, "Snacks & Options", "/admin/options"),
-                      _navItem(context, Icons.confirmation_number_outlined, "Réservations", "/admin/reservations"),
                     ],
 
                     const Divider(color: Colors.white10, height: 40, indent: 20, endIndent: 20),
