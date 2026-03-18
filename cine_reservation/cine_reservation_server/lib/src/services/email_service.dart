@@ -212,4 +212,39 @@ class EmailService {
       print('Erreur envoi email confirmation: $e');
     }
   }
+
+  // ─── Envoi email remboursement réservation ───
+  static Future<void> sendRefundNotification({
+    required String toEmail,
+    required String nomUtilisateur,
+    required String titre,
+    required double montantRembourse,
+    String? raison,
+  }) async {
+    final message = Message()
+      ..from = Address(_gmailUser, _appName)
+      ..recipients.add(toEmail)
+      ..subject = '💰 $_appName — Remboursement effectué'
+      ..html = '''
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0D0A08; color: #ffffff; padding: 40px; border-radius: 12px;">
+          <h1 style="color: #8B7355; text-align: center;">🎬 $_appName</h1>
+          <h2 style="color: #ffffff; text-align: center;">Remboursement effectué 💰</h2>
+          <p style="color: #9E9E8E;">Bonjour $nomUtilisateur,</p>
+          <p style="color: #9E9E8E;">Nous vous informons qu'un remboursement a été traité pour votre réservation concernant :</p>
+          <div style="background-color: #2C1810; padding: 20px; border-radius: 8px; margin: 30px 0;">
+            <p style="color: #8B7355; font-weight: bold; font-size: 18px;">🎫 $titre</p>
+            <p style="color: #ffffff; font-size: 24px; font-weight: bold; margin: 15px 0;">Montant remboursé : ${montantRembourse.toStringAsFixed(2)} MAD</p>
+            ${raison != null ? '<p style="color: #9E9E8E; font-style: italic;">Raison : $raison</p>' : ''}
+          </div>
+          <p style="color: #9E9E8E;">Le montant devrait apparaître sur votre compte dans les prochains jours selon les délais de votre banque.</p>
+          <p style="color: #9E9E8E; font-size: 12px; text-align: center; margin-top: 40px;">L'équipe $_appName reste à votre disposition.</p>
+        </div>
+      ''';
+
+    try {
+      await send(message, _smtpServer);
+    } catch (e) {
+      print('Erreur envoi email remboursement: $e');
+    }
+  }
 }

@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../profil/presentation/pages/profil_page.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../admin/presentation/providers/admin_provider.dart';
+import '../../../profil/presentation/pages/profil_page.dart';
 import 'home_page.dart';
 import '../../../programmation/presentation/pages/films_list_page.dart';
 import '../../../evenements/presentation/pages/evenements_page.dart';
 import '../../../reservation/presentation/pages/mes_reservations_page.dart';
 import '../../../billets/presentation/pages/billets_page.dart';
+
 class MainNavigationPage extends ConsumerStatefulWidget {
   const MainNavigationPage({super.key});
 
@@ -19,25 +21,30 @@ class MainNavigationPage extends ConsumerStatefulWidget {
 class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
   int _selectedIndex = 0;
 
+  final Color kBackground = const Color(0xFF0D0A08);
+  final Color kAccent = const Color(0xFF8B7355);
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final isAdminAsync = ref.watch(isUserAdminProvider);
+    final adminProfile = ref.watch(adminProfileProvider).value;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: kBackground,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(80),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.background,
-            border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
+            color: kBackground,
+            border: Border(
+                bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
           ),
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
-                  // Logo
                   GestureDetector(
                     onTap: () => setState(() => _selectedIndex = 0),
                     child: Row(
@@ -45,52 +52,91 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.2),
+                            color: kAccent.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.confirmation_number, color: AppColors.accent, size: 24),
+                          child: Icon(Icons.confirmation_number,
+                              color: kAccent, size: 24),
                         ),
                         const SizedBox(width: 12),
                         const Text(
                           "CinéVent",
-                          style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.5),
                         ),
                       ],
                     ),
                   ),
                   const Spacer(),
-                  // Nav Items
                   _buildNavItem("Accueil", 0),
                   _buildNavItem("Films", 1),
                   _buildNavItem("Événements", 2),
                   _buildNavItem("Mes Réservations", 3),
                   _buildNavItem("Profil", 4),
+
                   const SizedBox(width: 24),
-                  // Search
+
+                  if (isAdminAsync.value ?? false)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: TextButton.icon(
+                        onPressed: () {
+                          final email =
+                          (adminProfile?.email ?? "").toLowerCase().trim();
+                          if (email == 'elbouzidiimane794@gmail.com') {
+                            context.push('/admin/tanger');
+                          } else {
+                            context.push('/admin');
+                          }
+                        },
+                        icon: Icon(Icons.admin_panel_settings,
+                            color: kAccent, size: 20),
+                        label: Text(
+                          "ADMIN",
+                          style: TextStyle(
+                              color: kAccent, fontWeight: FontWeight.bold),
+                        ),
+                        style: TextButton.styleFrom(
+                          backgroundColor: kAccent.withOpacity(0.1),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ),
+
                   const Icon(Icons.search, color: Colors.white70, size: 22),
                   const SizedBox(width: 24),
-                  // Auth
+
                   if (!authState.isAuthenticated) ...[
                     TextButton(
                       onPressed: () => context.go('/login'),
-                      child: const Text("Connexion", style: TextStyle(color: Colors.white70)),
+                      child: const Text("Connexion",
+                          style: TextStyle(color: Colors.white70)),
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
                       onPressed: () => context.go('/register'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
+                        backgroundColor: kAccent,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
                         minimumSize: Size.zero,
                       ),
-                      child: const Text("Inscription", style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text("Inscription",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ] else ...[
                     IconButton(
                       icon: const Icon(Icons.logout, color: Colors.redAccent),
-                      onPressed: () => ref.read(authProvider.notifier).logout(),
+                      tooltip: "Déconnexion",
+                      onPressed: () =>
+                          ref.read(authProvider.notifier).logout(),
                     ),
                   ],
                 ],
@@ -102,7 +148,9 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          HomePage(onNavigate: (index) => setState(() => _selectedIndex = index)),
+          HomePage(
+              onNavigate: (index) =>
+                  setState(() => _selectedIndex = index)),
           const FilmsListPage(),
           const EvenementsPage(),
           MesReservationsPage(),
@@ -111,9 +159,10 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.go('/support'),
-        label: const Text("Aide", style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text("Aide",
+            style: TextStyle(fontWeight: FontWeight.bold)),
         icon: const Icon(Icons.help_outline),
-        backgroundColor: AppColors.accent,
+        backgroundColor: kAccent,
       ),
     );
   }
@@ -128,7 +177,7 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? AppColors.accent : Colors.transparent,
+              color: isSelected ? kAccent : Colors.transparent,
               width: 2,
             ),
           ),
@@ -137,7 +186,8 @@ class _MainNavigationPageState extends ConsumerState<MainNavigationPage> {
           title,
           style: TextStyle(
             color: isSelected ? Colors.white : Colors.white60,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontWeight:
+            isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: 15,
           ),
         ),

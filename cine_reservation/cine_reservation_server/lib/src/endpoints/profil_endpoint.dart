@@ -5,19 +5,27 @@ class ProfilEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
 
-  // ─── Récupérer le profil ───
+  // ─── Récupérer le profil ───────────────────────────────
   Future<Utilisateur?> getProfil(Session session) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return null;
-    final utilisateurs = await Utilisateur.db.find(
+
+    final utilisateur = await Utilisateur.db.findFirstRow(
       session,
       where: (u) => u.authUserId.equals(authInfo.userIdentifier),
-      limit: 1,
     );
-    return utilisateurs.isEmpty ? null : utilisateurs.first;
+
+    if (utilisateur == null) return null;
+
+    // Vérification suspension — ajouté depuis version Imane
+    if (utilisateur.statut == 'suspendu') {
+      throw Exception('ACCOUNT_SUSPENDED');
+    }
+
+    return utilisateur;
   }
 
-  // ─── Modifier le profil ───
+  // ─── Modifier le profil ───────────────────────────────
   Future<Utilisateur?> updateProfil(
       Session session,
       String nom,
@@ -26,65 +34,67 @@ class ProfilEndpoint extends Endpoint {
       ) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return null;
-    final utilisateurs = await Utilisateur.db.find(
+
+    final utilisateur = await Utilisateur.db.findFirstRow(
       session,
       where: (u) => u.authUserId.equals(authInfo.userIdentifier),
-      limit: 1,
     );
-    if (utilisateurs.isEmpty) return null;
-    final utilisateur = utilisateurs.first.copyWith(
+    if (utilisateur == null) return null;
+
+    final updated = utilisateur.copyWith(
       nom: nom,
       telephone: telephone,
       dateNaissance: dateNaissance,
     );
-    return await Utilisateur.db.updateRow(session, utilisateur);
+    return await Utilisateur.db.updateRow(session, updated);
   }
 
-  // ─── Sauvegarder photo de profil (base64) ───
+  // ─── Sauvegarder photo de profil (base64) ─────────────
   Future<Utilisateur?> updatePhotoProfil(
       Session session,
       String photoBase64,
       ) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return null;
-    final utilisateurs = await Utilisateur.db.find(
+
+    final utilisateur = await Utilisateur.db.findFirstRow(
       session,
       where: (u) => u.authUserId.equals(authInfo.userIdentifier),
-      limit: 1,
     );
-    if (utilisateurs.isEmpty) return null;
-    final utilisateur = utilisateurs.first.copyWith(
-      photoProfil: photoBase64,
-    );
-    return await Utilisateur.db.updateRow(session, utilisateur);
+    if (utilisateur == null) return null;
+
+    final updated = utilisateur.copyWith(photoProfil: photoBase64);
+    return await Utilisateur.db.updateRow(session, updated);
   }
 
-  // ─── Désactiver le compte temporairement ───
+  // ─── Désactiver le compte temporairement ──────────────
   Future<bool> desactiverCompte(Session session) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return false;
-    final utilisateurs = await Utilisateur.db.find(
+
+    final utilisateur = await Utilisateur.db.findFirstRow(
       session,
       where: (u) => u.authUserId.equals(authInfo.userIdentifier),
-      limit: 1,
     );
-    if (utilisateurs.isEmpty) return false;
-    final utilisateur = utilisateurs.first.copyWith(statut: 'inactif');
-    await Utilisateur.db.updateRow(session, utilisateur);
+    if (utilisateur == null) return false;
+
+    final updated = utilisateur.copyWith(statut: 'inactif');
+    await Utilisateur.db.updateRow(session, updated);
     return true;
   }
 
-  // ─── Supprimer le compte définitivement ───
+  // ─── Supprimer le compte définitivement ───────────────
   Future<bool> supprimerCompte(Session session) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return false;
-    final utilisateurs = await Utilisateur.db.find(
+
+    final utilisateur = await Utilisateur.db.findFirstRow(
       session,
       where: (u) => u.authUserId.equals(authInfo.userIdentifier),
-      limit: 1,
     );
-    if (utilisateurs.isEmpty) return false;
-    await Utilisateur.db.deleteRow(session, utilisateurs.first);
+    if (utilisateur == null) return false;
+
+    await Utilisateur.db.deleteRow(session, utilisateur);
     return true;
   }
 }

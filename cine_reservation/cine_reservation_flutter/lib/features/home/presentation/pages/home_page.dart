@@ -12,13 +12,11 @@ import 'package:cine_reservation_client/cine_reservation_client.dart';
 
 // ── Provider isolé pour la HomePage uniquement ──────────────────────────────
 // Absorbe silencieusement les erreurs 401 (visiteur non connecté).
-// mesReservationsProvider (utilisé dans MesReservationsPage) reste intact
-// et affiche les vraies erreurs.
 final _homeReservationsProvider = FutureProvider<List<Reservation>>((ref) async {
   try {
     return await ref.read(reservationDatasourceProvider).getMesReservations();
   } catch (_) {
-    return []; // 401 ou déconnecté → liste vide, pas de crash
+    return [];
   }
 });
 
@@ -117,19 +115,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   // GENRE PRÉFÉRÉ
   // ═══════════════════════════════════════════════════════
 
-  String? _calculerGenrePrefereDe(
-      List<Seance> seances, List<Film> films) {
+  String? _calculerGenrePrefereDe(List<Seance> seances, List<Film> films) {
     final genreCount = <String, int>{};
     for (final seance in seances) {
-      final film =
-          films.where((f) => f.id == seance.filmId).firstOrNull;
+      final film = films.where((f) => f.id == seance.filmId).firstOrNull;
       if (film?.genre == null) continue;
       genreCount[film!.genre!] = (genreCount[film.genre!] ?? 0) + 1;
     }
     if (genreCount.isEmpty) return null;
-    return genreCount.entries
-        .reduce((a, b) => a.value > b.value ? a : b)
-        .key;
+    return genreCount.entries.reduce((a, b) => a.value > b.value ? a : b).key;
   }
 
   // ═══════════════════════════════════════════════════════
@@ -141,7 +135,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     final filmsAsync = ref.watch(filmsProvider);
     final eventsAsync = ref.watch(evenementsProvider);
 
-    // ── Provider isolé HomePage — absorbe 401 silencieusement ──
     final reservationsAsync = ref.watch(_homeReservationsProvider);
 
     final seanceIds = (reservationsAsync.value ?? [])
@@ -167,12 +160,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       backgroundColor: AppColors.background,
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'home_support_fab',
-        backgroundColor: const Color(0xFF8B7355),
+        backgroundColor: AppColors.accent,
         onPressed: () => context.push('/support'),
         icon: const Icon(Icons.help_outline, color: Colors.white),
         label: const Text('Aide',
-            style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
@@ -215,6 +207,19 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
                 const SizedBox(height: 40),
                 _buildSearchBar(),
+                const SizedBox(height: 16),
+                // Lien FAQ — ajouté depuis la version Imane
+                TextButton.icon(
+                  onPressed: () => context.push('/faq'),
+                  icon: const Icon(Icons.help_center_outlined,
+                      color: AppColors.accent),
+                  label: const Text(
+                    "Une question ? Consultez notre FAQ",
+                    style: TextStyle(
+                        color: Colors.white70,
+                        decoration: TextDecoration.underline),
+                  ),
+                ),
               ]),
             ),
           ),
@@ -228,8 +233,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           // ─── FILMS À L'AFFICHE ────────────────────────────
           SliverToBoxAdapter(
             child: _sectionHeader(
-                "Films à l'affiche",
-                    () => widget.onNavigate?.call(1)),
+                "Films à l'affiche", () => widget.onNavigate?.call(1)),
           ),
           SliverToBoxAdapter(
             child: SizedBox(
@@ -242,15 +246,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                     padding: const EdgeInsets.only(left: 20),
                     scrollDirection: Axis.horizontal,
                     itemCount: filtered.length,
-                    itemBuilder: (ctx, i) =>
-                        _filmCard(ctx, filtered[i]),
+                    itemBuilder: (ctx, i) => _filmCard(ctx, filtered[i]),
                   );
                 },
                 loading: () => const Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.accent)),
-                error: (_, __) =>
-                const Center(child: Text('Erreur')),
+                    child: CircularProgressIndicator(color: AppColors.accent)),
+                error: (_, __) => const Center(child: Text('Erreur')),
               ),
             ),
           ),
@@ -304,20 +305,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                 data: (events) {
                   final cinemas =
                       ref.watch(allCinemasProvider).value ?? [];
-                  final filtered =
-                  _filtrerEvenements(events, cinemas);
+                  final filtered = _filtrerEvenements(events, cinemas);
                   if (filtered.isEmpty) return _noResult();
                   return ListView.builder(
                     padding: const EdgeInsets.only(left: 20),
                     scrollDirection: Axis.horizontal,
                     itemCount: filtered.length,
-                    itemBuilder: (ctx, i) =>
-                        _eventCard(ctx, filtered[i]),
+                    itemBuilder: (ctx, i) => _eventCard(ctx, filtered[i]),
                   );
                 },
                 loading: () => const Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.accent)),
+                    child: CircularProgressIndicator(color: AppColors.accent)),
                 error: (_, __) =>
                 const Center(child: Text('Erreur de chargement')),
               ),
@@ -376,15 +374,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         Column(mainAxisSize: MainAxisSize.min, children: [
           GestureDetector(
             onTap: () => setState(() => _notifVisible = false),
-            child: const Icon(Icons.close,
-                color: Colors.white38, size: 16),
+            child:
+            const Icon(Icons.close, color: Colors.white38, size: 16),
           ),
           const SizedBox(height: 6),
           GestureDetector(
             onTap: () => setState(() =>
             _notifIndex = (_notifIndex + 1) % notifications.length),
-            child:
-            Icon(Icons.arrow_forward_ios, color: color, size: 14),
+            child: Icon(Icons.arrow_forward_ios, color: color, size: 14),
           ),
         ]),
       ]),
@@ -407,8 +404,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             padding: const EdgeInsets.only(left: 20),
             scrollDirection: Axis.horizontal,
             itemCount: films.length,
-            itemBuilder: (ctx, i) => _recommandationCard(
-                ctx, films[i], genre,
+            itemBuilder: (ctx, i) => _recommandationCard(ctx, films[i], genre,
                 personnalise: personnalise),
           ),
         ),
@@ -468,8 +464,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.accent.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(6),
@@ -571,10 +567,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    color.withOpacity(0.3),
-                    color.withOpacity(0.1)
-                  ],
+                  colors: [color.withOpacity(0.3), color.withOpacity(0.1)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -685,8 +678,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _noResult() => const Center(
-      child: Text('Aucun résultat',
-          style: TextStyle(color: Colors.white54)));
+      child:
+      Text('Aucun résultat', style: TextStyle(color: Colors.white54)));
 
   Widget _sectionHeader(String title, VoidCallback onSeeAll) {
     return Padding(
@@ -722,8 +715,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15),
                 child: CachedNetworkImage(
-                    imageUrl: film.affiche ?? '',
-                    fit: BoxFit.cover),
+                    imageUrl: film.affiche ?? '', fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 8),

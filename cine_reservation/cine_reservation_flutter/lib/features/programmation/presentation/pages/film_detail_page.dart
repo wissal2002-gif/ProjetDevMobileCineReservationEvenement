@@ -8,7 +8,7 @@ import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/router/navigation_state_provider.dart';
 import '../providers/programmation_provider.dart';
-import '../providers/avis_provider.dart'; // ← ajouté
+import '../providers/avis_provider.dart';
 import '../../../reservation/presentation/pages/seat_selection_page.dart';
 
 class FilmDetailPage extends ConsumerWidget {
@@ -75,10 +75,7 @@ class FilmDetailPage extends ConsumerWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        AppColors.background
-                      ],
+                      colors: [Colors.transparent, AppColors.background],
                     ),
                   ),
                 ),
@@ -148,8 +145,8 @@ class FilmDetailPage extends ConsumerWidget {
                 _sectionTitle('SYNOPSIS'),
                 const SizedBox(height: 10),
                 Text(film.synopsis ?? '',
-                    style: const TextStyle(
-                        color: Colors.white70, height: 1.5)),
+                    style:
+                    const TextStyle(color: Colors.white70, height: 1.5)),
                 const SizedBox(height: 30),
 
                 // ─── Réalisateur & casting ───────────────
@@ -176,7 +173,8 @@ class FilmDetailPage extends ConsumerWidget {
                   },
                   loading: () => const CircularProgressIndicator(
                       strokeWidth: 2, color: AppColors.accent),
-                  error: (_, __) => const Text('N/A',
+                  error: (_, __) =>
+                  const Text('N/A',
                       style: TextStyle(color: Colors.white70)),
                 ),
                 const SizedBox(height: 40),
@@ -191,8 +189,7 @@ class FilmDetailPage extends ConsumerWidget {
                 seancesAsync.when(
                   data: (list) => list.isEmpty
                       ? const Text('Aucune seance disponible',
-                      style:
-                      TextStyle(color: AppColors.textLight))
+                      style: TextStyle(color: AppColors.textLight))
                       : Column(
                     children: list
                         .map((s) => _buildSeanceItem(
@@ -235,7 +232,7 @@ class FilmDetailPage extends ConsumerWidget {
   }
 
   // ═══════════════════════════════════════════════════════
-  // SECTION NOTATION — nouveau
+  // SECTION NOTATION
   // ═══════════════════════════════════════════════════════
 
   Widget _buildNotationSection(
@@ -253,13 +250,11 @@ class FilmDetailPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Note moyenne globale ──
           statsAsync.when(
             data: (stats) {
               final moyenne = (stats['moyenne'] as num).toDouble();
               final total = stats['total'] as int;
               return Row(children: [
-                // Étoiles affichage moyenne
                 ...List.generate(5, (i) {
                   if (i < moyenne.floor()) {
                     return const Icon(Icons.star,
@@ -296,12 +291,9 @@ class FilmDetailPage extends ConsumerWidget {
                     strokeWidth: 2, color: AppColors.accent)),
             error: (_, __) => const SizedBox(),
           ),
-
           const SizedBox(height: 16),
           const Divider(color: AppColors.divider),
           const SizedBox(height: 12),
-
-          // ── Notation interactive utilisateur ──
           const Text('VOTRE NOTE',
               style: TextStyle(
                   color: AppColors.accent,
@@ -309,7 +301,6 @@ class FilmDetailPage extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2)),
           const SizedBox(height: 10),
-
           monAvisAsync.when(
             data: (noteActuelle) => _StarRatingWidget(
               filmId: film.id!,
@@ -322,8 +313,8 @@ class FilmDetailPage extends ConsumerWidget {
                     strokeWidth: 2, color: AppColors.accent)),
             error: (_, __) => const Text(
                 'Connectez-vous pour noter ce film',
-                style: TextStyle(
-                    color: AppColors.textLight, fontSize: 12)),
+                style:
+                TextStyle(color: AppColors.textLight, fontSize: 12)),
           ),
         ],
       ),
@@ -331,7 +322,7 @@ class FilmDetailPage extends ConsumerWidget {
   }
 
   // ═══════════════════════════════════════════════════════
-  // SÉANCE ITEM — inchangé
+  // SÉANCE ITEM
   // ═══════════════════════════════════════════════════════
 
   Widget _buildSeanceItem(
@@ -345,11 +336,14 @@ class FilmDetailPage extends ConsumerWidget {
       ) {
     final int salleId = seance.salleId;
     String cinemaName = 'CINEMA';
+    String salleName = '';
     String cinemaLieu = '';
 
     sallesAsync.whenData((salles) {
       try {
         final salle = salles.firstWhere((s) => s.id == seance.salleId);
+        // Nom de salle ajouté depuis la version Imane
+        salleName = ' — ${salle.codeSalle}';
         cinemasAsync.whenData((cinemas) {
           try {
             final cinema =
@@ -384,7 +378,7 @@ class FilmDetailPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(cinemaName.toUpperCase(),
+                    Text('$cinemaName$salleName'.toUpperCase(),
                         style: const TextStyle(
                             color: AppColors.accent,
                             fontWeight: FontWeight.bold,
@@ -443,6 +437,7 @@ class FilmDetailPage extends ConsumerWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
               foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 45),
             ),
             child: Text(
               seance.placesDisponibles <= 0 ? 'COMPLET' : 'RESERVER',
@@ -470,9 +465,7 @@ class FilmDetailPage extends ConsumerWidget {
   );
 
   Widget _p(String l, double p) => Column(children: [
-    Text(l,
-        style: const TextStyle(
-            color: Colors.white38, fontSize: 10)),
+    Text(l, style: const TextStyle(color: Colors.white38, fontSize: 10)),
     Text('${p.toStringAsFixed(0)} MAD',
         style: const TextStyle(
             color: Colors.white, fontWeight: FontWeight.bold)),
@@ -499,8 +492,8 @@ class FilmDetailPage extends ConsumerWidget {
             child: Center(
               child: Text('${opt.nom}\n${opt.prix} MAD',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 12)),
+                  style:
+                  const TextStyle(color: Colors.white, fontSize: 12)),
             ),
           );
         },
@@ -516,24 +509,19 @@ class FilmDetailPage extends ConsumerWidget {
           letterSpacing: 1.2));
 
   Widget _badge(String t, Color c) => Container(
-    padding:
-    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
     decoration: BoxDecoration(
         border: Border.all(color: c),
         borderRadius: BorderRadius.circular(5)),
     child: Text(t,
         style: TextStyle(
-            color: c,
-            fontSize: 10,
-            fontWeight: FontWeight.bold)),
+            color: c, fontSize: 10, fontWeight: FontWeight.bold)),
   );
 
   Widget _info(IconData i, String t) => Row(children: [
     Icon(i, color: AppColors.accent, size: 16),
     const SizedBox(width: 5),
-    Text(t,
-        style: const TextStyle(
-            color: Colors.white70, fontSize: 12)),
+    Text(t, style: const TextStyle(color: Colors.white70, fontSize: 12)),
   ]);
 }
 
@@ -545,10 +533,7 @@ class _StarRatingWidget extends ConsumerStatefulWidget {
   final int filmId;
   final int? noteInitiale;
 
-  const _StarRatingWidget({
-    required this.filmId,
-    this.noteInitiale,
-  });
+  const _StarRatingWidget({required this.filmId, this.noteInitiale});
 
   @override
   ConsumerState<_StarRatingWidget> createState() =>
@@ -595,7 +580,6 @@ class _StarRatingWidgetState extends ConsumerState<_StarRatingWidget> {
       );
 
       if (ok) {
-        // Rafraîchir la note moyenne affichée
         ref.invalidate(statsFilmProvider(widget.filmId));
         ref.invalidate(monAvisProvider(widget.filmId));
       }
@@ -619,8 +603,7 @@ class _StarRatingWidgetState extends ConsumerState<_StarRatingWidget> {
                     width: 32,
                     height: 32,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.accent))
+                        strokeWidth: 2, color: AppColors.accent))
                     : Icon(
                   etoile <= _noteSelectionnee
                       ? Icons.star

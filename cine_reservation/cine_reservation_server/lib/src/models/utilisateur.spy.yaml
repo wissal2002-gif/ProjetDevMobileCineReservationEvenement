@@ -10,7 +10,8 @@ fields:
   dateNaissance: DateTime?
   preferences: List<String>?
   statut: String?, default='actif'
-  role: String?, default='client'
+  role: String?, default='client' # client, super_admin, admin_local, staff
+  cinemaId: int?
   pointsFidelite: int?, default=0
   photoProfil: String?
 
@@ -21,3 +22,5 @@ indexes:
   utilisateur_auth_idx:
     fields: authUserId
     unique: true
+  utilisateur_cinema_idx:
+    fields: cinemaId

@@ -22,6 +22,7 @@ abstract class OptionSupplementaire
     String? categorie,
     bool? disponible,
     this.image,
+    this.cinemaId,
   }) : categorie = categorie ?? 'snack',
        disponible = disponible ?? true;
 
@@ -33,6 +34,7 @@ abstract class OptionSupplementaire
     String? categorie,
     bool? disponible,
     String? image,
+    int? cinemaId,
   }) = _OptionSupplementaireImpl;
 
   factory OptionSupplementaire.fromJson(
@@ -48,6 +50,7 @@ abstract class OptionSupplementaire
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['disponible']),
       image: jsonSerialization['image'] as String?,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
     );
   }
 
@@ -70,6 +73,8 @@ abstract class OptionSupplementaire
 
   String? image;
 
+  int? cinemaId;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -84,6 +89,7 @@ abstract class OptionSupplementaire
     String? categorie,
     bool? disponible,
     String? image,
+    int? cinemaId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -96,6 +102,7 @@ abstract class OptionSupplementaire
       if (categorie != null) 'categorie': categorie,
       if (disponible != null) 'disponible': disponible,
       if (image != null) 'image': image,
+      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 
@@ -110,6 +117,7 @@ abstract class OptionSupplementaire
       if (categorie != null) 'categorie': categorie,
       if (disponible != null) 'disponible': disponible,
       if (image != null) 'image': image,
+      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 
@@ -154,6 +162,7 @@ class _OptionSupplementaireImpl extends OptionSupplementaire {
     String? categorie,
     bool? disponible,
     String? image,
+    int? cinemaId,
   }) : super._(
          id: id,
          nom: nom,
@@ -162,6 +171,7 @@ class _OptionSupplementaireImpl extends OptionSupplementaire {
          categorie: categorie,
          disponible: disponible,
          image: image,
+         cinemaId: cinemaId,
        );
 
   /// Returns a shallow copy of this [OptionSupplementaire]
@@ -176,6 +186,7 @@ class _OptionSupplementaireImpl extends OptionSupplementaire {
     Object? categorie = _Undefined,
     Object? disponible = _Undefined,
     Object? image = _Undefined,
+    Object? cinemaId = _Undefined,
   }) {
     return OptionSupplementaire(
       id: id is int? ? id : this.id,
@@ -185,6 +196,7 @@ class _OptionSupplementaireImpl extends OptionSupplementaire {
       categorie: categorie is String? ? categorie : this.categorie,
       disponible: disponible is bool? ? disponible : this.disponible,
       image: image is String? ? image : this.image,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
     );
   }
 }
@@ -222,6 +234,11 @@ class OptionSupplementaireUpdateTable
     table.image,
     value,
   );
+
+  _i1.ColumnValue<int, int> cinemaId(int? value) => _i1.ColumnValue(
+    table.cinemaId,
+    value,
+  );
 }
 
 class OptionSupplementaireTable extends _i1.Table<int?> {
@@ -254,6 +271,10 @@ class OptionSupplementaireTable extends _i1.Table<int?> {
       'image',
       this,
     );
+    cinemaId = _i1.ColumnInt(
+      'cinemaId',
+      this,
+    );
   }
 
   late final OptionSupplementaireUpdateTable updateTable;
@@ -270,6 +291,8 @@ class OptionSupplementaireTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString image;
 
+  late final _i1.ColumnInt cinemaId;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -279,6 +302,7 @@ class OptionSupplementaireTable extends _i1.Table<int?> {
     categorie,
     disponible,
     image,
+    cinemaId,
   ];
 }
 
