@@ -9,6 +9,71 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+admin:
+  - getDashboardTitle:
+  - getDashboardData:
+  - getDashboardActions:
+  - getAdminStats:
+  - getAllCinemas:
+  - ajouterCinema:
+  - modifierCinema:
+  - supprimerCinema:
+  - getAllSalles:
+  - getSalles:
+  - getSallesByCinema:
+  - ajouterSalle:
+  - modifierSalle:
+  - supprimerSalle:
+  - getSiegesBySalle:
+  - genererSiegesPourSalle:
+  - getAllSeances:
+  - ajouterSeance:
+  - modifierSeance:
+  - supprimerSeance:
+  - getSeancesByFilm:
+  - getSeancesByCinema:
+  - getAllFilms:
+  - ajouterFilm:
+  - modifierFilm:
+  - supprimerFilm:
+  - getAllEvenements:
+  - ajouterEvenement:
+  - modifierEvenement:
+  - supprimerEvenement:
+  - getAllUtilisateurs:
+  - getManagedUsers:
+  - activerUtilisateur:
+  - suspendreUtilisateur:
+  - supprimerUtilisateur:
+  - getHistoriqueUtilisateur:
+  - modifierUtilisateurRole:
+  - getAllReservations:
+  - rembourserReservation:
+  - getSiegesByReservation:
+  - getTauxRemplissageSeance:
+  - getAllDemandesSupport:
+  - repondreDemande:
+  - getAdminFaqs:
+  - ajouterFaq:
+  - modifierFaq:
+  - supprimerFaq:
+  - getAllOptions:
+  - ajouterOption:
+  - modifierOption:
+  - supprimerOption:
+  - getAllCodesPromo:
+  - ajouterCodePromo:
+  - modifierCodePromo:
+  - supprimerCodePromo:
+  - getCodePromoStats:
+  - getGlobalPromoSummary:
+  - getStaffTanger:
+  - ajouterStaff:
+  - traiterRemboursement:
+  - genererSiegesAutomatique:
+  - getMonProfil:
+  - getReservationsDetailed:
+  - getAllClients:
 avis:
   - soumettreAvis:
   - getMonAvis:
@@ -24,6 +89,8 @@ evenements:
   - getEvenements:
   - getEvenementById:
   - searchEvenements:
+faq:
+  - getAllFaqs:
 films:
   - getFilms:
   - getFilmById:
