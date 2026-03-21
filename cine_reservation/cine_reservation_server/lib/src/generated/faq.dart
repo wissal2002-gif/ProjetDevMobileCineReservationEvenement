@@ -40,9 +40,7 @@ abstract class Faq implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       reponse: jsonSerialization['reponse'] as String,
       categorie: jsonSerialization['categorie'] as String?,
       ordre: jsonSerialization['ordre'] as int?,
-      actif: jsonSerialization['actif'] == null
-          ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['actif']),
+      actif: jsonSerialization['actif'] as bool?,
     );
   }
 
@@ -311,7 +309,7 @@ class FaqRepository {
   /// );
   /// ```
   Future<List<Faq>> find(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<FaqTable>? where,
     int? limit,
     int? offset,
@@ -319,8 +317,6 @@ class FaqRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<FaqTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Faq>(
       where: where?.call(Faq.t),
@@ -330,8 +326,6 @@ class FaqRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -353,15 +347,13 @@ class FaqRepository {
   /// );
   /// ```
   Future<Faq?> findFirstRow(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<FaqTable>? where,
     int? offset,
     _i1.OrderByBuilder<FaqTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<FaqTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Faq>(
       where: where?.call(Faq.t),
@@ -370,24 +362,18 @@ class FaqRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Faq] by its [id] or null if no such row exists.
   Future<Faq?> findById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Faq>(
       id,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -397,20 +383,14 @@ class FaqRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
-  ///
-  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
-  /// rows are silently skipped, and only the successfully inserted rows are
-  /// returned.
   Future<List<Faq>> insert(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Faq> rows, {
     _i1.Transaction? transaction,
-    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Faq>(
       rows,
       transaction: transaction,
-      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -418,7 +398,7 @@ class FaqRepository {
   ///
   /// The returned [Faq] will have its `id` field set.
   Future<Faq> insertRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Faq row, {
     _i1.Transaction? transaction,
   }) async {
@@ -434,7 +414,7 @@ class FaqRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Faq>> update(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Faq> rows, {
     _i1.ColumnSelections<FaqTable>? columns,
     _i1.Transaction? transaction,
@@ -450,7 +430,7 @@ class FaqRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Faq> updateRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Faq row, {
     _i1.ColumnSelections<FaqTable>? columns,
     _i1.Transaction? transaction,
@@ -465,7 +445,7 @@ class FaqRepository {
   /// Updates a single [Faq] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Faq?> updateById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     required _i1.ColumnValueListBuilder<FaqUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -480,7 +460,7 @@ class FaqRepository {
   /// Updates all [Faq]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Faq>> updateWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.ColumnValueListBuilder<FaqUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<FaqTable> where,
     int? limit,
@@ -506,7 +486,7 @@ class FaqRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Faq>> delete(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Faq> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -518,7 +498,7 @@ class FaqRepository {
 
   /// Deletes a single [Faq].
   Future<Faq> deleteRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Faq row, {
     _i1.Transaction? transaction,
   }) async {
@@ -530,7 +510,7 @@ class FaqRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Faq>> deleteWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.WhereExpressionBuilder<FaqTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -543,7 +523,7 @@ class FaqRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<FaqTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -551,22 +531,6 @@ class FaqRepository {
     return session.db.count<Faq>(
       where: where?.call(Faq.t),
       limit: limit,
-      transaction: transaction,
-    );
-  }
-
-  /// Acquires row-level locks on [Faq] rows matching the [where] expression.
-  Future<void> lockRows(
-    _i1.DatabaseSession session, {
-    required _i1.WhereExpressionBuilder<FaqTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
-  }) async {
-    return session.db.lockRows<Faq>(
-      where: where(Faq.t),
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

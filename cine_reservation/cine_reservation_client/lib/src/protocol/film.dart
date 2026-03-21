@@ -29,6 +29,7 @@ abstract class Film implements _i1.SerializableModel {
     this.dateDebut,
     this.dateFin,
     String? langue,
+    this.cinemaId,
   }) : noteMoyenne = noteMoyenne ?? 0.0,
        nombreAvis = nombreAvis ?? 0,
        langue = langue ?? 'VF';
@@ -49,6 +50,7 @@ abstract class Film implements _i1.SerializableModel {
     DateTime? dateDebut,
     DateTime? dateFin,
     String? langue,
+    int? cinemaId,
   }) = _FilmImpl;
 
   factory Film.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -72,6 +74,7 @@ abstract class Film implements _i1.SerializableModel {
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['dateFin']),
       langue: jsonSerialization['langue'] as String?,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
     );
   }
 
@@ -108,6 +111,8 @@ abstract class Film implements _i1.SerializableModel {
 
   String? langue;
 
+  int? cinemaId;
+
   /// Returns a shallow copy of this [Film]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -127,6 +132,7 @@ abstract class Film implements _i1.SerializableModel {
     DateTime? dateDebut,
     DateTime? dateFin,
     String? langue,
+    int? cinemaId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -147,6 +153,7 @@ abstract class Film implements _i1.SerializableModel {
       if (dateDebut != null) 'dateDebut': dateDebut?.toJson(),
       if (dateFin != null) 'dateFin': dateFin?.toJson(),
       if (langue != null) 'langue': langue,
+      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 
@@ -175,6 +182,7 @@ class _FilmImpl extends Film {
     DateTime? dateDebut,
     DateTime? dateFin,
     String? langue,
+    int? cinemaId,
   }) : super._(
          id: id,
          titre: titre,
@@ -191,6 +199,7 @@ class _FilmImpl extends Film {
          dateDebut: dateDebut,
          dateFin: dateFin,
          langue: langue,
+         cinemaId: cinemaId,
        );
 
   /// Returns a shallow copy of this [Film]
@@ -213,6 +222,7 @@ class _FilmImpl extends Film {
     Object? dateDebut = _Undefined,
     Object? dateFin = _Undefined,
     Object? langue = _Undefined,
+    Object? cinemaId = _Undefined,
   }) {
     return Film(
       id: id is int? ? id : this.id,
@@ -232,6 +242,7 @@ class _FilmImpl extends Film {
       dateDebut: dateDebut is DateTime? ? dateDebut : this.dateDebut,
       dateFin: dateFin is DateTime? ? dateFin : this.dateFin,
       langue: langue is String? ? langue : this.langue,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
     );
   }
 }

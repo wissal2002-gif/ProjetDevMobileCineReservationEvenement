@@ -361,7 +361,7 @@ class DemandeSupportRepository {
   /// );
   /// ```
   Future<List<DemandeSupport>> find(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<DemandeSupportTable>? where,
     int? limit,
     int? offset,
@@ -369,8 +369,6 @@ class DemandeSupportRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<DemandeSupportTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<DemandeSupport>(
       where: where?.call(DemandeSupport.t),
@@ -380,8 +378,6 @@ class DemandeSupportRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -403,15 +399,13 @@ class DemandeSupportRepository {
   /// );
   /// ```
   Future<DemandeSupport?> findFirstRow(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<DemandeSupportTable>? where,
     int? offset,
     _i1.OrderByBuilder<DemandeSupportTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<DemandeSupportTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<DemandeSupport>(
       where: where?.call(DemandeSupport.t),
@@ -420,24 +414,18 @@ class DemandeSupportRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [DemandeSupport] by its [id] or null if no such row exists.
   Future<DemandeSupport?> findById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<DemandeSupport>(
       id,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -447,20 +435,14 @@ class DemandeSupportRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
-  ///
-  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
-  /// rows are silently skipped, and only the successfully inserted rows are
-  /// returned.
   Future<List<DemandeSupport>> insert(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<DemandeSupport> rows, {
     _i1.Transaction? transaction,
-    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<DemandeSupport>(
       rows,
       transaction: transaction,
-      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -468,7 +450,7 @@ class DemandeSupportRepository {
   ///
   /// The returned [DemandeSupport] will have its `id` field set.
   Future<DemandeSupport> insertRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     DemandeSupport row, {
     _i1.Transaction? transaction,
   }) async {
@@ -484,7 +466,7 @@ class DemandeSupportRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<DemandeSupport>> update(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<DemandeSupport> rows, {
     _i1.ColumnSelections<DemandeSupportTable>? columns,
     _i1.Transaction? transaction,
@@ -500,7 +482,7 @@ class DemandeSupportRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<DemandeSupport> updateRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     DemandeSupport row, {
     _i1.ColumnSelections<DemandeSupportTable>? columns,
     _i1.Transaction? transaction,
@@ -515,7 +497,7 @@ class DemandeSupportRepository {
   /// Updates a single [DemandeSupport] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<DemandeSupport?> updateById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     required _i1.ColumnValueListBuilder<DemandeSupportUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -530,7 +512,7 @@ class DemandeSupportRepository {
   /// Updates all [DemandeSupport]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<DemandeSupport>> updateWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.ColumnValueListBuilder<DemandeSupportUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<DemandeSupportTable> where,
     int? limit,
@@ -556,7 +538,7 @@ class DemandeSupportRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<DemandeSupport>> delete(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<DemandeSupport> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -568,7 +550,7 @@ class DemandeSupportRepository {
 
   /// Deletes a single [DemandeSupport].
   Future<DemandeSupport> deleteRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     DemandeSupport row, {
     _i1.Transaction? transaction,
   }) async {
@@ -580,7 +562,7 @@ class DemandeSupportRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<DemandeSupport>> deleteWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.WhereExpressionBuilder<DemandeSupportTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -593,7 +575,7 @@ class DemandeSupportRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<DemandeSupportTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -601,22 +583,6 @@ class DemandeSupportRepository {
     return session.db.count<DemandeSupport>(
       where: where?.call(DemandeSupport.t),
       limit: limit,
-      transaction: transaction,
-    );
-  }
-
-  /// Acquires row-level locks on [DemandeSupport] rows matching the [where] expression.
-  Future<void> lockRows(
-    _i1.DatabaseSession session, {
-    required _i1.WhereExpressionBuilder<DemandeSupportTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
-  }) async {
-    return session.db.lockRows<DemandeSupport>(
-      where: where(DemandeSupport.t),
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

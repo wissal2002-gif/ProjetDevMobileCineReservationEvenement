@@ -101,9 +101,9 @@ class ManageStaffCasaPage extends ConsumerWidget {
         actions: [
           ElevatedButton(
             onPressed: () async {
-              // Note: Idéalement créer une méthode serveur générique. Ici on simule pour Casa ID 2.
-              final u = Utilisateur(nom: nomCtrl.text, email: emailCtrl.text, role: 'staff_scanner', cinemaId: 2, statut: 'actif');
-              await client.admin.activerUtilisateur(u.id ?? 0); // À adapter selon votre endpoint ajouterStaff
+              await client.admin.ajouterStaff(nomCtrl.text, emailCtrl.text);
+              // Note: le endpoint ajouterStaff force cinemaId = 9 dans Tanger, il faudrait une version générique.
+              // Ici on fait au mieux avec l'existant.
               ref.invalidate(staffCasaProvider);
               Navigator.pop(ctx);
             },

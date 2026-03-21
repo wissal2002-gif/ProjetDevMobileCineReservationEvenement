@@ -40,9 +40,7 @@ abstract class Faq implements _i1.SerializableModel {
       reponse: jsonSerialization['reponse'] as String,
       categorie: jsonSerialization['categorie'] as String?,
       ordre: jsonSerialization['ordre'] as int?,
-      actif: jsonSerialization['actif'] == null
-          ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['actif']),
+      actif: jsonSerialization['actif'] as bool?,
     );
   }
 

@@ -46,9 +46,7 @@ abstract class OptionSupplementaire
       description: jsonSerialization['description'] as String?,
       prix: (jsonSerialization['prix'] as num).toDouble(),
       categorie: jsonSerialization['categorie'] as String?,
-      disponible: jsonSerialization['disponible'] == null
-          ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['disponible']),
+      disponible: jsonSerialization['disponible'] as bool?,
       image: jsonSerialization['image'] as String?,
       cinemaId: jsonSerialization['cinemaId'] as int?,
     );
@@ -362,7 +360,7 @@ class OptionSupplementaireRepository {
   /// );
   /// ```
   Future<List<OptionSupplementaire>> find(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<OptionSupplementaireTable>? where,
     int? limit,
     int? offset,
@@ -370,8 +368,6 @@ class OptionSupplementaireRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<OptionSupplementaireTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<OptionSupplementaire>(
       where: where?.call(OptionSupplementaire.t),
@@ -381,8 +377,6 @@ class OptionSupplementaireRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -404,15 +398,13 @@ class OptionSupplementaireRepository {
   /// );
   /// ```
   Future<OptionSupplementaire?> findFirstRow(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<OptionSupplementaireTable>? where,
     int? offset,
     _i1.OrderByBuilder<OptionSupplementaireTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<OptionSupplementaireTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<OptionSupplementaire>(
       where: where?.call(OptionSupplementaire.t),
@@ -421,24 +413,18 @@ class OptionSupplementaireRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [OptionSupplementaire] by its [id] or null if no such row exists.
   Future<OptionSupplementaire?> findById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<OptionSupplementaire>(
       id,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -448,20 +434,14 @@ class OptionSupplementaireRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
-  ///
-  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
-  /// rows are silently skipped, and only the successfully inserted rows are
-  /// returned.
   Future<List<OptionSupplementaire>> insert(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<OptionSupplementaire> rows, {
     _i1.Transaction? transaction,
-    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<OptionSupplementaire>(
       rows,
       transaction: transaction,
-      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -469,7 +449,7 @@ class OptionSupplementaireRepository {
   ///
   /// The returned [OptionSupplementaire] will have its `id` field set.
   Future<OptionSupplementaire> insertRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     OptionSupplementaire row, {
     _i1.Transaction? transaction,
   }) async {
@@ -485,7 +465,7 @@ class OptionSupplementaireRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<OptionSupplementaire>> update(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<OptionSupplementaire> rows, {
     _i1.ColumnSelections<OptionSupplementaireTable>? columns,
     _i1.Transaction? transaction,
@@ -501,7 +481,7 @@ class OptionSupplementaireRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<OptionSupplementaire> updateRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     OptionSupplementaire row, {
     _i1.ColumnSelections<OptionSupplementaireTable>? columns,
     _i1.Transaction? transaction,
@@ -516,7 +496,7 @@ class OptionSupplementaireRepository {
   /// Updates a single [OptionSupplementaire] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<OptionSupplementaire?> updateById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     required _i1.ColumnValueListBuilder<OptionSupplementaireUpdateTable>
     columnValues,
@@ -532,7 +512,7 @@ class OptionSupplementaireRepository {
   /// Updates all [OptionSupplementaire]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<OptionSupplementaire>> updateWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.ColumnValueListBuilder<OptionSupplementaireUpdateTable>
     columnValues,
     required _i1.WhereExpressionBuilder<OptionSupplementaireTable> where,
@@ -559,7 +539,7 @@ class OptionSupplementaireRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<OptionSupplementaire>> delete(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<OptionSupplementaire> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -571,7 +551,7 @@ class OptionSupplementaireRepository {
 
   /// Deletes a single [OptionSupplementaire].
   Future<OptionSupplementaire> deleteRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     OptionSupplementaire row, {
     _i1.Transaction? transaction,
   }) async {
@@ -583,7 +563,7 @@ class OptionSupplementaireRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<OptionSupplementaire>> deleteWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.WhereExpressionBuilder<OptionSupplementaireTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -596,7 +576,7 @@ class OptionSupplementaireRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<OptionSupplementaireTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -604,22 +584,6 @@ class OptionSupplementaireRepository {
     return session.db.count<OptionSupplementaire>(
       where: where?.call(OptionSupplementaire.t),
       limit: limit,
-      transaction: transaction,
-    );
-  }
-
-  /// Acquires row-level locks on [OptionSupplementaire] rows matching the [where] expression.
-  Future<void> lockRows(
-    _i1.DatabaseSession session, {
-    required _i1.WhereExpressionBuilder<OptionSupplementaireTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
-  }) async {
-    return session.db.lockRows<OptionSupplementaire>(
-      where: where(OptionSupplementaire.t),
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

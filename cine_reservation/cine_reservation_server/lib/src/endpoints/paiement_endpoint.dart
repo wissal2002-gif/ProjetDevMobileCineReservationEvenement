@@ -15,10 +15,19 @@ class PaiementEndpoint extends Endpoint {
       ) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return null;
-    final utilisateurId = int.tryParse(authInfo.userIdentifier) ?? 0;
+
+    // ✅ FIX: On récupère l'utilisateur réel en base de données via son identifiant d'auth
+    final user = await Utilisateur.db.findFirstRow(session,
+        where: (t) => t.authUserId.equals(authInfo.userIdentifier));
+    
+    if (user == null || user.id == null) {
+      print('❌ Erreur Paiement: Utilisateur non trouvé en base.');
+      return null;
+    }
 
     final reservation = await Reservation.db.findById(session, reservationId);
-    if (reservation == null || reservation.utilisateurId != utilisateurId) {
+    if (reservation == null || reservation.utilisateurId != user.id) {
+      print('❌ Erreur Paiement: La réservation n\'appartient pas à cet utilisateur.');
       return null;
     }
 
@@ -48,31 +57,11 @@ class PaiementEndpoint extends Endpoint {
     await Billet.db.insertRow(session, billet);
 
     // ── Points fidélité (1pt / 10 MAD) ──────────────────────────────────
-    final points = (montant / 10).floor();
-    if (points > 0) {
-      final utilisateurs = await Utilisateur.db.find(
-        session,
-        where: (u) => u.authUserId.equals(authInfo.userIdentifier),
-      );
-      if (utilisateurs.isNotEmpty) {
-        final u = utilisateurs.first;
-        u.pointsFidelite = (u.pointsFidelite ?? 0) + points;
-        await Utilisateur.db.updateRow(session, u);
-      }
-    }
+    user.pointsFidelite = (user.pointsFidelite ?? 0) + (montant / 10).floor();
+    await Utilisateur.db.updateRow(session, user);
 
     // ── Envoyer email de confirmation ────────────────────────────────────
     try {
-      // Récupérer l'utilisateur pour son email et nom
-      final utilisateurs = await Utilisateur.db.find(
-        session,
-        where: (u) => u.authUserId.equals(authInfo.userIdentifier),
-        limit: 1,
-      );
-
-      if (utilisateurs.isNotEmpty) {
-        final utilisateur = utilisateurs.first;
-
         // Infos séance ou événement
         String titreFilm = 'Votre réservation';
         String dateSeance = DateFormat('dd/MM/yyyy HH:mm')
@@ -80,58 +69,29 @@ class PaiementEndpoint extends Endpoint {
         String cinema = 'CinéEvent';
 
         if (reservation.seanceId != null) {
-          final seances = await Seance.db.find(
-            session,
-            where: (s) => s.id.equals(reservation.seanceId!),
-            limit: 1,
-          );
-          if (seances.isNotEmpty) {
-            final seance = seances.first;
-            dateSeance = DateFormat('dd/MM/yyyy HH:mm')
-                .format(seance.dateHeure.toLocal());
-
-            // Récupérer le film
-            final films = await Film.db.find(
-              session,
-              where: (f) => f.id.equals(seance.filmId),
-              limit: 1,
-            );
-            if (films.isNotEmpty) titreFilm = films.first.titre;
-
-            // Récupérer la salle et le cinéma
-            final salles = await Salle.db.find(
-              session,
-              where: (s) => s.id.equals(seance.salleId),
-              limit: 1,
-            );
-            if (salles.isNotEmpty) {
-              final cinemas = await Cinema.db.find(
-                session,
-                where: (c) => c.id.equals(salles.first.cinemaId),
-                limit: 1,
-              );
-              if (cinemas.isNotEmpty) cinema = cinemas.first.nom;
+          final seance = await Seance.db.findById(session, reservation.seanceId!);
+          if (seance != null) {
+            dateSeance = DateFormat('dd/MM/yyyy HH:mm').format(seance.dateHeure.toLocal());
+            final film = await Film.db.findById(session, seance.filmId);
+            if (film != null) titreFilm = film.titre;
+            final salle = await Salle.db.findById(session, seance.salleId);
+            if (salle != null) {
+              final cin = await Cinema.db.findById(session, salle.cinemaId);
+              if (cin != null) cinema = cin.nom;
             }
           }
         } else if (reservation.evenementId != null) {
-          final evenements = await Evenement.db.find(
-            session,
-            where: (e) => e.id.equals(reservation.evenementId!),
-            limit: 1,
-          );
-          if (evenements.isNotEmpty) {
-            final ev = evenements.first;
-            titreFilm = ev.titre;
-            dateSeance = DateFormat('dd/MM/yyyy HH:mm')
-                .format(ev.dateDebut.toLocal());
-            cinema = ev.lieu ?? ev.ville ?? 'CinéEvent';
+          final evenement = await Evenement.db.findById(session, reservation.evenementId!);
+          if (evenement != null) {
+            titreFilm = evenement.titre;
+            dateSeance = DateFormat('dd/MM/yyyy HH:mm').format(evenement.dateDebut.toLocal());
+            cinema = evenement.lieu ?? evenement.ville ?? 'CinéEvent';
           }
         }
 
-        // Envoyer l'email
         await EmailService.sendReservationConfirmation(
-          toEmail: utilisateur.email,
-          nomUtilisateur: utilisateur.nom,
+          toEmail: user.email,
+          nomUtilisateur: user.nom,
           titreFilm: titreFilm,
           dateSeance: dateSeance,
           cinema: cinema,
@@ -140,9 +100,7 @@ class PaiementEndpoint extends Endpoint {
           referenceReservation: '#$reservationId',
           methodePaiement: methode,
         );
-      }
     } catch (e) {
-      // Email non bloquant — la réservation reste valide
       print('Erreur envoi email confirmation: $e');
     }
 
@@ -156,10 +114,13 @@ class PaiementEndpoint extends Endpoint {
       ) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return false;
-    final utilisateurId = int.tryParse(authInfo.userIdentifier) ?? 0;
+    
+    final user = await Utilisateur.db.findFirstRow(session,
+        where: (t) => t.authUserId.equals(authInfo.userIdentifier));
+    if (user == null) return false;
 
     final reservation = await Reservation.db.findById(session, reservationId);
-    if (reservation == null || reservation.utilisateurId != utilisateurId) {
+    if (reservation == null || reservation.utilisateurId != user.id) {
       return false;
     }
 

@@ -29,6 +29,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     this.dateDebut,
     this.dateFin,
     String? langue,
+    this.cinemaId,
   }) : noteMoyenne = noteMoyenne ?? 0.0,
        nombreAvis = nombreAvis ?? 0,
        langue = langue ?? 'VF';
@@ -49,6 +50,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     DateTime? dateDebut,
     DateTime? dateFin,
     String? langue,
+    int? cinemaId,
   }) = _FilmImpl;
 
   factory Film.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -72,6 +74,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['dateFin']),
       langue: jsonSerialization['langue'] as String?,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
     );
   }
 
@@ -110,6 +113,8 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   String? langue;
 
+  int? cinemaId;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -132,6 +137,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     DateTime? dateDebut,
     DateTime? dateFin,
     String? langue,
+    int? cinemaId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -152,6 +158,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (dateDebut != null) 'dateDebut': dateDebut?.toJson(),
       if (dateFin != null) 'dateFin': dateFin?.toJson(),
       if (langue != null) 'langue': langue,
+      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 
@@ -174,6 +181,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (dateDebut != null) 'dateDebut': dateDebut?.toJson(),
       if (dateFin != null) 'dateFin': dateFin?.toJson(),
       if (langue != null) 'langue': langue,
+      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 
@@ -226,6 +234,7 @@ class _FilmImpl extends Film {
     DateTime? dateDebut,
     DateTime? dateFin,
     String? langue,
+    int? cinemaId,
   }) : super._(
          id: id,
          titre: titre,
@@ -242,6 +251,7 @@ class _FilmImpl extends Film {
          dateDebut: dateDebut,
          dateFin: dateFin,
          langue: langue,
+         cinemaId: cinemaId,
        );
 
   /// Returns a shallow copy of this [Film]
@@ -264,6 +274,7 @@ class _FilmImpl extends Film {
     Object? dateDebut = _Undefined,
     Object? dateFin = _Undefined,
     Object? langue = _Undefined,
+    Object? cinemaId = _Undefined,
   }) {
     return Film(
       id: id is int? ? id : this.id,
@@ -283,6 +294,7 @@ class _FilmImpl extends Film {
       dateDebut: dateDebut is DateTime? ? dateDebut : this.dateDebut,
       dateFin: dateFin is DateTime? ? dateFin : this.dateFin,
       langue: langue is String? ? langue : this.langue,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
     );
   }
 }
@@ -363,6 +375,11 @@ class FilmUpdateTable extends _i1.UpdateTable<FilmTable> {
     table.langue,
     value,
   );
+
+  _i1.ColumnValue<int, int> cinemaId(int? value) => _i1.ColumnValue(
+    table.cinemaId,
+    value,
+  );
 }
 
 class FilmTable extends _i1.Table<int?> {
@@ -427,6 +444,10 @@ class FilmTable extends _i1.Table<int?> {
       this,
       hasDefault: true,
     );
+    cinemaId = _i1.ColumnInt(
+      'cinemaId',
+      this,
+    );
   }
 
   late final FilmUpdateTable updateTable;
@@ -459,6 +480,8 @@ class FilmTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString langue;
 
+  late final _i1.ColumnInt cinemaId;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -476,6 +499,7 @@ class FilmTable extends _i1.Table<int?> {
     dateDebut,
     dateFin,
     langue,
+    cinemaId,
   ];
 }
 
@@ -535,7 +559,7 @@ class FilmRepository {
   /// );
   /// ```
   Future<List<Film>> find(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<FilmTable>? where,
     int? limit,
     int? offset,
@@ -543,8 +567,6 @@ class FilmRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<FilmTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Film>(
       where: where?.call(Film.t),
@@ -554,8 +576,6 @@ class FilmRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -577,15 +597,13 @@ class FilmRepository {
   /// );
   /// ```
   Future<Film?> findFirstRow(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<FilmTable>? where,
     int? offset,
     _i1.OrderByBuilder<FilmTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<FilmTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Film>(
       where: where?.call(Film.t),
@@ -594,24 +612,18 @@ class FilmRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Film] by its [id] or null if no such row exists.
   Future<Film?> findById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Film>(
       id,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -621,20 +633,14 @@ class FilmRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
-  ///
-  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
-  /// rows are silently skipped, and only the successfully inserted rows are
-  /// returned.
   Future<List<Film>> insert(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Film> rows, {
     _i1.Transaction? transaction,
-    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Film>(
       rows,
       transaction: transaction,
-      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -642,7 +648,7 @@ class FilmRepository {
   ///
   /// The returned [Film] will have its `id` field set.
   Future<Film> insertRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Film row, {
     _i1.Transaction? transaction,
   }) async {
@@ -658,7 +664,7 @@ class FilmRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Film>> update(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Film> rows, {
     _i1.ColumnSelections<FilmTable>? columns,
     _i1.Transaction? transaction,
@@ -674,7 +680,7 @@ class FilmRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Film> updateRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Film row, {
     _i1.ColumnSelections<FilmTable>? columns,
     _i1.Transaction? transaction,
@@ -689,7 +695,7 @@ class FilmRepository {
   /// Updates a single [Film] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Film?> updateById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     required _i1.ColumnValueListBuilder<FilmUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -704,7 +710,7 @@ class FilmRepository {
   /// Updates all [Film]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Film>> updateWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.ColumnValueListBuilder<FilmUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<FilmTable> where,
     int? limit,
@@ -730,7 +736,7 @@ class FilmRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Film>> delete(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Film> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -742,7 +748,7 @@ class FilmRepository {
 
   /// Deletes a single [Film].
   Future<Film> deleteRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Film row, {
     _i1.Transaction? transaction,
   }) async {
@@ -754,7 +760,7 @@ class FilmRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Film>> deleteWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.WhereExpressionBuilder<FilmTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -767,7 +773,7 @@ class FilmRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<FilmTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -775,22 +781,6 @@ class FilmRepository {
     return session.db.count<Film>(
       where: where?.call(Film.t),
       limit: limit,
-      transaction: transaction,
-    );
-  }
-
-  /// Acquires row-level locks on [Film] rows matching the [where] expression.
-  Future<void> lockRows(
-    _i1.DatabaseSession session, {
-    required _i1.WhereExpressionBuilder<FilmTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
-  }) async {
-    return session.db.lockRows<Film>(
-      where: where(Film.t),
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

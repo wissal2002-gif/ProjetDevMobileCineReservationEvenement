@@ -15,12 +15,18 @@ class ReservationEndpoint extends Endpoint {
       }) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return null;
-    final utilisateurId = int.tryParse(authInfo.userIdentifier) ?? 0;
+
+    // ✅ FIX: On récupère l'utilisateur réel pour avoir son ID (int)
+    final user = await Utilisateur.db.findFirstRow(session,
+        where: (t) => t.authUserId.equals(authInfo.userIdentifier));
+    
+    if (user == null || user.id == null) return null;
+
     final reservation = Reservation(
-      utilisateurId: utilisateurId,
+      utilisateurId: user.id!, // ✅ On utilise le vrai ID de la base de données
       seanceId: seanceId,
       evenementId: evenementId,
-      typeReservation: typeReservation ?? 'seance',
+      typeReservation: typeReservation ?? 'cinema',
       dateReservation: DateTime.now().toUtc(),
       montantTotal: montantTotal,
       montantApresReduction: montantTotal,
@@ -33,10 +39,14 @@ class ReservationEndpoint extends Endpoint {
   Future<List<Reservation>> getMesReservations(Session session) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return [];
-    final utilisateurId = int.tryParse(authInfo.userIdentifier) ?? 0;
+    
+    final user = await Utilisateur.db.findFirstRow(session,
+        where: (t) => t.authUserId.equals(authInfo.userIdentifier));
+    if (user == null) return [];
+
     return await Reservation.db.find(
       session,
-      where: (r) => r.utilisateurId.equals(utilisateurId),
+      where: (r) => r.utilisateurId.equals(user.id!),
       orderBy: (r) => r.dateReservation,
       orderDescending: true,
     );
@@ -45,9 +55,14 @@ class ReservationEndpoint extends Endpoint {
   Future<bool> annulerReservation(Session session, int reservationId) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return false;
-    final utilisateurId = int.tryParse(authInfo.userIdentifier) ?? 0;
+    
+    final user = await Utilisateur.db.findFirstRow(session,
+        where: (t) => t.authUserId.equals(authInfo.userIdentifier));
+    if (user == null) return false;
+
     final reservation = await Reservation.db.findById(session, reservationId);
-    if (reservation == null || reservation.utilisateurId != utilisateurId) return false;
+    if (reservation == null || reservation.utilisateurId != user.id) return false;
+
     reservation.statut = 'annule';
     await Reservation.db.updateRow(session, reservation);
     return true;

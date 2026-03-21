@@ -11,6 +11,7 @@ class ManageFilmsCasaPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filmsAsync = ref.watch(prog.filmsProvider);
+    const int casaCinemaId = 2;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0A08),
@@ -36,14 +37,19 @@ class ManageFilmsCasaPage extends ConsumerWidget {
                     const SizedBox(height: 40),
                     Expanded(
                       child: filmsAsync.when(
-                        data: (films) => films.isEmpty
-                            ? _buildEmptyState()
-                            : ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: films.length,
-                          itemBuilder: (context, index) =>
-                              _buildFilmListItem(context, ref, films[index]),
-                        ),
+                        data: (films) {
+                          // ✅ FILTRAGE : Uniquement les films de Casa (ID 2)
+                          final casaFilms = films.where((f) => f.cinemaId == casaCinemaId).toList();
+                          
+                          if (casaFilms.isEmpty) return _buildEmptyState();
+                          
+                          return ListView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: casaFilms.length,
+                            itemBuilder: (context, index) =>
+                                _buildFilmListItem(context, ref, casaFilms[index]),
+                          );
+                        },
                         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF8B7355))),
                         error: (e, _) => Center(child: Text("Erreur : $e", style: const TextStyle(color: Colors.redAccent))),
                       ),
@@ -62,8 +68,8 @@ class ManageFilmsCasaPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("GESTION DES FILMS", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-        Text("Espace Casablanca • Contrôle du catalogue", style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14)),
+        const Text("GESTION DES FILMS - CASA", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+        Text("Catalogue exclusif Casablanca", style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14)),
       ],
     );
   }
@@ -100,43 +106,90 @@ class ManageFilmsCasaPage extends ConsumerWidget {
   void _showFilmDialog(BuildContext context, WidgetRef ref, {Film? film}) {
     final bool isEdit = film != null;
     final titreCtrl = TextEditingController(text: film?.titre);
+    final synopsisCtrl = TextEditingController(text: film?.synopsis);
     final genreCtrl = TextEditingController(text: film?.genre);
+    final dureeCtrl = TextEditingController(text: film?.duree?.toString());
+    final realisateurCtrl = TextEditingController(text: film?.realisateur);
+    final castingCtrl = TextEditingController(text: film?.casting);
     final afficheCtrl = TextEditingController(text: film?.affiche);
+    final bandeAnnonceCtrl = TextEditingController(text: film?.bandeAnnonce);
+    final classificationCtrl = TextEditingController(text: film?.classification);
+    final langueCtrl = TextEditingController(text: film?.langue ?? "VF");
+
+    DateTime dateDebut = film?.dateDebut ?? DateTime.now();
+    DateTime dateFin = film?.dateFin ?? DateTime.now().add(const Duration(days: 30));
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: Text(isEdit ? "MODIFIER LE FILM" : "AJOUTER UN FILM", style: const TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: titreCtrl, decoration: const InputDecoration(labelText: "Titre"), style: const TextStyle(color: Colors.white)),
-            TextField(controller: genreCtrl, decoration: const InputDecoration(labelText: "Genre"), style: const TextStyle(color: Colors.white)),
-            TextField(controller: afficheCtrl, decoration: const InputDecoration(labelText: "URL Affiche"), style: const TextStyle(color: Colors.white)),
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1A1A),
+          title: Text(isEdit ? "MODIFIER LE FILM" : "AJOUTER UN FILM (CASA)", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _field(titreCtrl, "Titre du film *"),
+                  _field(synopsisCtrl, "Synopsis (Résumé)", maxLines: 3),
+                  Row(
+                    children: [
+                      Expanded(child: _field(genreCtrl, "Genre")),
+                      const SizedBox(width: 10),
+                      Expanded(child: _field(dureeCtrl, "Durée (min)", isNumber: true)),
+                    ],
+                  ),
+                  _field(realisateurCtrl, "Réalisateur"),
+                  _field(castingCtrl, "Casting"),
+                  _field(afficheCtrl, "URL de l'affiche"),
+                  _field(bandeAnnonceCtrl, "URL Bande Annonce"),
+                  Row(
+                    children: [
+                      Expanded(child: _field(classificationCtrl, "Classification")),
+                      const SizedBox(width: 10),
+                      Expanded(child: _field(langueCtrl, "Langue")),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _datePicker(context, "Date de début", dateDebut, (picked) => setState(() => dateDebut = picked)),
+                  _datePicker(context, "Date de fin", dateFin, (picked) => setState(() => dateFin = picked)),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("ANNULER")),
+            ElevatedButton(
+              onPressed: () async {
+                final newFilm = Film(
+                  id: film?.id,
+                  titre: titreCtrl.text,
+                  synopsis: synopsisCtrl.text,
+                  genre: genreCtrl.text,
+                  duree: int.tryParse(dureeCtrl.text) ?? 120,
+                  realisateur: realisateurCtrl.text,
+                  casting: castingCtrl.text,
+                  affiche: afficheCtrl.text,
+                  bandeAnnonce: bandeAnnonceCtrl.text,
+                  classification: classificationCtrl.text,
+                  langue: langueCtrl.text,
+                  dateDebut: dateDebut,
+                  dateFin: dateFin,
+                  cinemaId: 2, // ✅ OBLIGATOIRE : Lié à Casa
+                  noteMoyenne: film?.noteMoyenne ?? 0.0,
+                  nombreAvis: film?.nombreAvis ?? 0,
+                );
+                if (isEdit) await client.admin.modifierFilm(newFilm); else await client.admin.ajouterFilm(newFilm);
+                ref.invalidate(prog.filmsProvider);
+                Navigator.pop(ctx);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B7355)),
+              child: const Text("ENREGISTRER"),
+            )
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("ANNULER")),
-          ElevatedButton(
-            onPressed: () async {
-              final newFilm = Film(
-                id: film?.id,
-                titre: titreCtrl.text,
-                genre: genreCtrl.text,
-                affiche: afficheCtrl.text,
-                dateDebut: film?.dateDebut ?? DateTime.now(),
-                dateFin: film?.dateFin ?? DateTime.now().add(const Duration(days: 30)),
-                noteMoyenne: 0,
-                nombreAvis: 0,
-              );
-              if (isEdit) await client.admin.modifierFilm(newFilm); else await client.admin.ajouterFilm(newFilm);
-              ref.invalidate(prog.filmsProvider);
-              Navigator.pop(ctx);
-            },
-            child: const Text("ENREGISTRER"),
-          )
-        ],
       ),
     );
   }
@@ -158,5 +211,30 @@ class ManageFilmsCasaPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() => const Center(child: Text("Aucun film à Casablanca", style: TextStyle(color: Colors.white24)));
+  Widget _field(TextEditingController ctrl, String label, {bool isNumber = false, int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextField(
+        controller: ctrl,
+        maxLines: maxLines,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(labelText: label, labelStyle: const TextStyle(color: Colors.white38), filled: true, fillColor: Colors.white.withOpacity(0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+      ),
+    );
+  }
+
+  Widget _datePicker(BuildContext context, String label, DateTime current, Function(DateTime) onPicked) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text("$label : ${current.day}/${current.month}/${current.year}", style: const TextStyle(color: Colors.white70, fontSize: 14)),
+      trailing: const Icon(Icons.calendar_month, color: Color(0xFF8B7355)),
+      onTap: () async {
+        final picked = await showDatePicker(context: context, initialDate: current, firstDate: DateTime(2000), lastDate: DateTime(2100));
+        if (picked != null) onPicked(picked);
+      },
+    );
+  }
+
+  Widget _buildEmptyState() => const Center(child: Text("Aucun film exclusif à Casablanca", style: TextStyle(color: Colors.white24)));
 }

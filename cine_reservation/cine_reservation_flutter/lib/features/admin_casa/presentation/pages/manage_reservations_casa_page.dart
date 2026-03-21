@@ -171,7 +171,35 @@ class ManageReservationsCasaPage extends ConsumerWidget {
   );
 
   void _handleRefund(BuildContext context, WidgetRef ref, Reservation res) async {
-    await client.admin.rembourserReservation(res.id!, res.montantTotal);
-    ref.invalidate(allReservationsProvider);
+    final ctrlPrice = TextEditingController(text: res.montantTotal.toString());
+    final ctrlReason = TextEditingController(text: "Annulation de séance");
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text("Confirmer le remboursement", style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: ctrlPrice, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Montant à rembourser"), style: const TextStyle(color: Colors.white)),
+            const SizedBox(height: 10),
+            TextField(controller: ctrlReason, decoration: const InputDecoration(labelText: "Raison du remboursement"), style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("ANNULER")),
+          ElevatedButton(
+            onPressed: () async {
+              await client.admin.rembourserReservation(res.id!, double.parse(ctrlPrice.text), ctrlReason.text);
+              ref.invalidate(allReservationsProvider);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Remboursement effectué et e-mail envoyé !")));
+            },
+            child: const Text("VALIDER"),
+          )
+        ],
+      ),
+    );
   }
 }

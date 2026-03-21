@@ -17,7 +17,7 @@ class ManageSeancesCasaPage extends ConsumerStatefulWidget {
 
 class _ManageSeancesCasaPageState extends ConsumerState<ManageSeancesCasaPage> {
   final _dateFormat = DateFormat('dd/MM/yyyy HH:mm');
-  final int casaCinemaId = 2;
+  final int casaCinemaId = 2; // ✅ FIX : ID Correct pour Casa
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +51,7 @@ class _ManageSeancesCasaPageState extends ConsumerState<ManageSeancesCasaPage> {
                         data: (films) => sallesAsync.when(
                           data: (salles) {
                             final salleIds = salles.map((s) => s.id).toSet();
+                            // ✅ FILTRAGE STRICT : Uniquement les séances des salles de Casa
                             final casaSeances = seances.where((s) => salleIds.contains(s.salleId)).toList();
 
                             if (casaSeances.isEmpty) {
@@ -146,6 +147,7 @@ class _ManageSeancesCasaPageState extends ConsumerState<ManageSeancesCasaPage> {
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text("Erreur films: $e"),
             ),
+            // ✅ FIX : Utiliser casaCinemaId pour ne charger QUE les salles de Casa
             ref.watch(sallesProvider(casaCinemaId)).when(
               data: (salles) => DropdownButtonFormField<int>(
                 value: selectedSalleId,
