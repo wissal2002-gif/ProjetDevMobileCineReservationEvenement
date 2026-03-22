@@ -75,6 +75,15 @@ import '../../features/admin_events/presentation/pages/manage_reservations_event
 import '../../features/admin_events/presentation/pages/revenues_events_page.dart';
 import '../../features/profil/presentation/pages/favoris_page.dart';
 // ...
+// Admin Casablanca
+import '../../features/admin_casa/presentation/pages/casa_dashboard_page.dart';
+import '../../features/admin_casa/presentation/pages/manage_films_casa_page.dart';
+import '../../features/admin_casa/presentation/pages/manage_seances_casa_page.dart';
+import '../../features/admin_casa/presentation/pages/manage_reservations_casa_page.dart';
+import '../../features/admin_casa/presentation/pages/revenues_casa_page.dart';
+import '../../features/admin_casa/presentation/pages/manage_seats_casa_page.dart';
+import '../../features/admin_casa/presentation/pages/manage_options_casa_page.dart';
+import '../../features/admin_casa/presentation/pages/manage_promos_casa_page.dart';
 
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -200,6 +209,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/tanger/salles', builder: (context, state) => const ManageCinemasPage(cinemaId: 9)),
       GoRoute(path: '/admin/tanger/sieges', builder: (context, state) => const ManageSeatsTangerPage()),
       GoRoute(path: '/admin/tanger/revenus', builder: (_, __) => const RevenuesTangerPage()),
+
+
+      // ─── ADMIN CASABLANCA ─────────────────────────────
+      GoRoute(path: '/admin/casa', builder: (context, state) => const CasaDashboardPage()),
+      GoRoute(path: '/admin/casa/films', builder: (context, state) => const ManageFilmsCasaPage()),
+      GoRoute(path: '/admin/casa/seances', builder: (context, state) => const ManageSeancesCasaPage()),
+      GoRoute(path: '/admin/casa/reservations', builder: (context, state) => const ManageReservationsCasaPage()),
+      GoRoute(path: '/admin/casa/revenus', builder: (context, state) => const RevenuesCasaPage()),
+      GoRoute(path: '/admin/casa/salles', builder: (context, state) => const ManageCinemasPage(cinemaId: 2)),
+      GoRoute(path: '/admin/casa/sieges', builder: (context, state) => const ManageSeatsCasaPage()),
+      GoRoute(path: '/admin/casa/options', builder: (context, state) => const ManageOptionsCasaPage()),
+      GoRoute(path: '/admin/casa/promos', builder: (context, state) => const ManagePromosCasaPage()),
 
       // ─── ADMIN ÉVÉNEMENTS ─────────────────────────────
       GoRoute(path: '/admin/events', builder: (context, state) => const EventsDashboardPage()),
