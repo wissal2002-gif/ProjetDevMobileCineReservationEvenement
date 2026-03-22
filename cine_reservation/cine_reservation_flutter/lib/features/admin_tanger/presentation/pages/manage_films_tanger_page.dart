@@ -12,10 +12,10 @@ class ManageFilmsTangerPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filmsAsync = ref.watch(prog.filmsProvider);
+    const int tangerCinemaId = 9;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0A08),
-      // Bouton avec HeroTag unique pour éviter le crash
       floatingActionButton: FloatingActionButton(
         heroTag: "btn_tanger_films_add",
         backgroundColor: const Color(0xFF8B7355),
@@ -25,13 +25,11 @@ class ManageFilmsTangerPage extends ConsumerWidget {
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Sidebar avec largeur fixe pour Chrome
           const SizedBox(
             width: 280,
             child: TangerSidebar(),
           ),
 
-          // Contenu principal
           Expanded(
             child: Container(
               color: const Color(0xFF0D0A08),
@@ -44,14 +42,19 @@ class ManageFilmsTangerPage extends ConsumerWidget {
                     const SizedBox(height: 40),
                     Expanded(
                       child: filmsAsync.when(
-                        data: (films) => films.isEmpty
-                            ? _buildEmptyState()
-                            : ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: films.length,
-                          itemBuilder: (context, index) =>
-                              _buildFilmListItem(context, ref, films[index]),
-                        ),
+                        data: (films) {
+                          // ✅ FILTRAGE : Uniquement les films de Tanger (ID 9)
+                          final filteredFilms = films.where((f) => f.cinemaId == tangerCinemaId).toList();
+                          
+                          if (filteredFilms.isEmpty) return _buildEmptyState();
+                          
+                          return ListView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: filteredFilms.length,
+                            itemBuilder: (context, index) =>
+                                _buildFilmListItem(context, ref, filteredFilms[index]),
+                          );
+                        },
                         loading: () => const Center(
                             child: CircularProgressIndicator(color: Color(0xFF8B7355))),
                         error: (e, _) => Center(
@@ -78,7 +81,7 @@ class ManageFilmsTangerPage extends ConsumerWidget {
                 color: Colors.white,
                 fontSize: 32,
                 fontWeight: FontWeight.bold)),
-        Text("Espace Tanger • Contrôle du catalogue",
+        Text("Espace Tanger • Contrôle du catalogue local",
             style: TextStyle(
                 color: Colors.white.withOpacity(0.5), fontSize: 14)),
       ],
@@ -164,7 +167,7 @@ class ManageFilmsTangerPage extends ConsumerWidget {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           backgroundColor: const Color(0xFF1A1A1A),
-          title: Text(isEdit ? "MODIFIER LE FILM" : "AJOUTER UN FILM COMPLET", 
+          title: Text(isEdit ? "MODIFIER LE FILM" : "AJOUTER UN FILM (TANGER)", 
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: 500,
@@ -213,7 +216,7 @@ class ManageFilmsTangerPage extends ConsumerWidget {
                 if (titreCtrl.text.isEmpty) return;
 
                 final updatedFilm = Film(
-                  id: film?.id, // Important pour la modification
+                  id: film?.id,
                   titre: titreCtrl.text,
                   synopsis: synopsisCtrl.text,
                   genre: genreCtrl.text,
@@ -226,6 +229,7 @@ class ManageFilmsTangerPage extends ConsumerWidget {
                   langue: langueCtrl.text,
                   dateDebut: dateDebut,
                   dateFin: dateFin,
+                  cinemaId: 9, // ✅ OBLIGATOIRE : Lié à Tanger
                   noteMoyenne: film?.noteMoyenne ?? 0.0,
                   nombreAvis: film?.nombreAvis ?? 0,
                 );

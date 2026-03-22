@@ -25,6 +25,9 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
     final reservationsAsync = ref.watch(allReservationsProvider);
     final supportAsync      = ref.watch(allDemandesSupportProvider);
 
+    // ✅ FIX : On vérifie si les données essentielles sont prêtes avant de construire les cartes de stats
+    final bool essentialDataLoading = filmsAsync.isLoading || seancesAsync.isLoading || sallesAsync.isLoading;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
@@ -39,7 +42,12 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 36),
-                  _buildStatCards(filmsAsync, seancesAsync, sallesAsync, reservationsAsync),
+                  
+                  // ✅ FIX : Affichage conditionnel des stats
+                  essentialDataLoading 
+                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF8B7355)))
+                    : _buildStatCards(filmsAsync, seancesAsync, sallesAsync, reservationsAsync),
+                  
                   const SizedBox(height: 28),
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Expanded(
@@ -127,12 +135,15 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
       AsyncValue<List<Salle>> sallesAsync,
       AsyncValue<List<Reservation>> reservationsAsync,
       ) {
+    // ✅ FIX : On s'assure d'avoir des listes vides au lieu de crash si null
     final films        = filmsAsync.value ?? [];
-    final salles       = (sallesAsync.value ?? [])
-        .where((s) => s.cinemaId == tangerCinemaId).toList();
+    final allSalles    = sallesAsync.value ?? [];
+    final salles       = allSalles.where((s) => s.cinemaId == tangerCinemaId).toList();
     final salleIds     = salles.map((s) => s.id).toSet();
-    final seances      = (seancesAsync.value ?? [])
-        .where((s) => salleIds.contains(s.salleId)).toList();
+    
+    final allSeances   = seancesAsync.value ?? [];
+    final seances      = allSeances.where((s) => salleIds.contains(s.salleId)).toList();
+    
     final reservations = reservationsAsync.value ?? [];
     final revenu       = reservations
         .where((r) => r.statut == 'confirme')
@@ -152,7 +163,7 @@ class _TangerDashboardPageState extends ConsumerState<TangerDashboardPage> {
           Colors.purpleAccent, "/admin/tanger/salles")),
       const SizedBox(width: 14),
       Expanded(child: _statCard("REVENUS", "${revenu.toStringAsFixed(0)} DH",
-          Icons.account_balance_wallet_rounded, Colors.amber, "/admin/tanger/reservations")),
+          Icons.account_balance_wallet_rounded, Colors.amber, "/admin/tanger/revenus")),
     ]);
   }
 
