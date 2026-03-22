@@ -29,6 +29,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     this.dateDebut,
     this.dateFin,
     String? langue,
+    this.cinemaId,
   }) : noteMoyenne = noteMoyenne ?? 0.0,
        nombreAvis = nombreAvis ?? 0,
        langue = langue ?? 'VF';
@@ -49,6 +50,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     DateTime? dateDebut,
     DateTime? dateFin,
     String? langue,
+    int? cinemaId,
   }) = _FilmImpl;
 
   factory Film.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -72,6 +74,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['dateFin']),
       langue: jsonSerialization['langue'] as String?,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
     );
   }
 
@@ -110,6 +113,8 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   String? langue;
 
+  int? cinemaId;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -132,6 +137,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     DateTime? dateDebut,
     DateTime? dateFin,
     String? langue,
+    int? cinemaId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -152,6 +158,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (dateDebut != null) 'dateDebut': dateDebut?.toJson(),
       if (dateFin != null) 'dateFin': dateFin?.toJson(),
       if (langue != null) 'langue': langue,
+      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 
@@ -174,6 +181,7 @@ abstract class Film implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (dateDebut != null) 'dateDebut': dateDebut?.toJson(),
       if (dateFin != null) 'dateFin': dateFin?.toJson(),
       if (langue != null) 'langue': langue,
+      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 
@@ -226,6 +234,7 @@ class _FilmImpl extends Film {
     DateTime? dateDebut,
     DateTime? dateFin,
     String? langue,
+    int? cinemaId,
   }) : super._(
          id: id,
          titre: titre,
@@ -242,6 +251,7 @@ class _FilmImpl extends Film {
          dateDebut: dateDebut,
          dateFin: dateFin,
          langue: langue,
+         cinemaId: cinemaId,
        );
 
   /// Returns a shallow copy of this [Film]
@@ -264,6 +274,7 @@ class _FilmImpl extends Film {
     Object? dateDebut = _Undefined,
     Object? dateFin = _Undefined,
     Object? langue = _Undefined,
+    Object? cinemaId = _Undefined,
   }) {
     return Film(
       id: id is int? ? id : this.id,
@@ -283,6 +294,7 @@ class _FilmImpl extends Film {
       dateDebut: dateDebut is DateTime? ? dateDebut : this.dateDebut,
       dateFin: dateFin is DateTime? ? dateFin : this.dateFin,
       langue: langue is String? ? langue : this.langue,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
     );
   }
 }
@@ -363,6 +375,11 @@ class FilmUpdateTable extends _i1.UpdateTable<FilmTable> {
     table.langue,
     value,
   );
+
+  _i1.ColumnValue<int, int> cinemaId(int? value) => _i1.ColumnValue(
+    table.cinemaId,
+    value,
+  );
 }
 
 class FilmTable extends _i1.Table<int?> {
@@ -427,6 +444,10 @@ class FilmTable extends _i1.Table<int?> {
       this,
       hasDefault: true,
     );
+    cinemaId = _i1.ColumnInt(
+      'cinemaId',
+      this,
+    );
   }
 
   late final FilmUpdateTable updateTable;
@@ -459,6 +480,8 @@ class FilmTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString langue;
 
+  late final _i1.ColumnInt cinemaId;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -476,6 +499,7 @@ class FilmTable extends _i1.Table<int?> {
     dateDebut,
     dateFin,
     langue,
+    cinemaId,
   ];
 }
 

@@ -16,14 +16,14 @@ import 'package:serverpod_client/serverpod_client.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
-import 'package:cine_reservation_client/src/protocol/cinema.dart' as _i5;
-import 'package:cine_reservation_client/src/protocol/salle.dart' as _i6;
-import 'package:cine_reservation_client/src/protocol/siege.dart' as _i7;
-import 'package:cine_reservation_client/src/protocol/seance.dart' as _i8;
-import 'package:cine_reservation_client/src/protocol/film.dart' as _i9;
-import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i10;
-import 'package:cine_reservation_client/src/protocol/utilisateur.dart' as _i11;
-import 'package:cine_reservation_client/src/protocol/reservation.dart' as _i12;
+import 'package:cine_reservation_client/src/protocol/reservation.dart' as _i5;
+import 'package:cine_reservation_client/src/protocol/cinema.dart' as _i6;
+import 'package:cine_reservation_client/src/protocol/salle.dart' as _i7;
+import 'package:cine_reservation_client/src/protocol/siege.dart' as _i8;
+import 'package:cine_reservation_client/src/protocol/seance.dart' as _i9;
+import 'package:cine_reservation_client/src/protocol/film.dart' as _i10;
+import 'package:cine_reservation_client/src/protocol/evenement.dart' as _i11;
+import 'package:cine_reservation_client/src/protocol/utilisateur.dart' as _i12;
 import 'package:cine_reservation_client/src/protocol/demande_support.dart'
     as _i13;
 import 'package:cine_reservation_client/src/protocol/faq.dart' as _i14;
@@ -292,22 +292,43 @@ class EndpointAdmin extends _i2.EndpointRef {
         {},
       );
 
-  _i3.Future<List<_i5.Cinema>> getAllCinemas() =>
-      caller.callServerEndpoint<List<_i5.Cinema>>(
+  _i3.Future<List<_i5.Reservation>> getAllReservations() =>
+      caller.callServerEndpoint<List<_i5.Reservation>>(
+        'admin',
+        'getAllReservations',
+        {},
+      );
+
+  _i3.Future<void> rembourserReservation(
+    int resId,
+    double amt,
+    String raison,
+  ) => caller.callServerEndpoint<void>(
+    'admin',
+    'rembourserReservation',
+    {
+      'resId': resId,
+      'amt': amt,
+      'raison': raison,
+    },
+  );
+
+  _i3.Future<List<_i6.Cinema>> getAllCinemas() =>
+      caller.callServerEndpoint<List<_i6.Cinema>>(
         'admin',
         'getAllCinemas',
         {},
       );
 
-  _i3.Future<_i5.Cinema> ajouterCinema(_i5.Cinema c) =>
-      caller.callServerEndpoint<_i5.Cinema>(
+  _i3.Future<_i6.Cinema> ajouterCinema(_i6.Cinema c) =>
+      caller.callServerEndpoint<_i6.Cinema>(
         'admin',
         'ajouterCinema',
         {'c': c},
       );
 
-  _i3.Future<_i5.Cinema> modifierCinema(_i5.Cinema c) =>
-      caller.callServerEndpoint<_i5.Cinema>(
+  _i3.Future<_i6.Cinema> modifierCinema(_i6.Cinema c) =>
+      caller.callServerEndpoint<_i6.Cinema>(
         'admin',
         'modifierCinema',
         {'c': c},
@@ -319,36 +340,36 @@ class EndpointAdmin extends _i2.EndpointRef {
     {'id': id},
   );
 
-  _i3.Future<List<_i6.Salle>> getAllSalles() =>
-      caller.callServerEndpoint<List<_i6.Salle>>(
+  _i3.Future<List<_i7.Salle>> getAllSalles() =>
+      caller.callServerEndpoint<List<_i7.Salle>>(
         'admin',
         'getAllSalles',
         {},
       );
 
-  _i3.Future<List<_i6.Salle>> getSalles() =>
-      caller.callServerEndpoint<List<_i6.Salle>>(
+  _i3.Future<List<_i7.Salle>> getSalles() =>
+      caller.callServerEndpoint<List<_i7.Salle>>(
         'admin',
         'getSalles',
         {},
       );
 
-  _i3.Future<List<_i6.Salle>> getSallesByCinema(int cinemaId) =>
-      caller.callServerEndpoint<List<_i6.Salle>>(
+  _i3.Future<List<_i7.Salle>> getSallesByCinema(int cinemaId) =>
+      caller.callServerEndpoint<List<_i7.Salle>>(
         'admin',
         'getSallesByCinema',
         {'cinemaId': cinemaId},
       );
 
-  _i3.Future<_i6.Salle> ajouterSalle(_i6.Salle s) =>
-      caller.callServerEndpoint<_i6.Salle>(
+  _i3.Future<_i7.Salle> ajouterSalle(_i7.Salle s) =>
+      caller.callServerEndpoint<_i7.Salle>(
         'admin',
         'ajouterSalle',
         {'s': s},
       );
 
-  _i3.Future<_i6.Salle> modifierSalle(_i6.Salle s) =>
-      caller.callServerEndpoint<_i6.Salle>(
+  _i3.Future<_i7.Salle> modifierSalle(_i7.Salle s) =>
+      caller.callServerEndpoint<_i7.Salle>(
         'admin',
         'modifierSalle',
         {'s': s},
@@ -360,8 +381,8 @@ class EndpointAdmin extends _i2.EndpointRef {
     {'id': id},
   );
 
-  _i3.Future<List<_i7.Siege>> getSiegesBySalle(int salleId) =>
-      caller.callServerEndpoint<List<_i7.Siege>>(
+  _i3.Future<List<_i8.Siege>> getSiegesBySalle(int salleId) =>
+      caller.callServerEndpoint<List<_i8.Siege>>(
         'admin',
         'getSiegesBySalle',
         {'salleId': salleId},
@@ -369,34 +390,48 @@ class EndpointAdmin extends _i2.EndpointRef {
 
   _i3.Future<void> genererSiegesPourSalle(
     int salleId,
-    int nbRangees,
-    int siegesParRangee,
+    int rows,
+    int cols,
   ) => caller.callServerEndpoint<void>(
     'admin',
     'genererSiegesPourSalle',
     {
       'salleId': salleId,
-      'nbRangees': nbRangees,
-      'siegesParRangee': siegesParRangee,
+      'rows': rows,
+      'cols': cols,
     },
   );
 
-  _i3.Future<List<_i8.Seance>> getAllSeances() =>
-      caller.callServerEndpoint<List<_i8.Seance>>(
+  _i3.Future<void> genererSiegesAutomatique({
+    required int salleId,
+    required int nbRangees,
+    required int nbColonnes,
+  }) => caller.callServerEndpoint<void>(
+    'admin',
+    'genererSiegesAutomatique',
+    {
+      'salleId': salleId,
+      'nbRangees': nbRangees,
+      'nbColonnes': nbColonnes,
+    },
+  );
+
+  _i3.Future<List<_i9.Seance>> getAllSeances() =>
+      caller.callServerEndpoint<List<_i9.Seance>>(
         'admin',
         'getAllSeances',
         {},
       );
 
-  _i3.Future<_i8.Seance> ajouterSeance(_i8.Seance s) =>
-      caller.callServerEndpoint<_i8.Seance>(
+  _i3.Future<_i9.Seance> ajouterSeance(_i9.Seance s) =>
+      caller.callServerEndpoint<_i9.Seance>(
         'admin',
         'ajouterSeance',
         {'s': s},
       );
 
-  _i3.Future<_i8.Seance> modifierSeance(_i8.Seance s) =>
-      caller.callServerEndpoint<_i8.Seance>(
+  _i3.Future<_i9.Seance> modifierSeance(_i9.Seance s) =>
+      caller.callServerEndpoint<_i9.Seance>(
         'admin',
         'modifierSeance',
         {'s': s},
@@ -408,36 +443,36 @@ class EndpointAdmin extends _i2.EndpointRef {
     {'id': id},
   );
 
-  _i3.Future<List<_i8.Seance>> getSeancesByFilm(int filmId) =>
-      caller.callServerEndpoint<List<_i8.Seance>>(
+  _i3.Future<List<_i9.Seance>> getSeancesByFilm(int filmId) =>
+      caller.callServerEndpoint<List<_i9.Seance>>(
         'admin',
         'getSeancesByFilm',
         {'filmId': filmId},
       );
 
-  _i3.Future<List<_i8.Seance>> getSeancesByCinema(int id) =>
-      caller.callServerEndpoint<List<_i8.Seance>>(
+  _i3.Future<List<_i9.Seance>> getSeancesByCinema(int id) =>
+      caller.callServerEndpoint<List<_i9.Seance>>(
         'admin',
         'getSeancesByCinema',
         {'id': id},
       );
 
-  _i3.Future<List<_i9.Film>> getAllFilms() =>
-      caller.callServerEndpoint<List<_i9.Film>>(
+  _i3.Future<List<_i10.Film>> getAllFilms() =>
+      caller.callServerEndpoint<List<_i10.Film>>(
         'admin',
         'getAllFilms',
         {},
       );
 
-  _i3.Future<_i9.Film> ajouterFilm(_i9.Film f) =>
-      caller.callServerEndpoint<_i9.Film>(
+  _i3.Future<_i10.Film> ajouterFilm(_i10.Film f) =>
+      caller.callServerEndpoint<_i10.Film>(
         'admin',
         'ajouterFilm',
         {'f': f},
       );
 
-  _i3.Future<_i9.Film> modifierFilm(_i9.Film f) =>
-      caller.callServerEndpoint<_i9.Film>(
+  _i3.Future<_i10.Film> modifierFilm(_i10.Film f) =>
+      caller.callServerEndpoint<_i10.Film>(
         'admin',
         'modifierFilm',
         {'f': f},
@@ -449,22 +484,22 @@ class EndpointAdmin extends _i2.EndpointRef {
     {'id': id},
   );
 
-  _i3.Future<List<_i10.Evenement>> getAllEvenements() =>
-      caller.callServerEndpoint<List<_i10.Evenement>>(
+  _i3.Future<List<_i11.Evenement>> getAllEvenements() =>
+      caller.callServerEndpoint<List<_i11.Evenement>>(
         'admin',
         'getAllEvenements',
         {},
       );
 
-  _i3.Future<_i10.Evenement> ajouterEvenement(_i10.Evenement ev) =>
-      caller.callServerEndpoint<_i10.Evenement>(
+  _i3.Future<_i11.Evenement> ajouterEvenement(_i11.Evenement ev) =>
+      caller.callServerEndpoint<_i11.Evenement>(
         'admin',
         'ajouterEvenement',
         {'ev': ev},
       );
 
-  _i3.Future<_i10.Evenement> modifierEvenement(_i10.Evenement ev) =>
-      caller.callServerEndpoint<_i10.Evenement>(
+  _i3.Future<_i11.Evenement> modifierEvenement(_i11.Evenement ev) =>
+      caller.callServerEndpoint<_i11.Evenement>(
         'admin',
         'modifierEvenement',
         {'ev': ev},
@@ -477,15 +512,15 @@ class EndpointAdmin extends _i2.EndpointRef {
         {'id': id},
       );
 
-  _i3.Future<List<_i11.Utilisateur>> getAllUtilisateurs() =>
-      caller.callServerEndpoint<List<_i11.Utilisateur>>(
+  _i3.Future<List<_i12.Utilisateur>> getAllUtilisateurs() =>
+      caller.callServerEndpoint<List<_i12.Utilisateur>>(
         'admin',
         'getAllUtilisateurs',
         {},
       );
 
-  _i3.Future<List<_i11.Utilisateur>> getManagedUsers() =>
-      caller.callServerEndpoint<List<_i11.Utilisateur>>(
+  _i3.Future<List<_i12.Utilisateur>> getManagedUsers() =>
+      caller.callServerEndpoint<List<_i12.Utilisateur>>(
         'admin',
         'getManagedUsers',
         {},
@@ -512,8 +547,8 @@ class EndpointAdmin extends _i2.EndpointRef {
         {'id': id},
       );
 
-  _i3.Future<List<_i12.Reservation>> getHistoriqueUtilisateur(int userId) =>
-      caller.callServerEndpoint<List<_i12.Reservation>>(
+  _i3.Future<List<_i5.Reservation>> getHistoriqueUtilisateur(int userId) =>
+      caller.callServerEndpoint<List<_i5.Reservation>>(
         'admin',
         'getHistoriqueUtilisateur',
         {'userId': userId},
@@ -531,27 +566,15 @@ class EndpointAdmin extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<List<_i12.Reservation>> getAllReservations() =>
-      caller.callServerEndpoint<List<_i12.Reservation>>(
+  _i3.Future<void> traiterRemboursement(int resId) =>
+      caller.callServerEndpoint<void>(
         'admin',
-        'getAllReservations',
-        {},
+        'traiterRemboursement',
+        {'resId': resId},
       );
 
-  _i3.Future<void> rembourserReservation(
-    int resId,
-    double amt,
-  ) => caller.callServerEndpoint<void>(
-    'admin',
-    'rembourserReservation',
-    {
-      'resId': resId,
-      'amt': amt,
-    },
-  );
-
-  _i3.Future<List<_i7.Siege>> getSiegesByReservation(int resId) =>
-      caller.callServerEndpoint<List<_i7.Siege>>(
+  _i3.Future<List<_i8.Siege>> getSiegesByReservation(int resId) =>
+      caller.callServerEndpoint<List<_i8.Siege>>(
         'admin',
         'getSiegesByReservation',
         {'resId': resId},
@@ -590,18 +613,18 @@ class EndpointAdmin extends _i2.EndpointRef {
         {},
       );
 
-  _i3.Future<_i14.Faq> ajouterFaq(_i14.Faq faq) =>
+  _i3.Future<_i14.Faq> ajouterFaq(_i14.Faq f) =>
       caller.callServerEndpoint<_i14.Faq>(
         'admin',
         'ajouterFaq',
-        {'faq': faq},
+        {'f': f},
       );
 
-  _i3.Future<_i14.Faq> modifierFaq(_i14.Faq faq) =>
+  _i3.Future<_i14.Faq> modifierFaq(_i14.Faq f) =>
       caller.callServerEndpoint<_i14.Faq>(
         'admin',
         'modifierFaq',
-        {'faq': faq},
+        {'f': f},
       );
 
   _i3.Future<void> supprimerFaq(int id) => caller.callServerEndpoint<void>(
@@ -646,18 +669,18 @@ class EndpointAdmin extends _i2.EndpointRef {
         {},
       );
 
-  _i3.Future<_i16.CodePromo> ajouterCodePromo(_i16.CodePromo cp) =>
+  _i3.Future<_i16.CodePromo> ajouterCodePromo(_i16.CodePromo c) =>
       caller.callServerEndpoint<_i16.CodePromo>(
         'admin',
         'ajouterCodePromo',
-        {'cp': cp},
+        {'c': c},
       );
 
-  _i3.Future<_i16.CodePromo> modifierCodePromo(_i16.CodePromo cp) =>
+  _i3.Future<_i16.CodePromo> modifierCodePromo(_i16.CodePromo c) =>
       caller.callServerEndpoint<_i16.CodePromo>(
         'admin',
         'modifierCodePromo',
-        {'cp': cp},
+        {'c': c},
       );
 
   _i3.Future<void> supprimerCodePromo(int id) =>
@@ -681,8 +704,8 @@ class EndpointAdmin extends _i2.EndpointRef {
         {},
       );
 
-  _i3.Future<List<_i11.Utilisateur>> getStaffTanger() =>
-      caller.callServerEndpoint<List<_i11.Utilisateur>>(
+  _i3.Future<List<_i12.Utilisateur>> getStaffTanger() =>
+      caller.callServerEndpoint<List<_i12.Utilisateur>>(
         'admin',
         'getStaffTanger',
         {},
@@ -700,29 +723,8 @@ class EndpointAdmin extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<void> traiterRemboursement(int reservationId) =>
-      caller.callServerEndpoint<void>(
-        'admin',
-        'traiterRemboursement',
-        {'reservationId': reservationId},
-      );
-
-  _i3.Future<void> genererSiegesAutomatique({
-    required int salleId,
-    required int nbRangees,
-    required int nbColonnes,
-  }) => caller.callServerEndpoint<void>(
-    'admin',
-    'genererSiegesAutomatique',
-    {
-      'salleId': salleId,
-      'nbRangees': nbRangees,
-      'nbColonnes': nbColonnes,
-    },
-  );
-
-  _i3.Future<_i11.Utilisateur?> getMonProfil() =>
-      caller.callServerEndpoint<_i11.Utilisateur?>(
+  _i3.Future<_i12.Utilisateur?> getMonProfil() =>
+      caller.callServerEndpoint<_i12.Utilisateur?>(
         'admin',
         'getMonProfil',
         {},
@@ -735,8 +737,8 @@ class EndpointAdmin extends _i2.EndpointRef {
         {},
       );
 
-  _i3.Future<List<_i11.Utilisateur>> getAllClients() =>
-      caller.callServerEndpoint<List<_i11.Utilisateur>>(
+  _i3.Future<List<_i12.Utilisateur>> getAllClients() =>
+      caller.callServerEndpoint<List<_i12.Utilisateur>>(
         'admin',
         'getAllClients',
         {},
@@ -812,15 +814,15 @@ class EndpointCinemas extends _i2.EndpointRef {
   @override
   String get name => 'cinemas';
 
-  _i3.Future<List<_i5.Cinema>> getCinemas() =>
-      caller.callServerEndpoint<List<_i5.Cinema>>(
+  _i3.Future<List<_i6.Cinema>> getCinemas() =>
+      caller.callServerEndpoint<List<_i6.Cinema>>(
         'cinemas',
         'getCinemas',
         {},
       );
 
-  _i3.Future<_i5.Cinema?> getCinemaById(int id) =>
-      caller.callServerEndpoint<_i5.Cinema?>(
+  _i3.Future<_i6.Cinema?> getCinemaById(int id) =>
+      caller.callServerEndpoint<_i6.Cinema?>(
         'cinemas',
         'getCinemaById',
         {'id': id},
@@ -834,22 +836,22 @@ class EndpointEvenements extends _i2.EndpointRef {
   @override
   String get name => 'evenements';
 
-  _i3.Future<List<_i10.Evenement>> getEvenements() =>
-      caller.callServerEndpoint<List<_i10.Evenement>>(
+  _i3.Future<List<_i11.Evenement>> getEvenements() =>
+      caller.callServerEndpoint<List<_i11.Evenement>>(
         'evenements',
         'getEvenements',
         {},
       );
 
-  _i3.Future<_i10.Evenement?> getEvenementById(int id) =>
-      caller.callServerEndpoint<_i10.Evenement?>(
+  _i3.Future<_i11.Evenement?> getEvenementById(int id) =>
+      caller.callServerEndpoint<_i11.Evenement?>(
         'evenements',
         'getEvenementById',
         {'id': id},
       );
 
-  _i3.Future<List<_i10.Evenement>> searchEvenements(String query) =>
-      caller.callServerEndpoint<List<_i10.Evenement>>(
+  _i3.Future<List<_i11.Evenement>> searchEvenements(String query) =>
+      caller.callServerEndpoint<List<_i11.Evenement>>(
         'evenements',
         'searchEvenements',
         {'query': query},
@@ -939,22 +941,22 @@ class EndpointFilms extends _i2.EndpointRef {
   @override
   String get name => 'films';
 
-  _i3.Future<List<_i9.Film>> getFilms() =>
-      caller.callServerEndpoint<List<_i9.Film>>(
+  _i3.Future<List<_i10.Film>> getFilms() =>
+      caller.callServerEndpoint<List<_i10.Film>>(
         'films',
         'getFilms',
         {},
       );
 
-  _i3.Future<_i9.Film?> getFilmById(int id) =>
-      caller.callServerEndpoint<_i9.Film?>(
+  _i3.Future<_i10.Film?> getFilmById(int id) =>
+      caller.callServerEndpoint<_i10.Film?>(
         'films',
         'getFilmById',
         {'id': id},
       );
 
-  _i3.Future<List<_i9.Film>> searchFilms(String query) =>
-      caller.callServerEndpoint<List<_i9.Film>>(
+  _i3.Future<List<_i10.Film>> searchFilms(String query) =>
+      caller.callServerEndpoint<List<_i10.Film>>(
         'films',
         'searchFilms',
         {'query': query},
@@ -1017,18 +1019,18 @@ class EndpointProfil extends _i2.EndpointRef {
   @override
   String get name => 'profil';
 
-  _i3.Future<_i11.Utilisateur?> getProfil() =>
-      caller.callServerEndpoint<_i11.Utilisateur?>(
+  _i3.Future<_i12.Utilisateur?> getProfil() =>
+      caller.callServerEndpoint<_i12.Utilisateur?>(
         'profil',
         'getProfil',
         {},
       );
 
-  _i3.Future<_i11.Utilisateur?> updateProfil(
+  _i3.Future<_i12.Utilisateur?> updateProfil(
     String nom,
     String? telephone,
     DateTime? dateNaissance,
-  ) => caller.callServerEndpoint<_i11.Utilisateur?>(
+  ) => caller.callServerEndpoint<_i12.Utilisateur?>(
     'profil',
     'updateProfil',
     {
@@ -1038,8 +1040,8 @@ class EndpointProfil extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<_i11.Utilisateur?> updatePhotoProfil(String photoBase64) =>
-      caller.callServerEndpoint<_i11.Utilisateur?>(
+  _i3.Future<_i12.Utilisateur?> updatePhotoProfil(String photoBase64) =>
+      caller.callServerEndpoint<_i12.Utilisateur?>(
         'profil',
         'updatePhotoProfil',
         {'photoBase64': photoBase64},
@@ -1065,13 +1067,13 @@ class EndpointReservation extends _i2.EndpointRef {
   @override
   String get name => 'reservation';
 
-  _i3.Future<_i12.Reservation?> creerReservation({
+  _i3.Future<_i5.Reservation?> creerReservation({
     int? seanceId,
     int? evenementId,
     String? typeReservation,
     required double montantTotal,
     int? codePromoId,
-  }) => caller.callServerEndpoint<_i12.Reservation?>(
+  }) => caller.callServerEndpoint<_i5.Reservation?>(
     'reservation',
     'creerReservation',
     {
@@ -1083,8 +1085,8 @@ class EndpointReservation extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<List<_i12.Reservation>> getMesReservations() =>
-      caller.callServerEndpoint<List<_i12.Reservation>>(
+  _i3.Future<List<_i5.Reservation>> getMesReservations() =>
+      caller.callServerEndpoint<List<_i5.Reservation>>(
         'reservation',
         'getMesReservations',
         {},
@@ -1112,8 +1114,8 @@ class EndpointSalles extends _i2.EndpointRef {
   @override
   String get name => 'salles';
 
-  _i3.Future<List<_i6.Salle>> getSalles() =>
-      caller.callServerEndpoint<List<_i6.Salle>>(
+  _i3.Future<List<_i7.Salle>> getSalles() =>
+      caller.callServerEndpoint<List<_i7.Salle>>(
         'salles',
         'getSalles',
         {},
@@ -1127,8 +1129,8 @@ class EndpointSeances extends _i2.EndpointRef {
   @override
   String get name => 'seances';
 
-  _i3.Future<List<_i8.Seance>> getSeancesByFilm(int filmId) =>
-      caller.callServerEndpoint<List<_i8.Seance>>(
+  _i3.Future<List<_i9.Seance>> getSeancesByFilm(int filmId) =>
+      caller.callServerEndpoint<List<_i9.Seance>>(
         'seances',
         'getSeancesByFilm',
         {'filmId': filmId},
@@ -1137,8 +1139,8 @@ class EndpointSeances extends _i2.EndpointRef {
   /// Retourne les séances correspondant à une liste d'IDs.
   /// Utilisé par la HomePage pour personnaliser les recommandations :
   /// Reservation.seanceId → getSeancesByIds → Seance.filmId → Film.genre
-  _i3.Future<List<_i8.Seance>> getSeancesByIds(List<int> ids) =>
-      caller.callServerEndpoint<List<_i8.Seance>>(
+  _i3.Future<List<_i9.Seance>> getSeancesByIds(List<int> ids) =>
+      caller.callServerEndpoint<List<_i9.Seance>>(
         'seances',
         'getSeancesByIds',
         {'ids': ids},
@@ -1152,8 +1154,8 @@ class EndpointSieges extends _i2.EndpointRef {
   @override
   String get name => 'sieges';
 
-  _i3.Future<List<_i7.Siege>> getSiegesBySalle(int salleId) =>
-      caller.callServerEndpoint<List<_i7.Siege>>(
+  _i3.Future<List<_i8.Siege>> getSiegesBySalle(int salleId) =>
+      caller.callServerEndpoint<List<_i8.Siege>>(
         'sieges',
         'getSiegesBySalle',
         {'salleId': salleId},
