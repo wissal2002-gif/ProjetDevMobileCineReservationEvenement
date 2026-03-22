@@ -1,0 +1,13 @@
+class: ReservationOption
+table: reservation_options
+managedMigration: true
+
+fields:
+  reservationId: int
+  optionId: int
+  quantite: int?, default=1
+  prixUnitaire: double?
+
+indexes:
+  reservation_option_idx:
+    fields: reservationId

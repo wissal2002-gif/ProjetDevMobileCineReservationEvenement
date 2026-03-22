@@ -1,0 +1,23 @@
+class: Remboursement
+table: remboursements
+managedMigration: true
+
+fields:
+  paiementId: int
+  reservationId: int
+  utilisateurId: int
+  montant: double
+  raison: String?
+  statut: String?, default='en_attente'
+  stripeRefundId: String?
+  dateDemandeRemboursement: DateTime
+  dateRemboursement: DateTime?
+  traitePar: int?
+
+indexes:
+  remboursement_paiement_idx:
+    fields: paiementId
+  remboursement_reservation_idx:
+    fields: reservationId
+  remboursement_utilisateur_idx:
+    fields: utilisateurId

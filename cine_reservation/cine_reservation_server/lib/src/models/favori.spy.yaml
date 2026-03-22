@@ -1,0 +1,14 @@
+﻿class: Favori
+table: favoris
+managedMigration: true
+fields:
+  utilisateurId: int
+  filmId: int?
+  cinemaId: int?
+indexes:
+  favori_film_unique_idx:
+    fields: utilisateurId, filmId
+    unique: true
+  favori_cinema_unique_idx:
+    fields: utilisateurId, cinemaId
+    unique: true

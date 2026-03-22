@@ -1,0 +1,24 @@
+﻿# Build
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android
+android/.gradle/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+
+# General
+.DS_Store
+*.log
+
+*.hprof
+android/*.hprof
+**/*.hprof

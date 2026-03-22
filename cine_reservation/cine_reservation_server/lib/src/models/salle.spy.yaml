@@ -1,0 +1,14 @@
+class: Salle
+table: salles
+managedMigration: true
+
+fields:
+  cinemaId: int
+  codeSalle: String
+  capacite: int
+  equipements: String?
+  typeProjection: String?, default='2D'
+
+indexes:
+  salle_cinema_idx:
+    fields: cinemaId

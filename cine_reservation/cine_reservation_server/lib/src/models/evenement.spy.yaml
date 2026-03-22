@@ -1,0 +1,29 @@
+class: Evenement
+table: evenements
+managedMigration: true
+
+fields:
+  titre: String
+  description: String?
+  type: String?, default='concert'
+  cinemaId: int?
+  lieu: String?
+  ville: String?
+  dateDebut: DateTime
+  dateFin: DateTime?
+  affiche: String?
+  bandeAnnonce: String?
+  prix: double?, default=0.0
+  placesDisponibles: int?, default=0
+  placesTotales: int?, default=0
+  organisateur: String?
+  noteMoyenne: double?, default=0.0
+  nombreAvis: int?, default=0
+  statut: String?, default='actif'
+  annulationGratuite: bool?, default=true
+  delaiAnnulation: int?, default=48
+  fraisAnnulation: double?, default=0.0
+
+indexes:
+  evenement_cinema_idx:
+    fields: cinemaId

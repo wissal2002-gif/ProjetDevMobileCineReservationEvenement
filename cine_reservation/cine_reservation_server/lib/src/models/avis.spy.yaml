@@ -1,0 +1,16 @@
+class: Avis
+table: avis
+managedMigration: true
+
+fields:
+  utilisateurId: int
+  filmId: int
+  note: int
+  dateAvis: DateTime
+
+indexes:
+  avis_film_idx:
+    fields: filmId
+  avis_utilisateur_film_idx:
+    fields: utilisateurId, filmId
+    unique: true

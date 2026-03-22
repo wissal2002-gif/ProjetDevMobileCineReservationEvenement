@@ -1,0 +1,16 @@
+class: Siege
+table: sieges
+managedMigration: true
+
+fields:
+  salleId: int
+  numero: String
+  rangee: String?
+  type: String?, default='standard'
+
+indexes:
+  siege_salle_idx:
+    fields: salleId
+  siege_unique_idx:
+    fields: salleId, numero
+    unique: true

@@ -1,0 +1,22 @@
+class: Reservation
+table: reservations
+managedMigration: true
+
+fields:
+  utilisateurId: int
+  seanceId: int?
+  evenementId: int?
+  typeReservation: String?, default='cinema'
+  dateReservation: DateTime
+  montantTotal: double
+  montantApresReduction: double?
+  statut: String?, default='en_attente'
+  codePromoId: int?
+
+indexes:
+  reservation_utilisateur_idx:
+    fields: utilisateurId
+  reservation_seance_idx:
+    fields: seanceId
+  reservation_evenement_idx:
+    fields: evenementId
