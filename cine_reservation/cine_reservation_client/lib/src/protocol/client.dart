@@ -961,6 +961,13 @@ class EndpointFilms extends _i2.EndpointRef {
         'searchFilms',
         {'query': query},
       );
+
+  _i3.Future<List<_i10.Film>> getFilmsByCinema(int cinemaId) =>
+      caller.callServerEndpoint<List<_i10.Film>>(
+        'films',
+        'getFilmsByCinema',
+        {'cinemaId': cinemaId},
+      );
 }
 
 /// {@category Endpoint}

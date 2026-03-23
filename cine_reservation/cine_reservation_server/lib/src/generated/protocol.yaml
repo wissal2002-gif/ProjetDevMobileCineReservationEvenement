@@ -104,6 +104,7 @@ films:
   - getFilms:
   - getFilmById:
   - searchFilms:
+  - getFilmsByCinema:
 options:
   - getOptions:
 paiement:

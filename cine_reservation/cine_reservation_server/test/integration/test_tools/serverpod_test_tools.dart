@@ -3373,6 +3373,37 @@ class _FilmsEndpoint {
       }
     });
   }
+
+  _i3.Future<List<_i10.Film>> getFilmsByCinema(
+    _i1.TestSessionBuilder sessionBuilder,
+    int cinemaId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'films',
+            method: 'getFilmsByCinema',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'films',
+          methodName: 'getFilmsByCinema',
+          parameters: _i1.testObjectToJson({'cinemaId': cinemaId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i10.Film>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _OptionsEndpoint {
