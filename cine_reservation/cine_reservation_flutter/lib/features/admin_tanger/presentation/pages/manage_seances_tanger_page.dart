@@ -21,6 +21,7 @@ class _ManageSeancesTangerPageState extends ConsumerState<ManageSeancesTangerPag
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final seancesAsync = ref.watch(allSeancesProvider);
     final filmsAsync = ref.watch(prog.filmsProvider);
     final sallesAsync = ref.watch(sallesProvider(tangerCinemaId));
@@ -36,7 +37,8 @@ class _ManageSeancesTangerPageState extends ConsumerState<ManageSeancesTangerPag
       ),
       body: Row(
         children: [
-          const SizedBox(width: 280, child: TangerSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: TangerSidebar()),  // ← ajout de if (!isMobile)
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(32.0),

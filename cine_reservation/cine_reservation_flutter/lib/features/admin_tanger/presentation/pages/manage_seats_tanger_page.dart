@@ -18,13 +18,14 @@ class _ManageSeatsTangerPageState extends ConsumerState<ManageSeatsTangerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final sallesAsync = ref.watch(sallesProvider(tangerCinemaId));
     
     return Scaffold(
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
         children: [
-          const SizedBox(width: 280, child: TangerSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: TangerSidebar()),  // ← ajout de if (!isMobile)
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(40),

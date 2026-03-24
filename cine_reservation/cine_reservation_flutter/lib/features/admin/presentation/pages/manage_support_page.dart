@@ -18,6 +18,16 @@ class ManageSupportPage extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text("SUPPORT CLIENT"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white54),
+            tooltip: "Actualiser",
+            onPressed: () {
+              ref.invalidate(allDemandesSupportProvider);
+              ref.invalidate(allUtilisateursProvider);
+            },
+          )
+        ],
       ),
       body: supportAsync.when(
         data: (demandes) => usersAsync.when(

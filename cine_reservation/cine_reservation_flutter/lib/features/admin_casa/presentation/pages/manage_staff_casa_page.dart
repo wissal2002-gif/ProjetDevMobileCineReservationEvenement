@@ -16,6 +16,7 @@ class ManageStaffCasaPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final staffAsync = ref.watch(staffCasaProvider);
 
     return Scaffold(
@@ -30,7 +31,8 @@ class ManageStaffCasaPage extends ConsumerWidget {
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(width: 280, child: CasaSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: CasaSidebar()),
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(40.0),

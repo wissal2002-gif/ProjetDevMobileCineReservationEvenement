@@ -4,6 +4,7 @@ import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../main.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/admin_provider.dart';
+import '../widgets/admin_sidebar.dart'; // Import de la sidebar
 import 'package:intl/intl.dart';
 
 class ManagePromosPage extends ConsumerStatefulWidget {
@@ -14,19 +15,21 @@ class ManagePromosPage extends ConsumerStatefulWidget {
 }
 
 class _ManagePromosPageState extends ConsumerState<ManagePromosPage> {
-  String _filter = "Tous"; // Tous, Actifs, Expirés, Épuisés
+  String _filter = "Tous";
   String _searchQuery = "";
-  String _sortBy = "Date"; // Date, Utilisations, Réduction
+  String _sortBy = "Date";
 
   @override
   Widget build(BuildContext context) {
     final promosAsync = ref.watch(allCodesPromoProvider);
     final summaryAsync = ref.watch(globalPromoSummaryProvider);
+    final isMobile = MediaQuery.of(context).size.width < 768;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("GESTION DES CODES PROMO"),
+        title: Text("GESTION DES CODES PROMO",
+            style: TextStyle(fontSize: isMobile ? 16 : 20, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white54),
@@ -37,50 +40,60 @@ class _ManagePromosPageState extends ConsumerState<ManagePromosPage> {
           )
         ],
       ),
-      body: Column(
+      body: Row(
         children: [
-          // Section 1 - Statistiques rapides
-          summaryAsync.when(
-            data: (stats) => _buildSummaryStats(stats),
-            loading: () => const LinearProgressIndicator(color: AppColors.accent),
-            error: (_, __) => const SizedBox(),
-          ),
+          // Sidebar masquée sur Pixel 7
+          if (!isMobile) const SizedBox(width: 280, child: AdminSidebar()),
 
-          // Barre de filtres et recherche
-          _buildFilterBar(),
-
-          // Section 2 - Liste des codes promo (Tableau)
           Expanded(
-            child: promosAsync.when(
-              data: (promos) {
-                final filtered = _applyFilters(promos);
-                if (filtered.isEmpty) {
-                  return const Center(child: Text("Aucun code promo trouvé", style: TextStyle(color: Colors.white54)));
-                }
-                return SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  padding: const EdgeInsets.all(16),
-                  child: _buildPromoTable(filtered),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text("Erreur: $e")),
+            child: Column(
+              children: [
+                summaryAsync.when(
+                  data: (stats) => _buildSummaryStats(stats, isMobile),
+                  loading: () => const LinearProgressIndicator(color: AppColors.accent),
+                  error: (_, __) => const SizedBox(),
+                ),
+                _buildFilterBar(isMobile),
+                Expanded(
+                  child: promosAsync.when(
+                    data: (promos) {
+                      final filtered = _applyFilters(promos);
+                      if (filtered.isEmpty) {
+                        return const Center(child: Text("Aucun code promo trouvé", style: TextStyle(color: Colors.white54)));
+                      }
+
+                      // Liste adaptative
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) => _buildPromoCard(filtered[index], isMobile),
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
+                    error: (e, _) => Center(child: Text("Erreur: $e")),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showPromoDialog(context),
-        label: const Text("Nouveau Code", style: TextStyle(fontWeight: FontWeight.bold)),
+        label: Text(isMobile ? "Nouveau" : "Nouveau Code", style: const TextStyle(fontWeight: FontWeight.bold)),
         icon: const Icon(Icons.add),
         backgroundColor: AppColors.accent,
       ),
     );
   }
 
-  Widget _buildSummaryStats(Map<String, dynamic> stats) {
+  Widget _buildSummaryStats(Map<String, dynamic> stats, bool isMobile) {
+    final int activeCodes = stats['activeCodes'] ?? 0;
+    final int todayUsages = stats['todayUsages'] ?? 0;
+    final double totalSavings = (stats['totalSavings'] ?? 0.0).toDouble();
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.cardBg,
@@ -90,58 +103,63 @@ class _ManagePromosPageState extends ConsumerState<ManagePromosPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _statSummaryItem("CODES ACTIFS", "${stats['activeCodes']}", Icons.check_circle_outline, Colors.green),
-          _statSummaryItem("USAGES AUJOURD'HUI", "${stats['todayUsages']}", Icons.history, Colors.blue),
-          _statSummaryItem("ÉCONOMIES (DH)", "${(stats['totalSavings'] as double).toStringAsFixed(0)}", Icons.savings_outlined, Colors.orange),
+          _statSummaryItem(isMobile ? "ACTIFS" : "CODES ACTIFS", "$activeCodes", Icons.check_circle_outline, Colors.green, isMobile),
+          _statSummaryItem(isMobile ? "USAGES" : "USAGES JOUR", "$todayUsages", Icons.history, Colors.blue, isMobile),
+          _statSummaryItem(isMobile ? "ECON." : "ÉCONOMIES (DH)", "${totalSavings.toStringAsFixed(0)}", Icons.savings_outlined, Colors.orange, isMobile),
         ],
       ),
     );
   }
 
-  Widget _statSummaryItem(String label, String value, IconData icon, Color color) {
+  Widget _statSummaryItem(String label, String value, IconData icon, Color color, bool isMobile) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 8),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+        Icon(icon, color: color, size: isMobile ? 18 : 22),
+        const SizedBox(height: 6),
+        Text(value, style: TextStyle(color: Colors.white, fontSize: isMobile ? 16 : 20, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 9)),
       ],
     );
   }
 
-  Widget _buildFilterBar() {
+  Widget _buildFilterBar(bool isMobile) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           TextField(
             onChanged: (v) => setState(() => _searchQuery = v),
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: InputDecoration(
-              hintText: "Rechercher par code...",
-              prefixIcon: const Icon(Icons.search, color: Colors.white24),
+              hintText: "Rechercher un code...",
+              prefixIcon: const Icon(Icons.search, color: Colors.white24, size: 20),
               filled: true,
               fillColor: Colors.white.withOpacity(0.05),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0),
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              _filterChip("Tous"),
-              _filterChip("Actifs"),
-              _filterChip("Expirés"),
-              _filterChip("Épuisés"),
-              const Spacer(),
-              DropdownButton<String>(
-                value: _sortBy,
-                dropdownColor: AppColors.cardBg,
-                underline: const SizedBox(),
-                style: const TextStyle(color: AppColors.accent, fontSize: 12),
-                items: ["Date", "Utilisations", "Réduction"].map((s) => DropdownMenuItem(value: s, child: Text("Tri: $s"))).toList(),
-                onChanged: (v) => setState(() => _sortBy = v!),
-              ),
-            ],
+          // FIX : Scroll horizontal pour les filtres sur Pixel 7
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _filterChip("Tous"),
+                _filterChip("Actifs"),
+                _filterChip("Expirés"),
+                _filterChip("Épuisés"),
+                const SizedBox(width: 10),
+                DropdownButton<String>(
+                  value: _sortBy,
+                  dropdownColor: AppColors.cardBg,
+                  underline: const SizedBox(),
+                  style: const TextStyle(color: AppColors.accent, fontSize: 11),
+                  items: ["Date", "Utilisations"].map((s) => DropdownMenuItem(value: s, child: Text("Tri: $s"))).toList(),
+                  onChanged: (v) => setState(() => _sortBy = v!),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -151,139 +169,71 @@ class _ManagePromosPageState extends ConsumerState<ManagePromosPage> {
   Widget _filterChip(String label) {
     final isSelected = _filter == label;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: 6),
       child: ChoiceChip(
-        label: Text(label, style: TextStyle(color: isSelected ? Colors.black : Colors.white70, fontSize: 11)),
+        label: Text(label, style: TextStyle(color: isSelected ? Colors.black : Colors.white70, fontSize: 10)),
         selected: isSelected,
         onSelected: (val) => setState(() => _filter = label),
         selectedColor: AppColors.accent,
         backgroundColor: Colors.white10,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+      ),
+    );
+  }
+
+  // Card adaptative pour le Pixel 7
+  Widget _buildPromoCard(CodePromo p, bool isMobile) {
+    return Card(
+      color: AppColors.cardBg,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Colors.white10), // Utilisez 'side'
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        title: Row(
+          children: [
+            Text(p.code, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+              child: Text(
+                "${p.reduction}${p.typeReduction == 'pourcentage' ? '%' : ' DH'}",
+                style: const TextStyle(color: AppColors.accent, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text("Usages: ${p.utilisationsActuelles ?? 0}/${p.utilisationsMax ?? '∞'}", style: const TextStyle(color: Colors.white54, fontSize: 11)),
+            Text("Expire le: ${p.dateExpiration != null ? DateFormat('dd/MM/yyyy').format(p.dateExpiration!) : 'Jamais'}", style: const TextStyle(color: Colors.white38, fontSize: 10)),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(icon: const Icon(Icons.edit, size: 20, color: Colors.blueAccent), onPressed: () => _showPromoDialog(context, promo: p)),
+            IconButton(icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent), onPressed: () => _deletePromo(context, ref, p)),
+          ],
+        ),
       ),
     );
   }
 
   List<CodePromo> _applyFilters(List<CodePromo> list) {
     var result = list.where((p) => p.code.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
-    
     if (_filter == "Actifs") result = result.where((p) => p.actif == true && (p.dateExpiration == null || p.dateExpiration!.isAfter(DateTime.now()))).toList();
     if (_filter == "Expirés") result = result.where((p) => p.dateExpiration != null && p.dateExpiration!.isBefore(DateTime.now())).toList();
-    if (_filter == "Épuisés") result = result.where((p) => p.utilisationsActuelles! >= (p.utilisationsMax ?? 100)).toList();
-
-    if (_sortBy == "Utilisations") result.sort((a, b) => b.utilisationsActuelles!.compareTo(a.utilisationsActuelles!));
-    if (_sortBy == "Réduction") result.sort((a, b) => b.reduction.compareTo(a.reduction));
-    
+    if (_sortBy == "Utilisations") result.sort((a, b) => (b.utilisationsActuelles ?? 0).compareTo(a.utilisationsActuelles ?? 0));
     return result;
   }
 
-  Widget _buildPromoTable(List<CodePromo> promos) {
-    return Table(
-      columnWidths: const {
-        0: FlexColumnWidth(2),
-        1: FlexColumnWidth(1),
-        2: FlexColumnWidth(1.5),
-        3: FlexColumnWidth(1.5),
-        4: FlexColumnWidth(1.5),
-        5: FixedColumnWidth(80),
-      },
-      children: [
-        TableRow(
-          decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white10))),
-          children: [
-            _tableHeader("CODE"),
-            _tableHeader("TYPE"),
-            _tableHeader("RÉDUC."),
-            _tableHeader("USAGES"),
-            _tableHeader("EXPIRATION"),
-            _tableHeader("ACTIONS"),
-          ],
-        ),
-        ...promos.map((p) => _buildPromoRow(p)),
-      ],
-    );
-  }
-
-  Widget _tableHeader(String text) => Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(text, style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold)));
-
-  TableRow _buildPromoRow(CodePromo p) {
-    return TableRow(
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05)))),
-      children: [
-        InkWell(
-          onTap: () => _showPromoDetails(p),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(p.code, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                if (p.description != null) Text(p.description!, style: const TextStyle(color: Colors.white38, fontSize: 9)),
-              ],
-            ),
-          ),
-        ),
-        _tableCell(p.typeReduction == 'pourcentage' ? "%" : "Fixe"),
-        _tableCell("${p.reduction}${p.typeReduction == 'pourcentage' ? '%' : ' DH'}"),
-        _tableCell("${p.utilisationsActuelles}/${p.utilisationsMax}"),
-        _tableCell(p.dateExpiration != null ? DateFormat('dd/MM/yy').format(p.dateExpiration!) : "-"),
-        Row(
-          children: [
-            IconButton(icon: const Icon(Icons.edit, size: 16, color: Colors.blueAccent), onPressed: () => _showPromoDialog(context, promo: p)),
-            IconButton(icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent), onPressed: () => _deletePromo(context, ref, p)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _tableCell(String text) => Padding(padding: const EdgeInsets.symmetric(vertical: 16), child: Text(text, style: const TextStyle(color: Colors.white70, fontSize: 12)));
-
-  void _showPromoDetails(CodePromo p) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.cardBg,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("Code : ${p.code}", style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            _detailLine("Total utilisations", "${p.utilisationsActuelles} / ${p.utilisationsMax}"),
-            
-            ref.watch(codePromoStatsProvider(p.id!)).when(
-              data: (stats) => Column(
-                children: [
-                  _detailLine("Économies générées", "${(stats['totalReduction'] as double).toStringAsFixed(0)} DH"),
-                  _detailLine("Dernière utilisation", stats['lastUsage'] != null ? DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(stats['lastUsage'])) : "Jamais"),
-                  _detailLine("Utilisateurs uniques", "${stats['uniqueUsers']}"),
-                ],
-              ),
-              loading: () => const LinearProgressIndicator(),
-              error: (_, __) => const Text("Erreur de chargement des stats", style: TextStyle(color: Colors.redAccent)),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _detailLine(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle)),
-          const SizedBox(width: 12),
-          Text("$label : ", style: const TextStyle(color: Colors.white54)),
-          Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
+  // --- LOGIQUE DIALOGUES (Garder identique mais ajouter scroll) ---
   void _showPromoDialog(BuildContext context, {CodePromo? promo}) {
     final codeCtrl = TextEditingController(text: promo?.code);
     final descCtrl = TextEditingController(text: promo?.description);
@@ -323,7 +273,6 @@ class _ManagePromosPageState extends ConsumerState<ManagePromosPage> {
                 ),
                 _formField(minCtrl, "Montant minimum DH", isNumber: true),
                 _formField(maxCtrl, "Utilisations max", isNumber: true),
-                
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text("Date expiration", style: TextStyle(color: Colors.white70, fontSize: 12)),
@@ -359,12 +308,7 @@ class _ManagePromosPageState extends ConsumerState<ManagePromosPage> {
                   dateExpiration: expiry,
                   actif: isActif,
                 );
-                
-                if (promo == null) {
-                  await client.admin.ajouterCodePromo(cp);
-                } else {
-                  await client.admin.modifierCodePromo(cp);
-                }
+                if (promo == null) await client.admin.ajouterCodePromo(cp); else await client.admin.modifierCodePromo(cp);
                 ref.invalidate(allCodesPromoProvider);
                 ref.invalidate(globalPromoSummaryProvider);
                 Navigator.pop(context);
@@ -394,8 +338,8 @@ class _ManagePromosPageState extends ConsumerState<ManagePromosPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.cardBg,
-        title: const Text("Supprimer ?"),
-        content: Text("Supprimer le code '${promo.code}' ?"),
+        title: const Text("Supprimer ?", style: TextStyle(color: Colors.white)),
+        content: Text("Supprimer le code '${promo.code}' ?", style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
           TextButton(

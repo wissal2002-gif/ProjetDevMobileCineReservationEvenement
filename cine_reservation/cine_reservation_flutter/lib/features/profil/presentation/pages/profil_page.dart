@@ -475,6 +475,13 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
                       color: Colors.white24, size: 14),
                   onTap: _showChangerMotDePasse,
                 ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.favorite, color: Colors.red),
+                  title: const Text('Mes favoris', style: TextStyle(color: Colors.white)),
+                  trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
+                  onTap: () => context.push('/favoris'),
+                ),
                 const Divider(color: Colors.white10),
                 ListTile(
                   contentPadding: EdgeInsets.zero,

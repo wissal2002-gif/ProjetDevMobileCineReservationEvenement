@@ -12,6 +12,7 @@ class ManageFilmsTangerPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filmsAsync = ref.watch(prog.filmsProvider);
+    final isMobile = MediaQuery.of(context).size.width < 768;
     const int tangerCinemaId = 9;
 
     return Scaffold(
@@ -22,14 +23,39 @@ class ManageFilmsTangerPage extends ConsumerWidget {
         onPressed: () => _showFilmDialog(context, ref),
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: Row(
+      body: isMobile
+      // ── MOBILE : pas de sidebar, contenu plein écran ──
+          ? Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 24),
+            Expanded(
+              child: filmsAsync.when(
+                data: (films) {
+                  final filteredFilms = films.where((f) => f.cinemaId == tangerCinemaId).toList();
+                  if (filteredFilms.isEmpty) return _buildEmptyState();
+                  return ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: filteredFilms.length,
+                    itemBuilder: (context, index) =>
+                        _buildFilmListItem(context, ref, filteredFilms[index]),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF8B7355))),
+                error: (e, _) => Center(child: Text("Erreur : $e", style: const TextStyle(color: Colors.redAccent))),
+              ),
+            ),
+          ],
+        ),
+      )
+      // ── DESKTOP : layout original avec sidebar ──
+          : Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
-            width: 280,
-            child: TangerSidebar(),
-          ),
-
+          const SizedBox(width: 280, child: TangerSidebar()),
           Expanded(
             child: Container(
               color: const Color(0xFF0D0A08),
@@ -43,11 +69,8 @@ class ManageFilmsTangerPage extends ConsumerWidget {
                     Expanded(
                       child: filmsAsync.when(
                         data: (films) {
-                          // ✅ FILTRAGE : Uniquement les films de Tanger (ID 9)
                           final filteredFilms = films.where((f) => f.cinemaId == tangerCinemaId).toList();
-                          
                           if (filteredFilms.isEmpty) return _buildEmptyState();
-                          
                           return ListView.builder(
                             physics: const BouncingScrollPhysics(),
                             itemCount: filteredFilms.length,
@@ -55,11 +78,8 @@ class ManageFilmsTangerPage extends ConsumerWidget {
                                 _buildFilmListItem(context, ref, filteredFilms[index]),
                           );
                         },
-                        loading: () => const Center(
-                            child: CircularProgressIndicator(color: Color(0xFF8B7355))),
-                        error: (e, _) => Center(
-                            child: Text("Erreur : $e",
-                                style: const TextStyle(color: Colors.redAccent))),
+                        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF8B7355))),
+                        error: (e, _) => Center(child: Text("Erreur : $e", style: const TextStyle(color: Colors.redAccent))),
                       ),
                     ),
                   ],

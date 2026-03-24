@@ -874,6 +874,67 @@ class EndpointFaq extends _i2.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointFavori extends _i2.EndpointRef {
+  EndpointFavori(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'favori';
+
+  _i3.Future<bool> ajouterFilm(int filmId) => caller.callServerEndpoint<bool>(
+    'favori',
+    'ajouterFilm',
+    {'filmId': filmId},
+  );
+
+  _i3.Future<bool> retirerFilm(int filmId) => caller.callServerEndpoint<bool>(
+    'favori',
+    'retirerFilm',
+    {'filmId': filmId},
+  );
+
+  _i3.Future<bool> ajouterCinema(int cinemaId) =>
+      caller.callServerEndpoint<bool>(
+        'favori',
+        'ajouterCinema',
+        {'cinemaId': cinemaId},
+      );
+
+  _i3.Future<bool> retirerCinema(int cinemaId) =>
+      caller.callServerEndpoint<bool>(
+        'favori',
+        'retirerCinema',
+        {'cinemaId': cinemaId},
+      );
+
+  _i3.Future<List<int>> getMesFilmsFavoris() =>
+      caller.callServerEndpoint<List<int>>(
+        'favori',
+        'getMesFilmsFavoris',
+        {},
+      );
+
+  _i3.Future<List<int>> getMesCinemasFavoris() =>
+      caller.callServerEndpoint<List<int>>(
+        'favori',
+        'getMesCinemasFavoris',
+        {},
+      );
+
+  _i3.Future<bool> estFilmFavori(int filmId) => caller.callServerEndpoint<bool>(
+    'favori',
+    'estFilmFavori',
+    {'filmId': filmId},
+  );
+
+  _i3.Future<bool> estCinemaFavori(int cinemaId) =>
+      caller.callServerEndpoint<bool>(
+        'favori',
+        'estCinemaFavori',
+        {'cinemaId': cinemaId},
+      );
+}
+
+/// {@category Endpoint}
 class EndpointFilms extends _i2.EndpointRef {
   EndpointFilms(_i2.EndpointCaller caller) : super(caller);
 
@@ -899,6 +960,13 @@ class EndpointFilms extends _i2.EndpointRef {
         'films',
         'searchFilms',
         {'query': query},
+      );
+
+  _i3.Future<List<_i10.Film>> getFilmsByCinema(int cinemaId) =>
+      caller.callServerEndpoint<List<_i10.Film>>(
+        'films',
+        'getFilmsByCinema',
+        {'cinemaId': cinemaId},
       );
 }
 
@@ -1208,6 +1276,7 @@ class Client extends _i2.ServerpodClientShared {
     cinemas = EndpointCinemas(this);
     evenements = EndpointEvenements(this);
     faq = EndpointFaq(this);
+    favori = EndpointFavori(this);
     films = EndpointFilms(this);
     options = EndpointOptions(this);
     paiement = EndpointPaiement(this);
@@ -1236,6 +1305,8 @@ class Client extends _i2.ServerpodClientShared {
   late final EndpointEvenements evenements;
 
   late final EndpointFaq faq;
+
+  late final EndpointFavori favori;
 
   late final EndpointFilms films;
 
@@ -1269,6 +1340,7 @@ class Client extends _i2.ServerpodClientShared {
     'cinemas': cinemas,
     'evenements': evenements,
     'faq': faq,
+    'favori': favori,
     'films': films,
     'options': options,
     'paiement': paiement,

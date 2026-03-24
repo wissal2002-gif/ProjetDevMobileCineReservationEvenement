@@ -12,6 +12,9 @@ class GlobalRevenuesPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Détection de la taille d'écran (Pixel 7)
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     final resAsync = ref.watch(allReservationsProvider);
     final seancesAsync = ref.watch(allSeancesProvider);
     final sallesAsync = ref.watch(allSallesProvider);
@@ -19,17 +22,18 @@ class GlobalRevenuesPage extends ConsumerWidget {
     final eventsAsync = ref.watch(allEvenementsProvider);
     final filmsAsync = ref.watch(allFilmsProvider);
 
-    final isLoading = resAsync.isLoading || 
-                      seancesAsync.isLoading || 
-                      sallesAsync.isLoading || 
-                      cinemasAsync.isLoading || 
-                      eventsAsync.isLoading ||
-                      filmsAsync.isLoading;
+    final isLoading = resAsync.isLoading ||
+        seancesAsync.isLoading ||
+        sallesAsync.isLoading ||
+        cinemasAsync.isLoading ||
+        eventsAsync.isLoading ||
+        filmsAsync.isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("REVENUS GLOBAUX"),
+        title: Text("REVENUS GLOBAUX",
+            style: TextStyle(fontSize: isMobile ? 18 : 22, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColors.accent),
@@ -38,25 +42,28 @@ class GlobalRevenuesPage extends ConsumerWidget {
               ref.invalidate(allSeancesProvider);
               ref.invalidate(allEvenementsProvider);
             },
-            tooltip: "Actualiser les données",
+            tooltip: "Actualiser",
           ),
           const SizedBox(width: 10),
         ],
       ),
       body: Row(
         children: [
-          const AdminSidebar(),
+          // On cache la sidebar sur Pixel 7 pour gagner de la place
+          if (!isMobile) const SizedBox(width: 280, child: AdminSidebar()),
+
           Expanded(
-            child: isLoading 
-              ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
-              : _buildMainContent(
-                  resAsync.value ?? [],
-                  seancesAsync.value ?? [],
-                  sallesAsync.value ?? [],
-                  cinemasAsync.value ?? [],
-                  eventsAsync.value ?? [],
-                  filmsAsync.value ?? [],
-                ),
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
+                : _buildMainContent(
+              resAsync.value ?? [],
+              seancesAsync.value ?? [],
+              sallesAsync.value ?? [],
+              cinemasAsync.value ?? [],
+              eventsAsync.value ?? [],
+              filmsAsync.value ?? [],
+              isMobile,
+            ),
           ),
         ],
       ),
@@ -64,18 +71,19 @@ class GlobalRevenuesPage extends ConsumerWidget {
   }
 
   Widget _buildMainContent(
-    List<Reservation> res, 
-    List<Seance> seances, 
-    List<Salle> salles, 
-    List<Cinema> cinemas, 
-    List<Evenement> events,
-    List<Film> films
-  ) {
+      List<Reservation> res,
+      List<Seance> seances,
+      List<Salle> salles,
+      List<Cinema> cinemas,
+      List<Evenement> events,
+      List<Film> films,
+      bool isMobile,
+      ) {
     // 1. Calcul Revenu Global
     final totalGlobal = res.fold(0.0, (sum, r) => sum + r.montantTotal);
     final totalCinema = res.where((r) => r.seanceId != null).fold(0.0, (sum, r) => sum + r.montantTotal);
     final totalEvents = res.where((r) => r.evenementId != null).fold(0.0, (sum, r) => sum + r.montantTotal);
-    
+
     // 2. Calcul par Cinéma
     Map<String, double> revParCinema = {};
     for (var c in cinemas) {
@@ -101,89 +109,110 @@ class GlobalRevenuesPage extends ConsumerWidget {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(isMobile ? 16 : 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSummaryCards(totalGlobal, totalCinema, totalEvents),
-          const SizedBox(height: 40),
-          
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: _buildSectionCard("🏢 PAR CINÉMA", revParCinema, Icons.business, Colors.blue)),
-              const SizedBox(width: 20),
-              Expanded(child: _buildSectionCard("🎭 PAR ÉVÉNEMENT", revParEvent, Icons.stars, Colors.purple)),
-            ],
-          ),
-          
-          const SizedBox(height: 40),
-          _buildSectionCard("🎬 TOP FILMS (RECETTES)", revParFilm, Icons.movie, Colors.amber),
-          
-          const SizedBox(height: 40),
-          _buildRecentTransactions(res, seances, films, events),
+          // KPI Cards adaptatives
+          _buildSummaryCards(totalGlobal, totalCinema, totalEvents, isMobile),
+
+          const SizedBox(height: 32),
+
+          // Layout adaptatif pour les sections
+          if (isMobile) ...[
+            _buildSectionCard("🏢 PAR CINÉMA", revParCinema, Icons.business, Colors.blue, isMobile),
+            const SizedBox(height: 20),
+            _buildSectionCard("🎭 PAR ÉVÉNEMENT", revParEvent, Icons.stars, Colors.purple, isMobile),
+          ] else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _buildSectionCard("🏢 PAR CINÉMA", revParCinema, Icons.business, Colors.blue, isMobile)),
+                const SizedBox(width: 20),
+                Expanded(child: _buildSectionCard("🎭 PAR ÉVÉNEMENT", revParEvent, Icons.stars, Colors.purple, isMobile)),
+              ],
+            ),
+
+          const SizedBox(height: 32),
+          _buildSectionCard("🎬 TOP FILMS (RECETTES)", revParFilm, Icons.movie, Colors.amber, isMobile),
+
+          const SizedBox(height: 32),
+          _buildRecentTransactions(res, seances, films, events, isMobile),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCards(double total, double cine, double ev) {
+  Widget _buildSummaryCards(double total, double cine, double ev, bool isMobile) {
+    final cards = [
+      _kpiCard("REVENU GLOBAL", "${total.toStringAsFixed(0)} DH", Icons.account_balance_wallet, Colors.amber, isMobile),
+      _kpiCard("TOTAL CINÉMAS", "${cine.toStringAsFixed(0)} DH", Icons.movie_filter, Colors.blue, isMobile),
+      _kpiCard("TOTAL ÉVÉNEMENTS", "${ev.toStringAsFixed(0)} DH", Icons.event, Colors.purple, isMobile),
+    ];
+
+    if (isMobile) {
+      return Column(
+        children: cards.map((c) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: SizedBox(width: double.infinity, child: c),
+        )).toList(),
+      );
+    }
+
     return Row(
-      children: [
-        _kpiCard("REVENU GLOBAL", "${total.toStringAsFixed(0)} DH", Icons.account_balance_wallet, Colors.amber),
-        const SizedBox(width: 16),
-        _kpiCard("TOTAL CINÉMAS", "${cine.toStringAsFixed(0)} DH", Icons.movie_filter, Colors.blue),
-        const SizedBox(width: 16),
-        _kpiCard("TOTAL ÉVÉNEMENTS", "${ev.toStringAsFixed(0)} DH", Icons.event, Colors.purple),
-      ],
+      children: cards.map((c) => Expanded(
+        child: Padding(padding: const EdgeInsets.only(right: 16), child: c),
+      )).toList(),
     );
   }
 
-  Widget _kpiCard(String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.1)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 16),
-            Text(value, style: TextStyle(color: color, fontSize: 26, fontWeight: FontWeight.bold)),
-            Text(label, style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold)),
-          ],
-        ),
+  Widget _kpiCard(String label, String value, IconData icon, Color color, bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: isMobile ? 20 : 24),
+          const SizedBox(height: 12),
+          Text(value, style: TextStyle(color: color, fontSize: isMobile ? 20 : 26, fontWeight: FontWeight.bold)),
+          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }
 
-  Widget _buildSectionCard(String title, Map<String, double> data, IconData icon, Color accentColor) {
+  Widget _buildSectionCard(String title, Map<String, double> data, IconData icon, Color accentColor, bool isMobile) {
     final sortedEntries = data.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final double maxVal = data.isEmpty ? 1.0 : data.values.reduce((a, b) => a > b ? a : b);
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(icon, color: AppColors.accent, size: 18), const SizedBox(width: 10), Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))]),
-          const SizedBox(height: 24),
+          Row(children: [
+            Icon(icon, color: AppColors.accent, size: 16),
+            const SizedBox(width: 10),
+            Text(title, style: TextStyle(color: Colors.white, fontSize: isMobile ? 14 : 16, fontWeight: FontWeight.bold))
+          ]),
+          const SizedBox(height: 20),
           if (data.isEmpty) const Text("Aucune donnée", style: TextStyle(color: Colors.white24, fontSize: 12)),
           ...sortedEntries.map((e) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(e.key, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                    Text("${e.value.toStringAsFixed(0)} DH", style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                    Expanded(child: Text(e.key, style: const TextStyle(color: Colors.white70, fontSize: 12), overflow: TextOverflow.ellipsis)),
+                    Text("${e.value.toStringAsFixed(0)} DH", style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -201,17 +230,17 @@ class GlobalRevenuesPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentTransactions(List<Reservation> res, List<Seance> seances, List<Film> films, List<Evenement> events) {
+  Widget _buildRecentTransactions(List<Reservation> res, List<Seance> seances, List<Film> films, List<Evenement> events, bool isMobile) {
     final recent = res.reversed.take(5).toList();
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("📋 DERNIÈRES TRANSACTIONS", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 20),
+          Text("📋 DERNIÈRES TRANSACTIONS", style: TextStyle(color: Colors.white, fontSize: isMobile ? 14 : 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
           ...recent.map((r) {
             String title = "Inconnu";
             if (r.seanceId != null) {
@@ -225,10 +254,10 @@ class GlobalRevenuesPage extends ConsumerWidget {
 
             return ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: Icon(r.seanceId != null ? Icons.movie_outlined : Icons.stars, color: Colors.white24),
-              title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
-              subtitle: Text(DateFormat('dd/MM HH:mm').format(r.dateReservation), style: const TextStyle(color: Colors.white38, fontSize: 12)),
-              trailing: Text("${r.montantTotal} DH", style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+              leading: Icon(r.seanceId != null ? Icons.movie_outlined : Icons.stars, color: Colors.white24, size: 20),
+              title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 13), overflow: TextOverflow.ellipsis),
+              subtitle: Text(DateFormat('dd/MM HH:mm').format(r.dateReservation), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              trailing: Text("${r.montantTotal} DH", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: isMobile ? 12 : 14)),
             );
           }).toList(),
         ],

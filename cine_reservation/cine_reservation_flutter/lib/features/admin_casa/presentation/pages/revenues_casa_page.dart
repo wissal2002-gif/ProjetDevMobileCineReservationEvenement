@@ -11,6 +11,9 @@ class RevenuesCasaPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
+
     final resAsync     = ref.watch(allReservationsProvider);
     final seancesAsync = ref.watch(allSeancesProvider);
     final filmsAsync   = ref.watch(allFilmsProvider);
@@ -21,7 +24,8 @@ class RevenuesCasaPage extends ConsumerWidget {
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
         children: [
-          const CasaSidebar(),
+          if (!isMobile) const SizedBox(width: 280, child: CasaSidebar()),
+
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(32),

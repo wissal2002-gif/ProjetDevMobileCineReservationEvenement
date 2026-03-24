@@ -16,9 +16,20 @@ class MesReservationsPage extends ConsumerWidget {
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('MES RESERVATIONS',
-              style: TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('MES RESERVATIONS',
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
+              IconButton(
+                onPressed: () => ref.refresh(mesReservationsProvider),
+                icon: const Icon(Icons.refresh, color: AppColors.accent),
+              ),
+            ],
+          ),
           const SizedBox(height: 6),
           const Text('Historique de vos reservations',
               style: TextStyle(color: AppColors.textLight)),

@@ -19,29 +19,30 @@ import '../endpoints/billet_endpoint.dart' as _i6;
 import '../endpoints/cinemas_endpoint.dart' as _i7;
 import '../endpoints/evenements_endpoint.dart' as _i8;
 import '../endpoints/faq_endpoint.dart' as _i9;
-import '../endpoints/films_endpoint.dart' as _i10;
-import '../endpoints/options_endpoint.dart' as _i11;
-import '../endpoints/paiement_endpoint.dart' as _i12;
-import '../endpoints/profil_endpoint.dart' as _i13;
-import '../endpoints/reservation_endpoint.dart' as _i14;
-import '../endpoints/salles_endpoint.dart' as _i15;
-import '../endpoints/seances_endpoint.dart' as _i16;
-import '../endpoints/sieges_endpoint.dart' as _i17;
-import '../endpoints/support_endpoint.dart' as _i18;
-import '../greetings/greeting_endpoint.dart' as _i19;
-import 'package:cine_reservation_server/src/generated/cinema.dart' as _i20;
-import 'package:cine_reservation_server/src/generated/salle.dart' as _i21;
-import 'package:cine_reservation_server/src/generated/seance.dart' as _i22;
-import 'package:cine_reservation_server/src/generated/film.dart' as _i23;
-import 'package:cine_reservation_server/src/generated/evenement.dart' as _i24;
-import 'package:cine_reservation_server/src/generated/faq.dart' as _i25;
+import '../endpoints/favori_endpoint.dart' as _i10;
+import '../endpoints/films_endpoint.dart' as _i11;
+import '../endpoints/options_endpoint.dart' as _i12;
+import '../endpoints/paiement_endpoint.dart' as _i13;
+import '../endpoints/profil_endpoint.dart' as _i14;
+import '../endpoints/reservation_endpoint.dart' as _i15;
+import '../endpoints/salles_endpoint.dart' as _i16;
+import '../endpoints/seances_endpoint.dart' as _i17;
+import '../endpoints/sieges_endpoint.dart' as _i18;
+import '../endpoints/support_endpoint.dart' as _i19;
+import '../greetings/greeting_endpoint.dart' as _i20;
+import 'package:cine_reservation_server/src/generated/cinema.dart' as _i21;
+import 'package:cine_reservation_server/src/generated/salle.dart' as _i22;
+import 'package:cine_reservation_server/src/generated/seance.dart' as _i23;
+import 'package:cine_reservation_server/src/generated/film.dart' as _i24;
+import 'package:cine_reservation_server/src/generated/evenement.dart' as _i25;
+import 'package:cine_reservation_server/src/generated/faq.dart' as _i26;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
-    as _i26;
-import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i27;
+    as _i27;
+import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i28;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i28;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i29;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i30;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -95,61 +96,67 @@ class Endpoints extends _i1.EndpointDispatch {
           'faq',
           null,
         ),
-      'films': _i10.FilmsEndpoint()
+      'favori': _i10.FavoriEndpoint()
+        ..initialize(
+          server,
+          'favori',
+          null,
+        ),
+      'films': _i11.FilmsEndpoint()
         ..initialize(
           server,
           'films',
           null,
         ),
-      'options': _i11.OptionsEndpoint()
+      'options': _i12.OptionsEndpoint()
         ..initialize(
           server,
           'options',
           null,
         ),
-      'paiement': _i12.PaiementEndpoint()
+      'paiement': _i13.PaiementEndpoint()
         ..initialize(
           server,
           'paiement',
           null,
         ),
-      'profil': _i13.ProfilEndpoint()
+      'profil': _i14.ProfilEndpoint()
         ..initialize(
           server,
           'profil',
           null,
         ),
-      'reservation': _i14.ReservationEndpoint()
+      'reservation': _i15.ReservationEndpoint()
         ..initialize(
           server,
           'reservation',
           null,
         ),
-      'salles': _i15.SallesEndpoint()
+      'salles': _i16.SallesEndpoint()
         ..initialize(
           server,
           'salles',
           null,
         ),
-      'seances': _i16.SeancesEndpoint()
+      'seances': _i17.SeancesEndpoint()
         ..initialize(
           server,
           'seances',
           null,
         ),
-      'sieges': _i17.SiegesEndpoint()
+      'sieges': _i18.SiegesEndpoint()
         ..initialize(
           server,
           'sieges',
           null,
         ),
-      'support': _i18.SupportEndpoint()
+      'support': _i19.SupportEndpoint()
         ..initialize(
           server,
           'support',
           null,
         ),
-      'greeting': _i19.GreetingEndpoint()
+      'greeting': _i20.GreetingEndpoint()
         ..initialize(
           server,
           'greeting',
@@ -460,7 +467,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'c': _i1.ParameterDescription(
               name: 'c',
-              type: _i1.getType<_i20.Cinema>(),
+              type: _i1.getType<_i21.Cinema>(),
               nullable: false,
             ),
           },
@@ -479,7 +486,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'c': _i1.ParameterDescription(
               name: 'c',
-              type: _i1.getType<_i20.Cinema>(),
+              type: _i1.getType<_i21.Cinema>(),
               nullable: false,
             ),
           },
@@ -557,7 +564,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             's': _i1.ParameterDescription(
               name: 's',
-              type: _i1.getType<_i21.Salle>(),
+              type: _i1.getType<_i22.Salle>(),
               nullable: false,
             ),
           },
@@ -575,7 +582,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             's': _i1.ParameterDescription(
               name: 's',
-              type: _i1.getType<_i21.Salle>(),
+              type: _i1.getType<_i22.Salle>(),
               nullable: false,
             ),
           },
@@ -704,7 +711,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             's': _i1.ParameterDescription(
               name: 's',
-              type: _i1.getType<_i22.Seance>(),
+              type: _i1.getType<_i23.Seance>(),
               nullable: false,
             ),
           },
@@ -723,7 +730,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             's': _i1.ParameterDescription(
               name: 's',
-              type: _i1.getType<_i22.Seance>(),
+              type: _i1.getType<_i23.Seance>(),
               nullable: false,
             ),
           },
@@ -810,7 +817,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'f': _i1.ParameterDescription(
               name: 'f',
-              type: _i1.getType<_i23.Film>(),
+              type: _i1.getType<_i24.Film>(),
               nullable: false,
             ),
           },
@@ -828,7 +835,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'f': _i1.ParameterDescription(
               name: 'f',
-              type: _i1.getType<_i23.Film>(),
+              type: _i1.getType<_i24.Film>(),
               nullable: false,
             ),
           },
@@ -875,7 +882,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'ev': _i1.ParameterDescription(
               name: 'ev',
-              type: _i1.getType<_i24.Evenement>(),
+              type: _i1.getType<_i25.Evenement>(),
               nullable: false,
             ),
           },
@@ -894,7 +901,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'ev': _i1.ParameterDescription(
               name: 'ev',
-              type: _i1.getType<_i24.Evenement>(),
+              type: _i1.getType<_i25.Evenement>(),
               nullable: false,
             ),
           },
@@ -1156,7 +1163,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'f': _i1.ParameterDescription(
               name: 'f',
-              type: _i1.getType<_i25.Faq>(),
+              type: _i1.getType<_i26.Faq>(),
               nullable: false,
             ),
           },
@@ -1174,7 +1181,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'f': _i1.ParameterDescription(
               name: 'f',
-              type: _i1.getType<_i25.Faq>(),
+              type: _i1.getType<_i26.Faq>(),
               nullable: false,
             ),
           },
@@ -1220,7 +1227,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'o': _i1.ParameterDescription(
               name: 'o',
-              type: _i1.getType<_i26.OptionSupplementaire>(),
+              type: _i1.getType<_i27.OptionSupplementaire>(),
               nullable: false,
             ),
           },
@@ -1239,7 +1246,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'o': _i1.ParameterDescription(
               name: 'o',
-              type: _i1.getType<_i26.OptionSupplementaire>(),
+              type: _i1.getType<_i27.OptionSupplementaire>(),
               nullable: false,
             ),
           },
@@ -1287,7 +1294,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'c': _i1.ParameterDescription(
               name: 'c',
-              type: _i1.getType<_i27.CodePromo>(),
+              type: _i1.getType<_i28.CodePromo>(),
               nullable: false,
             ),
           },
@@ -1306,7 +1313,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'c': _i1.ParameterDescription(
               name: 'c',
-              type: _i1.getType<_i27.CodePromo>(),
+              type: _i1.getType<_i28.CodePromo>(),
               nullable: false,
             ),
           },
@@ -1660,6 +1667,146 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['favori'] = _i1.EndpointConnector(
+      name: 'favori',
+      endpoint: endpoints['favori']!,
+      methodConnectors: {
+        'ajouterFilm': _i1.MethodConnector(
+          name: 'ajouterFilm',
+          params: {
+            'filmId': _i1.ParameterDescription(
+              name: 'filmId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['favori'] as _i10.FavoriEndpoint).ajouterFilm(
+                    session,
+                    params['filmId'],
+                  ),
+        ),
+        'retirerFilm': _i1.MethodConnector(
+          name: 'retirerFilm',
+          params: {
+            'filmId': _i1.ParameterDescription(
+              name: 'filmId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['favori'] as _i10.FavoriEndpoint).retirerFilm(
+                    session,
+                    params['filmId'],
+                  ),
+        ),
+        'ajouterCinema': _i1.MethodConnector(
+          name: 'ajouterCinema',
+          params: {
+            'cinemaId': _i1.ParameterDescription(
+              name: 'cinemaId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['favori'] as _i10.FavoriEndpoint).ajouterCinema(
+                    session,
+                    params['cinemaId'],
+                  ),
+        ),
+        'retirerCinema': _i1.MethodConnector(
+          name: 'retirerCinema',
+          params: {
+            'cinemaId': _i1.ParameterDescription(
+              name: 'cinemaId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['favori'] as _i10.FavoriEndpoint).retirerCinema(
+                    session,
+                    params['cinemaId'],
+                  ),
+        ),
+        'getMesFilmsFavoris': _i1.MethodConnector(
+          name: 'getMesFilmsFavoris',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['favori'] as _i10.FavoriEndpoint)
+                  .getMesFilmsFavoris(session),
+        ),
+        'getMesCinemasFavoris': _i1.MethodConnector(
+          name: 'getMesCinemasFavoris',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['favori'] as _i10.FavoriEndpoint)
+                  .getMesCinemasFavoris(session),
+        ),
+        'estFilmFavori': _i1.MethodConnector(
+          name: 'estFilmFavori',
+          params: {
+            'filmId': _i1.ParameterDescription(
+              name: 'filmId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['favori'] as _i10.FavoriEndpoint).estFilmFavori(
+                    session,
+                    params['filmId'],
+                  ),
+        ),
+        'estCinemaFavori': _i1.MethodConnector(
+          name: 'estCinemaFavori',
+          params: {
+            'cinemaId': _i1.ParameterDescription(
+              name: 'cinemaId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['favori'] as _i10.FavoriEndpoint).estCinemaFavori(
+                    session,
+                    params['cinemaId'],
+                  ),
+        ),
+      },
+    );
     connectors['films'] = _i1.EndpointConnector(
       name: 'films',
       endpoint: endpoints['films']!,
@@ -1672,7 +1819,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['films'] as _i10.FilmsEndpoint).getFilms(session),
+                  (endpoints['films'] as _i11.FilmsEndpoint).getFilms(session),
         ),
         'getFilmById': _i1.MethodConnector(
           name: 'getFilmById',
@@ -1687,7 +1834,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['films'] as _i10.FilmsEndpoint).getFilmById(
+              ) async => (endpoints['films'] as _i11.FilmsEndpoint).getFilmById(
                 session,
                 params['id'],
               ),
@@ -1705,10 +1852,29 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['films'] as _i10.FilmsEndpoint).searchFilms(
+              ) async => (endpoints['films'] as _i11.FilmsEndpoint).searchFilms(
                 session,
                 params['query'],
               ),
+        ),
+        'getFilmsByCinema': _i1.MethodConnector(
+          name: 'getFilmsByCinema',
+          params: {
+            'cinemaId': _i1.ParameterDescription(
+              name: 'cinemaId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['films'] as _i11.FilmsEndpoint).getFilmsByCinema(
+                    session,
+                    params['cinemaId'],
+                  ),
         ),
       },
     );
@@ -1723,7 +1889,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['options'] as _i11.OptionsEndpoint)
+              ) async => (endpoints['options'] as _i12.OptionsEndpoint)
                   .getOptions(session),
         ),
       },
@@ -1755,7 +1921,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['paiement'] as _i12.PaiementEndpoint)
+              ) async => (endpoints['paiement'] as _i13.PaiementEndpoint)
                   .effectuerPaiement(
                     session,
                     params['reservationId'],
@@ -1781,7 +1947,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['paiement'] as _i12.PaiementEndpoint)
+              ) async => (endpoints['paiement'] as _i13.PaiementEndpoint)
                   .demanderRemboursement(
                     session,
                     params['reservationId'],
@@ -1801,7 +1967,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['profil'] as _i13.ProfilEndpoint).getProfil(
+              ) async => (endpoints['profil'] as _i14.ProfilEndpoint).getProfil(
                 session,
               ),
         ),
@@ -1829,7 +1995,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['profil'] as _i13.ProfilEndpoint).updateProfil(
+                  (endpoints['profil'] as _i14.ProfilEndpoint).updateProfil(
                     session,
                     params['nom'],
                     params['telephone'],
@@ -1849,7 +2015,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['profil'] as _i13.ProfilEndpoint)
+              ) async => (endpoints['profil'] as _i14.ProfilEndpoint)
                   .updatePhotoProfil(
                     session,
                     params['photoBase64'],
@@ -1862,7 +2028,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['profil'] as _i13.ProfilEndpoint)
+              ) async => (endpoints['profil'] as _i14.ProfilEndpoint)
                   .desactiverCompte(session),
         ),
         'supprimerCompte': _i1.MethodConnector(
@@ -1872,7 +2038,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['profil'] as _i13.ProfilEndpoint)
+              ) async => (endpoints['profil'] as _i14.ProfilEndpoint)
                   .supprimerCompte(session),
         ),
       },
@@ -1914,7 +2080,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reservation'] as _i14.ReservationEndpoint)
+              ) async => (endpoints['reservation'] as _i15.ReservationEndpoint)
                   .creerReservation(
                     session,
                     seanceId: params['seanceId'],
@@ -1931,7 +2097,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reservation'] as _i14.ReservationEndpoint)
+              ) async => (endpoints['reservation'] as _i15.ReservationEndpoint)
                   .getMesReservations(session),
         ),
         'annulerReservation': _i1.MethodConnector(
@@ -1947,7 +2113,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reservation'] as _i14.ReservationEndpoint)
+              ) async => (endpoints['reservation'] as _i15.ReservationEndpoint)
                   .annulerReservation(
                     session,
                     params['reservationId'],
@@ -1966,7 +2132,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reservation'] as _i14.ReservationEndpoint)
+              ) async => (endpoints['reservation'] as _i15.ReservationEndpoint)
                   .validerCodePromo(
                     session,
                     params['code'],
@@ -1985,7 +2151,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['salles'] as _i15.SallesEndpoint).getSalles(
+              ) async => (endpoints['salles'] as _i16.SallesEndpoint).getSalles(
                 session,
               ),
         ),
@@ -2008,7 +2174,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['seances'] as _i16.SeancesEndpoint)
+              ) async => (endpoints['seances'] as _i17.SeancesEndpoint)
                   .getSeancesByFilm(
                     session,
                     params['filmId'],
@@ -2027,7 +2193,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['seances'] as _i16.SeancesEndpoint)
+              ) async => (endpoints['seances'] as _i17.SeancesEndpoint)
                   .getSeancesByIds(
                     session,
                     params['ids'],
@@ -2053,7 +2219,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['sieges'] as _i17.SiegesEndpoint).getSiegesBySalle(
+                  (endpoints['sieges'] as _i18.SiegesEndpoint).getSiegesBySalle(
                     session,
                     params['salleId'],
                   ),
@@ -2071,7 +2237,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['sieges'] as _i17.SiegesEndpoint)
+              ) async => (endpoints['sieges'] as _i18.SiegesEndpoint)
                   .getSiegesReservesBySeance(
                     session,
                     params['seanceId'],
@@ -2090,7 +2256,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['sieges'] as _i17.SiegesEndpoint)
+              ) async => (endpoints['sieges'] as _i18.SiegesEndpoint)
                   .getSiegesReservesByEvenement(
                     session,
                     params['evenementId'],
@@ -2121,7 +2287,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['support'] as _i18.SupportEndpoint).creerDemande(
+                  (endpoints['support'] as _i19.SupportEndpoint).creerDemande(
                     session,
                     params['sujet'],
                     params['message'],
@@ -2134,7 +2300,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['support'] as _i18.SupportEndpoint)
+              ) async => (endpoints['support'] as _i19.SupportEndpoint)
                   .getDemandes(session),
         ),
       },
@@ -2156,16 +2322,16 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['greeting'] as _i19.GreetingEndpoint).hello(
+              ) async => (endpoints['greeting'] as _i20.GreetingEndpoint).hello(
                 session,
                 params['name'],
               ),
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i28.Endpoints()
+    modules['serverpod_auth_idp'] = _i29.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i29.Endpoints()
+    modules['serverpod_auth_core'] = _i30.Endpoints()
       ..initializeEndpoints(server);
   }
 }

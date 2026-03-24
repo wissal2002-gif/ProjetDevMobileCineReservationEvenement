@@ -39,6 +39,7 @@ import '../../features/reservation/presentation/pages/mes_reservations_page.dart
 // Billets
 import '../../features/billets/presentation/pages/billets_page.dart';
 import '../../features/billets/presentation/pages/billet_detail_page.dart';
+import '../../features/profil/presentation/pages/favoris_page.dart';
 
 // Admin Global
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
@@ -83,6 +84,8 @@ import '../../features/admin_events/presentation/pages/events_dashboard_page.dar
 import '../../features/admin_events/presentation/pages/manage_events_events_page.dart';
 import '../../features/admin_events/presentation/pages/manage_reservations_events_page.dart';
 import '../../features/admin_events/presentation/pages/revenues_events_page.dart';
+import '../../features/profil/presentation/pages/favoris_page.dart';
+
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -178,6 +181,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/billet-detail',
         builder: (context, state) => BilletDetailPage(billet: state.extra as Billet),
       ),
+      GoRoute(path: '/favoris', builder: (context, state) => const FavorisPage()),
+
 
       // ─── ADMIN GLOBAL ─────────────────────────────────
       GoRoute(path: '/admin', builder: (context, state) => const AdminDashboardPage()),
@@ -225,6 +230,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/events/reservations', builder: (context, state) => const ManageReservationsEventsPage()),
       GoRoute(path: '/admin/events/revenus', builder: (context, state) => const RevenuesEventsPage()),
       GoRoute(path: '/admin/events/edit', builder: (context, state) => AddEventFormPage(event: state.extra as Evenement?)),
-    ],
+
+  ],
   );
 });

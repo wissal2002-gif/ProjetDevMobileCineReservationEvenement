@@ -11,6 +11,7 @@ class RevenuesTangerPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final resAsync     = ref.watch(allReservationsProvider);
     final seancesAsync = ref.watch(allSeancesProvider);
     final filmsAsync   = ref.watch(allFilmsProvider);
@@ -21,7 +22,8 @@ class RevenuesTangerPage extends ConsumerWidget {
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
         children: [
-          const TangerSidebar(),
+          if (!isMobile) const SizedBox(width: 280, child: TangerSidebar()),
+
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(32),
@@ -40,6 +42,7 @@ class RevenuesTangerPage extends ConsumerWidget {
                     loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
                     error: (e, _) => Center(child: Text("Erreur: $e", style: const TextStyle(color: Colors.red))),
                     data: (reservations) {
+
                       final seances = seancesAsync.value ?? [];
                       final films   = filmsAsync.value ?? [];
                       final salles  = sallesAsync.value ?? [];
@@ -71,16 +74,49 @@ class RevenuesTangerPage extends ConsumerWidget {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ─── KPI CARDS ───
-                          Row(children: [
-                            Expanded(child: _kpiCard("REVENU TOTAL", "${revenuTotal.toStringAsFixed(0)} DH", Icons.account_balance_wallet, Colors.amber)),
-                            const SizedBox(width: 16),
-                            Expanded(child: _kpiCard("CONFIRMÉES", "${revenuConfirme.toStringAsFixed(0)} DH", Icons.check_circle, Colors.green)),
-                            const SizedBox(width: 16),
-                            Expanded(child: _kpiCard("RÉSERVATIONS", "${resLocales.length}", Icons.confirmation_number, Colors.blue)),
-                            const SizedBox(width: 16),
-                            Expanded(child: _kpiCard("ANNULÉES", "$nbAnnulees", Icons.cancel, Colors.red)),
-                          ]),
+                        LayoutBuilder(
+                         builder: (context, constraints) {
+                           final isMobile = constraints.maxWidth < 500;
+                           return isMobile
+                               ? GridView.count(
+                             crossAxisCount: 2,
+                             shrinkWrap: true,
+                             physics: const NeverScrollableScrollPhysics(),
+                             crossAxisSpacing: 12,
+                             mainAxisSpacing: 12,
+                             childAspectRatio: 1.3,
+                             children: [
+                               _kpiCard("REVENU TOTAL",
+                                   "${revenuTotal.toStringAsFixed(0)} DH",
+                                   Icons.account_balance_wallet, Colors.amber),
+                               _kpiCard("CONFIRMÉES",
+                                   "${revenuConfirme.toStringAsFixed(0)} DH",
+                                   Icons.check_circle, Colors.green),
+                               _kpiCard("RÉSERVATIONS", "${resLocales.length}",
+                                   Icons.confirmation_number, Colors.blue),
+                               _kpiCard("ANNULÉES", "$nbAnnulees", Icons.cancel,
+                                   Colors.red),
+                             ],
+                           )
+                               : Row(children: [
+                             Expanded(child: _kpiCard("REVENU TOTAL",
+                                 "${revenuTotal.toStringAsFixed(0)} DH",
+                                 Icons.account_balance_wallet, Colors.amber)),
+                             const SizedBox(width: 16),
+                             Expanded(child: _kpiCard("CONFIRMÉES",
+                                 "${revenuConfirme.toStringAsFixed(0)} DH",
+                                 Icons.check_circle, Colors.green)),
+                             const SizedBox(width: 16),
+                             Expanded(child: _kpiCard(
+                                 "RÉSERVATIONS", "${resLocales.length}",
+                                 Icons.confirmation_number, Colors.blue)),
+                             const SizedBox(width: 16),
+                             Expanded(child: _kpiCard(
+                                 "ANNULÉES", "$nbAnnulees", Icons.cancel,
+                                 Colors.red)),
+                           ]);
+                         },
+                        ), // ✅ fermeture du LayoutBuilder
                           const SizedBox(height: 32),
 
                           // ─── REVENUS PAR FILM ───
@@ -184,81 +220,132 @@ class RevenuesTangerPage extends ConsumerWidget {
       List<Salle> salles,
       List<Utilisateur> users,
       ) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text("📋 DÉTAIL DES RÉSERVATIONS",
-            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
 
-        // En-têtes tableau
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        return Container(
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(8),
+            color: Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.05)),
           ),
-          child: const Row(children: [
-            Expanded(flex: 2, child: Text("CLIENT", style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
-            Expanded(flex: 2, child: Text("FILM", style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
-            Expanded(flex: 2, child: Text("SÉANCE", style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
-            Expanded(flex: 1, child: Text("MONTANT", style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
-            Expanded(flex: 1, child: Text("STATUT", style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
-          ]),
-        ),
-        const SizedBox(height: 8),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text("📋 DÉTAIL DES RÉSERVATIONS",
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
 
-        // Lignes
-        ...reservations.map((r) {
-          final seance = seances.firstWhere((s) => s.id == r.seanceId,
-              orElse: () => Seance(filmId: 0, salleId: 0, dateHeure: DateTime.now(),
-                  langue: '', typeProjection: '', typeSeance: '',
-                  placesDisponibles: 0, prixNormal: 0, prixReduit: 0, prixSenior: 0, prixEnfant: 0));
-          final film  = films.firstWhere((f) => f.id == seance.filmId, orElse: () => Film(titre: "N/A"));
-          final user  = users.firstWhere((u) => u.id == r.utilisateurId,
-              orElse: () => Utilisateur(nom: "Inconnu", email: "N/A"));
-
-          Color statusColor = Colors.orange;
-          if (r.statut == 'confirme')  statusColor = Colors.green;
-          if (r.statut == 'rembourse') statusColor = Colors.blue;
-          if (r.statut == 'annule')    statusColor = Colors.orange;
-
-          return GestureDetector(
-            onTap: () => _showDetail(context, r, user, film, seance),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.02),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white.withOpacity(0.03)),
+            // ─── EN-TÊTES (desktop seulement) ───
+            if (!isMobile)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(children: [
+                  Expanded(flex: 2, child: Text("CLIENT",  style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
+                  Expanded(flex: 2, child: Text("FILM",    style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
+                  Expanded(flex: 2, child: Text("SÉANCE",  style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
+                  Expanded(flex: 1, child: Text("MONTANT", style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
+                  Expanded(flex: 1, child: Text("STATUT",  style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 1))),
+                ]),
               ),
-              child: Row(children: [
-                Expanded(flex: 2, child: Text(user.nom, style: const TextStyle(color: Colors.white, fontSize: 13))),
-                Expanded(flex: 2, child: Text(film.titre, style: const TextStyle(color: Colors.white70, fontSize: 13))),
-                Expanded(flex: 2, child: Text(
-                    DateFormat('dd/MM/yyyy HH:mm').format(seance.dateHeure),
-                    style: const TextStyle(color: Colors.white54, fontSize: 12))),
-                Expanded(flex: 1, child: Text("${r.montantTotal} DH",
-                    style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 13))),
-                Expanded(flex: 1, child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            if (!isMobile) const SizedBox(height: 8),
+
+            // ─── LIGNES ───
+            ...reservations.map((r) {
+              final seance = seances.firstWhere((s) => s.id == r.seanceId,
+                  orElse: () => Seance(filmId: 0, salleId: 0, dateHeure: DateTime.now(),
+                      langue: '', typeProjection: '', typeSeance: '',
+                      placesDisponibles: 0, prixNormal: 0, prixReduit: 0, prixSenior: 0, prixEnfant: 0));
+              final film = films.firstWhere((f) => f.id == seance.filmId, orElse: () => Film(titre: "N/A"));
+              final user = users.firstWhere((u) => u.id == r.utilisateurId,
+                  orElse: () => Utilisateur(nom: "Inconnu", email: "N/A"));
+
+              Color statusColor = Colors.orange;
+              if (r.statut == 'confirme')  statusColor = Colors.green;
+              if (r.statut == 'rembourse') statusColor = Colors.blue;
+              if (r.statut == 'annule')    statusColor = Colors.orange;
+
+              // ─── CARTE MOBILE ───
+              if (isMobile) {
+                return GestureDetector(
+                  onTap: () => _showDetail(context, r, user, film, seance),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.03),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withOpacity(0.07)),
+                    ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      // Ligne 1 : client + statut
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                        Text(user.nom,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6)),
+                          child: Text((r.statut ?? '').toUpperCase(),
+                              style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                        ),
+                      ]),
+                      const SizedBox(height: 6),
+                      // Ligne 2 : film
+                      Text(film.titre,
+                          style: const TextStyle(color: Colors.amber, fontSize: 13)),
+                      const SizedBox(height: 4),
+                      // Ligne 3 : séance + montant
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                        Text(DateFormat('dd/MM/yyyy HH:mm').format(seance.dateHeure),
+                            style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                        Text("${r.montantTotal} DH",
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      ]),
+                    ]),
+                  ),
+                );
+              }
+
+              // ─── LIGNE DESKTOP ───
+              return GestureDetector(
+                onTap: () => _showDetail(context, r, user, film, seance),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6)),
-                  child: Text((r.statut ?? '').toUpperCase(),
-                      style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
-                )),
-              ]),
-            ),
-          );
-        }).toList(),
-      ]),
+                    color: Colors.white.withOpacity(0.02),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white.withOpacity(0.03)),
+                  ),
+                  child: Row(children: [
+                    Expanded(flex: 2, child: Text(user.nom, style: const TextStyle(color: Colors.white, fontSize: 13))),
+                    Expanded(flex: 2, child: Text(film.titre, style: const TextStyle(color: Colors.white70, fontSize: 13))),
+                    Expanded(flex: 2, child: Text(
+                        DateFormat('dd/MM/yyyy HH:mm').format(seance.dateHeure),
+                        style: const TextStyle(color: Colors.white54, fontSize: 12))),
+                    Expanded(flex: 1, child: Text("${r.montantTotal} DH",
+                        style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 13))),
+                    Expanded(flex: 1, child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6)),
+                      child: Text((r.statut ?? '').toUpperCase(),
+                          style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                    )),
+                  ]),
+                ),
+              );
+            }).toList(),
+          ]),
+        );
+      },
     );
   }
 

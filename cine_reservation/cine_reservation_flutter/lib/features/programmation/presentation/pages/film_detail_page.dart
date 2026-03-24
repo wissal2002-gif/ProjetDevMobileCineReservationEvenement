@@ -10,7 +10,7 @@ import '../../../../core/router/navigation_state_provider.dart';
 import '../providers/programmation_provider.dart';
 import '../providers/avis_provider.dart';
 import '../../../reservation/presentation/pages/seat_selection_page.dart';
-
+import '../../../profil/presentation/widgets/bouton_favori.dart';
 class FilmDetailPage extends ConsumerWidget {
   final int filmId;
   const FilmDetailPage({super.key, required this.filmId});
@@ -57,6 +57,7 @@ class FilmDetailPage extends ConsumerWidget {
           expandedHeight: 500,
           backgroundColor: AppColors.background,
           pinned: true,
+          actions: [BoutonFavoriFilm(filmId: filmId)],
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(
               fit: StackFit.expand,
@@ -100,6 +101,7 @@ class FilmDetailPage extends ConsumerWidget {
               ],
             ),
           ),
+
         ),
 
         SliverToBoxAdapter(

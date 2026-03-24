@@ -17,13 +17,15 @@ class _ManageSeatsCasaPageState extends ConsumerState<ManageSeatsCasaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final sallesAsync = ref.watch(sallesProvider(casaCinemaId));
     
     return Scaffold(
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
         children: [
-          const SizedBox(width: 280, child: CasaSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: CasaSidebar()),
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(40),

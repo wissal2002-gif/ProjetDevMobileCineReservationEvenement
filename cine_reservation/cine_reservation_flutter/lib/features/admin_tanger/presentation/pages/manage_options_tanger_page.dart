@@ -12,12 +12,14 @@ class ManageOptionsTangerPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final optionsAsync = ref.watch(allOptionsProvider);
+    final isMobile = MediaQuery.of(context).size.width < 768;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
         children: [
-          const SizedBox(width: 280, child: TangerSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: TangerSidebar()),
+
           Expanded(
             child: optionsAsync.when(
               data: (options) => Center(

@@ -10,6 +10,7 @@ class ManageOptionsCasaPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final optionsAsync = ref.watch(allOptionsProvider);
     const int casaCinemaId = 2;
 
@@ -23,7 +24,7 @@ class ManageOptionsCasaPage extends ConsumerWidget {
       ),
       body: Row(
         children: [
-          const SizedBox(width: 280, child: CasaSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: CasaSidebar()),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(32),

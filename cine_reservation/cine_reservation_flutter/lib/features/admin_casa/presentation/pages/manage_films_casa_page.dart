@@ -10,6 +10,7 @@ class ManageFilmsCasaPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final filmsAsync = ref.watch(prog.filmsProvider);
     const int casaCinemaId = 2;
 
@@ -24,7 +25,8 @@ class ManageFilmsCasaPage extends ConsumerWidget {
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(width: 280, child: CasaSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: CasaSidebar()),
+
           Expanded(
             child: Container(
               color: const Color(0xFF0D0A08),

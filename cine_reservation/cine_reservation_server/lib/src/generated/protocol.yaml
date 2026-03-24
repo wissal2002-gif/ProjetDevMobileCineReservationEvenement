@@ -91,10 +91,20 @@ evenements:
   - searchEvenements:
 faq:
   - getAllFaqs:
+favori:
+  - ajouterFilm:
+  - retirerFilm:
+  - ajouterCinema:
+  - retirerCinema:
+  - getMesFilmsFavoris:
+  - getMesCinemasFavoris:
+  - estFilmFavori:
+  - estCinemaFavori:
 films:
   - getFilms:
   - getFilmById:
   - searchFilms:
+  - getFilmsByCinema:
 options:
   - getOptions:
 paiement:

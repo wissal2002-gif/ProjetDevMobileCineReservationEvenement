@@ -55,7 +55,7 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 20),
-          
+
           // Avatar simple (Sans file_picker)
           Center(
             child: CircleAvatar(
@@ -92,8 +92,8 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.divider),
             ),
-            child: _editing 
-                ? _buildEditForm(profilState) 
+            child: _editing
+                ? _buildEditForm(profilState)
                 : _buildInfos(user, profilState),
           ),
 

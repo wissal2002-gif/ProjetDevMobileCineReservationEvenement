@@ -17,6 +17,8 @@ class CasaDashboardPage extends ConsumerStatefulWidget {
 class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
   static const int casaCinemaId = 2;
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     final filmsAsync        = ref.watch(allFilmsProvider);
@@ -25,79 +27,153 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
     final reservationsAsync = ref.watch(allReservationsProvider);
     final supportAsync      = ref.watch(allDemandesSupportProvider);
 
+    final bool essentialDataLoading = filmsAsync.isLoading || seancesAsync.isLoading || sallesAsync.isLoading;
+
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
+    final mainContent = SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.all(isMobile ? 16 : 36),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(isMobile),
+          const SizedBox(height: 36),
+
+          essentialDataLoading
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF8B7355)))
+              : _buildStatCards(filmsAsync, seancesAsync, sallesAsync, reservationsAsync, isMobile),
+
+          const SizedBox(height: 28),
+
+          // ─── Séances + Alertes ───
+          isMobile
+              ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              seancesAsync.when(
+                data: (seances) {
+                  final films    = filmsAsync.value ?? [];
+                  final salles   = (sallesAsync.value ?? []).where((s) => s.cinemaId == casaCinemaId).toList();
+                  final salleIds = salles.map((s) => s.id).toSet();
+                  final now      = DateTime.now();
+                  final today    = seances.where((s) =>
+                  salleIds.contains(s.salleId) &&
+                      s.dateHeure.day   == now.day   &&
+                      s.dateHeure.month == now.month &&
+                      s.dateHeure.year  == now.year).toList();
+                  return _buildSeancesCard(today, films, salles);
+                },
+                loading: () => _loadingCard("Séances aujourd'hui"),
+                error: (e, _) => _errorCard("$e"),
+              ),
+              const SizedBox(height: 20),
+              supportAsync.when(
+                data: (support) => _buildAlertsCard(support),
+                loading: () => _loadingCard("Alertes"),
+                error: (e, _) => _errorCard("$e"),
+              ),
+            ],
+          )
+              : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+              flex: 3,
+              child: seancesAsync.when(
+                data: (seances) {
+                  final films    = filmsAsync.value ?? [];
+                  final salles   = (sallesAsync.value ?? []).where((s) => s.cinemaId == casaCinemaId).toList();
+                  final salleIds = salles.map((s) => s.id).toSet();
+                  final now      = DateTime.now();
+                  final today    = seances.where((s) =>
+                  salleIds.contains(s.salleId) &&
+                      s.dateHeure.day   == now.day   &&
+                      s.dateHeure.month == now.month &&
+                      s.dateHeure.year  == now.year).toList();
+                  return _buildSeancesCard(today, films, salles);
+                },
+                loading: () => _loadingCard("Séances aujourd'hui"),
+                error: (e, _) => _errorCard("$e"),
+              ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              flex: 2,
+              child: supportAsync.when(
+                data: (support) => _buildAlertsCard(support),
+                loading: () => _loadingCard("Alertes"),
+                error: (e, _) => _errorCard("$e"),
+              ),
+            ),
+          ]),
+
+          const SizedBox(height: 28),
+          reservationsAsync.when(
+            data: (res) {
+              final salles   = (sallesAsync.value ?? []).where((s) => s.cinemaId == casaCinemaId).toList();
+              final salleIds = salles.map((s) => s.id).toSet();
+              final seances  = (seancesAsync.value ?? []).where((s) => salleIds.contains(s.salleId)).map((s) => s.id).toSet();
+              final casaRes  = res.where((r) => r.seanceId != null && seances.contains(r.seanceId)).toList();
+              return _buildRevenusChart(casaRes);
+            },
+            loading: () => _loadingCard("Revenus"),
+            error: (e, _) => _errorCard("$e"),
+          ),
+          const SizedBox(height: 28),
+          reservationsAsync.when(
+            data: (res) {
+              final salles   = (sallesAsync.value ?? []).where((s) => s.cinemaId == casaCinemaId).toList();
+              final salleIds = salles.map((s) => s.id).toSet();
+              final seances  = (seancesAsync.value ?? []).where((s) => salleIds.contains(s.salleId)).map((s) => s.id).toSet();
+              final casaRes  = res.where((r) => r.seanceId != null && seances.contains(r.seanceId)).toList();
+              return _buildLastReservations(casaRes);
+            },
+            loading: () => _loadingCard("Réservations"),
+            error: (e, _) => _errorCard("$e"),
+          ),
+        ],
+      ),
+    );
+
+    // ── Mobile : Drawer + AppBar ──
+    if (isMobile) {
+      return Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: const Color(0xFF0D0A08),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF0D0A08),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          ),
+          title: const Text("Panel Casablanca",
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        ),
+        drawer: const Drawer(
+          backgroundColor: Color(0xFF0D0A08),
+          child: CasaSidebar(),
+        ),
+        body: mainContent,
+      );
+    }
+
+    // ── Desktop : Row avec sidebar ──
     return Scaffold(
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
         children: [
           const CasaSidebar(),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(36),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 36),
-                  _buildStatCards(filmsAsync, seancesAsync, sallesAsync, reservationsAsync),
-                  const SizedBox(height: 28),
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Expanded(
-                      flex: 3,
-                      child: seancesAsync.when(
-                        data: (seances) {
-                          final films = filmsAsync.value ?? [];
-                          final salles = (sallesAsync.value ?? []).where((s) => s.cinemaId == casaCinemaId).toList();
-                          final salleIds = salles.map((s) => s.id).toSet();
-                          
-                          final now = DateTime.now();
-                          final today = seances.where((s) =>
-                            salleIds.contains(s.salleId) &&
-                            s.dateHeure.day == now.day &&
-                            s.dateHeure.month == now.month &&
-                            s.dateHeure.year == now.year).toList();
-                          return _buildSeancesCard(today, films, salles);
-                        },
-                        loading: () => _loadingCard("Séances aujourd'hui"),
-                        error: (e, _) => _errorCard("$e"),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      flex: 2,
-                      child: supportAsync.when(
-                        data: (support) => _buildAlertsCard(support),
-                        loading: () => _loadingCard("Alertes"),
-                        error: (e, _) => _errorCard("$e"),
-                      ),
-                    ),
-                  ]),
-                  const SizedBox(height: 28),
-                  reservationsAsync.when(
-                    data: (res) {
-                      final salles = (sallesAsync.value ?? []).where((s) => s.cinemaId == casaCinemaId).toList();
-                      final salleIds = salles.map((s) => s.id).toSet();
-                      final seances = (seancesAsync.value ?? []).where((s) => salleIds.contains(s.salleId)).map((s) => s.id).toSet();
-                      final casaRes = res.where((r) => r.seanceId != null && seances.contains(r.seanceId)).toList();
-                      return _buildRevenusChart(casaRes);
-                    },
-                    loading: () => _loadingCard("Revenus"),
-                    error: (e, _) => _errorCard("$e"),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          Expanded(child: mainContent),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text("PANEL DE GESTION CASABLANCA",
-            style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        Text("PANEL DE GESTION CASABLANCA",
+            style: TextStyle(color: Colors.white, fontSize: isMobile ? 18 : 28, fontWeight: FontWeight.w900, letterSpacing: 1)),
         const SizedBox(height: 6),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -108,19 +184,20 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
               style: TextStyle(color: Color(0xFF8B7355), fontSize: 12, fontWeight: FontWeight.bold)),
         ),
       ]),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.04),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white10)),
-        child: Row(children: [
-          const Icon(Icons.calendar_today, color: Color(0xFF8B7355), size: 16),
-          const SizedBox(width: 8),
-          Text(DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(DateTime.now()),
-              style: const TextStyle(color: Colors.white70, fontSize: 13)),
-        ]),
-      ),
+      if (!isMobile)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.04),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white10)),
+          child: Row(children: [
+            const Icon(Icons.calendar_today, color: Color(0xFF8B7355), size: 16),
+            const SizedBox(width: 8),
+            Text(DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(DateTime.now()),
+                style: const TextStyle(color: Colors.white70, fontSize: 13)),
+          ]),
+        ),
     ]);
   }
 
@@ -129,46 +206,57 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
       AsyncValue<List<Seance>> seancesAsync,
       AsyncValue<List<Salle>> sallesAsync,
       AsyncValue<List<Reservation>> reservationsAsync,
+      bool isMobile,
       ) {
-    final films        = filmsAsync.value ?? [];
-    final salles       = (sallesAsync.value ?? [])
-        .where((s) => s.cinemaId == casaCinemaId).toList();
-    final salleIds     = salles.map((s) => s.id).toSet();
-    final seances      = (seancesAsync.value ?? [])
-        .where((s) => salleIds.contains(s.salleId)).toList();
-    final allRes       = reservationsAsync.value ?? [];
-    final casaRes      = allRes.where((r) => r.seanceId != null && (seances.any((s) => s.id == r.seanceId))).toList();
-    
-    final revenu       = casaRes
-        .where((r) => r.statut == 'confirme')
-        .fold<double>(0, (sum, r) => sum + r.montantTotal);
+    final films    = filmsAsync.value ?? [];
+    final salles   = (sallesAsync.value ?? []).where((s) => s.cinemaId == casaCinemaId).toList();
+    final salleIds = salles.map((s) => s.id).toSet();
+    final seances  = (seancesAsync.value ?? []).where((s) => salleIds.contains(s.salleId)).toList();
+    final allRes   = reservationsAsync.value ?? [];
+    final casaRes  = allRes.where((r) => r.seanceId != null && (seances.any((s) => s.id == r.seanceId))).toList();
+    final revenu   = casaRes.where((r) => r.statut == 'confirme').fold<double>(0, (sum, r) => sum + r.montantTotal);
+
+    final cards = [
+      _statCard("FILMS",        "${films.length}",                 Icons.movie_filter_rounded,           Colors.blueAccent,   "/admin/casa/films",        isMobile),
+      _statCard("SÉANCES",      "${seances.length}",               Icons.schedule_rounded,               Colors.orangeAccent, "/admin/casa/seances",      isMobile),
+      _statCard("RÉSERVATIONS", "${casaRes.length}",               Icons.confirmation_number_rounded,    Colors.greenAccent,  "/admin/casa/reservations", isMobile),
+      _statCard("SALLES",       "${salles.length}",                Icons.meeting_room_rounded,           Colors.purpleAccent, "/admin/casa/salles",       isMobile),
+      _statCard("REVENUS",      "${revenu.toStringAsFixed(0)} DH", Icons.account_balance_wallet_rounded, Colors.amber,        "/admin/casa/revenus",      isMobile),
+    ];
+
+    if (isMobile) {
+      return GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.1,
+        children: cards,
+      );
+    }
 
     return Row(children: [
-      Expanded(child: _statCard("FILMS", "${films.length}", Icons.movie_filter_rounded,
-          Colors.blueAccent, "/admin/casa/films")),
+      Expanded(child: cards[0]),
       const SizedBox(width: 14),
-      Expanded(child: _statCard("SÉANCES", "${seances.length}", Icons.schedule_rounded,
-          Colors.orangeAccent, "/admin/casa/seances")),
+      Expanded(child: cards[1]),
       const SizedBox(width: 14),
-      Expanded(child: _statCard("RÉSERVATIONS", "${casaRes.length}",
-          Icons.confirmation_number_rounded, Colors.greenAccent, "/admin/casa/reservations")),
+      Expanded(child: cards[2]),
       const SizedBox(width: 14),
-      Expanded(child: _statCard("SALLES", "${salles.length}", Icons.meeting_room_rounded,
-          Colors.purpleAccent, "/admin/casa/salles")),
+      Expanded(child: cards[3]),
       const SizedBox(width: 14),
-      Expanded(child: _statCard("REVENUS", "${revenu.toStringAsFixed(0)} DH",
-          Icons.account_balance_wallet_rounded, Colors.amber, "/admin/casa/revenus")),
+      Expanded(child: cards[4]),
     ]);
   }
 
-  Widget _statCard(String title, String value, IconData icon, Color color, String route) {
+  Widget _statCard(String title, String value, IconData icon, Color color, String route, bool isMobile) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => context.push(route),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isMobile ? 12 : 20),
           decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.03),
               borderRadius: BorderRadius.circular(20),
@@ -181,7 +269,7 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(height: 14),
-            Text(value, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(value, style: TextStyle(color: Colors.white, fontSize: isMobile ? 16 : 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 3),
             Text(title, style: TextStyle(color: Colors.white.withOpacity(0.35),
                 fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.1)),
@@ -210,9 +298,8 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
           ]))
           : Column(
           children: seances.take(5).map<Widget>((s) {
-            final film = films.firstWhere((f) => f.id == s.filmId, orElse: () => Film(titre: "Film inconnu"));
+            final film  = films.firstWhere((f) => f.id == s.filmId,     orElse: () => Film(titre: "Film inconnu"));
             final salle = salles.firstWhere((sa) => sa.id == s.salleId, orElse: () => Salle(cinemaId: 0, codeSalle: "?", capacite: 0, typeProjection: ""));
-            
             return ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Container(
@@ -227,8 +314,7 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
               subtitle: Text("Salle ${salle.codeSalle} • ${s.typeProjection}",
                   style: const TextStyle(color: Colors.white38, fontSize: 11)),
               trailing: Text(DateFormat('HH:mm').format(s.dateHeure),
-                  style: const TextStyle(color: Color(0xFF8B7355),
-                      fontWeight: FontWeight.bold, fontSize: 14)),
+                  style: const TextStyle(color: Color(0xFF8B7355), fontWeight: FontWeight.bold, fontSize: 14)),
             );
           }).toList()),
     );
@@ -239,20 +325,15 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
     return _block(
       title: "⚡ Actions Requises",
       child: Column(children: [
-        _alertRow(Icons.chat_bubble_outline, "$pending demandes support",
-            "En attente", Colors.red, pending > 0, '/admin/support'),
-        _alertRow(Icons.movie_filter_rounded, "Programmer séances",
-            "Planning du jour", Colors.orange, false, '/admin/casa/seances'),
-        _alertRow(Icons.confirmation_number_outlined, "Voir réservations",
-            "Activité récente", Colors.green, false, '/admin/casa/reservations'),
-        _alertRow(Icons.grid_on_outlined, "Gérer sièges",
-            "Plan de salle", Colors.blue, false, '/admin/casa/salles'),
+        _alertRow(Icons.chat_bubble_outline,          "$pending demandes support", "En attente",       Colors.red,    pending > 0, '/admin/support'),
+        _alertRow(Icons.movie_filter_outlined,        "Programmer séances",        "Planning du jour", Colors.orange, false,       '/admin/casa/seances'),
+        _alertRow(Icons.confirmation_number_outlined, "Voir réservations",         "Activité récente", Colors.green,  false,       '/admin/casa/reservations'),
+        _alertRow(Icons.grid_on_outlined,             "Gérer sièges",              "Plan de salle",    Colors.blue,   false,       '/admin/casa/salles'),
       ]),
     );
   }
 
-  Widget _alertRow(IconData icon, String title, String sub, Color color,
-      bool isWarning, String route) {
+  Widget _alertRow(IconData icon, String title, String sub, Color color, bool isWarning, String route) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(children: [
@@ -280,14 +361,14 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
   Widget _buildRevenusChart(List<Reservation> reservations) {
     final now = DateTime.now();
     List<double> revenus = List.filled(7, 0);
-    List<String> jours = [];
+    List<String> jours   = [];
 
     for (int i = 6; i >= 0; i--) {
       final day = now.subtract(Duration(days: i));
       jours.add(DateFormat('E', 'fr_FR').format(day));
       final dayRevenu = reservations
           .where((r) =>
-      r.dateReservation.day == day.day &&
+      r.dateReservation.day   == day.day   &&
           r.dateReservation.month == day.month &&
           r.statut != 'annule')
           .fold<double>(0, (sum, r) => sum + r.montantTotal);
@@ -295,7 +376,7 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
     }
 
     final total = revenus.fold(0.0, (a, b) => a + b);
-    final maxY = revenus.isEmpty ? 100.0
+    final maxY  = revenus.isEmpty ? 100.0
         : (revenus.reduce((a, b) => a > b ? a : b) + 50).clamp(100.0, double.infinity);
 
     return _block(
@@ -327,11 +408,11 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
                 ),
               ),
             ),
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles:  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
-          gridData: const FlGridData(show: false),
+          gridData:   const FlGridData(show: false),
           borderData: FlBorderData(show: false),
           barGroups: List.generate(7, (i) => BarChartGroupData(
             x: i,
@@ -364,10 +445,10 @@ class _CasaDashboardPageState extends ConsumerState<CasaDashboardPage> {
           headingRowHeight: 36,
           columnSpacing: 28,
           columns: const [
-            DataColumn(label: Text("ID", style: TextStyle(color: Colors.white38, fontSize: 11))),
+            DataColumn(label: Text("ID",      style: TextStyle(color: Colors.white38, fontSize: 11))),
             DataColumn(label: Text("MONTANT", style: TextStyle(color: Colors.white38, fontSize: 11))),
-            DataColumn(label: Text("STATUT", style: TextStyle(color: Colors.white38, fontSize: 11))),
-            DataColumn(label: Text("DATE", style: TextStyle(color: Colors.white38, fontSize: 11))),
+            DataColumn(label: Text("STATUT",  style: TextStyle(color: Colors.white38, fontSize: 11))),
+            DataColumn(label: Text("DATE",    style: TextStyle(color: Colors.white38, fontSize: 11))),
           ],
           rows: recent.map<DataRow>((r) {
             Color sc = Colors.orange;

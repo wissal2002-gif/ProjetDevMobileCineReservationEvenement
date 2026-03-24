@@ -21,6 +21,7 @@ class _ManageSeancesCasaPageState extends ConsumerState<ManageSeancesCasaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final seancesAsync = ref.watch(allSeancesProvider);
     final filmsAsync = ref.watch(prog.filmsProvider);
     final sallesAsync = ref.watch(sallesProvider(casaCinemaId));
@@ -36,7 +37,8 @@ class _ManageSeancesCasaPageState extends ConsumerState<ManageSeancesCasaPage> {
       ),
       body: Row(
         children: [
-          const SizedBox(width: 280, child: CasaSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: CasaSidebar()),
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(32.0),

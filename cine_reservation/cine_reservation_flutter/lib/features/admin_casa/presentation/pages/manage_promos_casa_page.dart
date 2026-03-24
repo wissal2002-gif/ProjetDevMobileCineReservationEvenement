@@ -36,6 +36,7 @@ class _ManagePromosCasaPageState extends ConsumerState<ManagePromosCasaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final promosAsync = ref.watch(allCodesPromoProvider);
 
     return Scaffold(
@@ -49,7 +50,8 @@ class _ManagePromosCasaPageState extends ConsumerState<ManagePromosCasaPage> {
       ),
       body: Row(
         children: [
-          const SizedBox(width: 280, child: CasaSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: CasaSidebar()),
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(32.0),

@@ -11,6 +11,7 @@ class ManageReservationsTangerPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final resAsync     = ref.watch(allReservationsProvider);
     final usersAsync   = ref.watch(allClientsProvider);
     final seancesAsync = ref.watch(allSeancesProvider);
@@ -33,7 +34,8 @@ class ManageReservationsTangerPage extends ConsumerWidget {
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
         children: [
-          const TangerSidebar(),
+          if (!isMobile) const SizedBox(width: 280, child: TangerSidebar()),
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(32),
@@ -46,8 +48,9 @@ class ManageReservationsTangerPage extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text("RÉSERVATIONS CINÉMA - TANGER",
-                              style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                           Text("RÉSERVATIONS CINÉMA - TANGER",
+                              style: TextStyle(color: Colors.white, fontSize: isMobile ? 18 : 28, fontWeight: FontWeight.bold)),
+
                           Text("Exclusif Mégarama Tanger — ID: 9",
                               style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13)),
                         ],
@@ -74,14 +77,14 @@ class ManageReservationsTangerPage extends ConsumerWidget {
                         : hasError
                         ? const Center(child: Text("Erreur de chargement", style: TextStyle(color: Colors.redAccent)))
                         : _buildFilteredTangerList(
-                            context,
-                            ref,
-                            resAsync.value ?? [],
-                            usersAsync.value ?? [],
-                            seancesAsync.value ?? [],
-                            filmsAsync.value ?? [],
-                            sallesAsync.value ?? [],
-                          ),
+                      context,
+                      ref,
+                      resAsync.value ?? [],
+                      usersAsync.value ?? [],
+                      seancesAsync.value ?? [],
+                      filmsAsync.value ?? [],
+                      sallesAsync.value ?? [],
+                    ),
                   ),
                 ],
               ),
@@ -101,11 +104,11 @@ class ManageReservationsTangerPage extends ConsumerWidget {
       List<Film> films,
       List<Salle> salles,
       ) {
-    
+
     // ✅ FILTRE STRICT : Uniquement Cinéma ID 9 et exclure les événements
     final tangerReservations = reservations.where((r) {
       if (r.seanceId == null) return false; // Exclure les événements
-      
+
       try {
         final seance = seances.firstWhere((s) => s.id == r.seanceId);
         final salle = salles.firstWhere((s) => s.id == seance.salleId);
@@ -125,10 +128,10 @@ class ManageReservationsTangerPage extends ConsumerWidget {
         final res = tangerReservations[index];
         // ✅ RECHERCHE ROBUSTE DU NOM DU CLIENT
         final user = users.firstWhere(
-          (u) => u.id == res.utilisateurId, 
-          orElse: () => Utilisateur(nom: "Client #${res.utilisateurId}", email: "N/A")
+                (u) => u.id == res.utilisateurId,
+            orElse: () => Utilisateur(nom: "Client #${res.utilisateurId}", email: "N/A")
         );
-        
+
         final seance = seances.firstWhere((s) => s.id == res.seanceId, orElse: () => seances.firstWhere((s) => s.id == res.seanceId));
         final film = films.firstWhere((f) => f.id == seance.filmId, orElse: () => Film(titre: "Film #${seance.filmId}"));
         final salle = salles.firstWhere((s) => s.id == seance.salleId, orElse: () => Salle(cinemaId: 9, codeSalle: "Salle #${seance.salleId}", capacite: 0, typeProjection: ""));
@@ -141,7 +144,7 @@ class ManageReservationsTangerPage extends ConsumerWidget {
   Widget _buildResCard(BuildContext context, WidgetRef ref, Reservation res, Utilisateur user, Film film, Salle salle, Seance seance) {
     final bool isCancelled = res.statut == 'annule';
     final bool isRefunded  = res.statut == 'rembourse';
-    
+
     return Card(
       color: Colors.white.withOpacity(0.04),
       margin: const EdgeInsets.only(bottom: 16),
@@ -186,7 +189,7 @@ class ManageReservationsTangerPage extends ConsumerWidget {
   void _handleRefund(BuildContext context, WidgetRef ref, Reservation res) async {
     final ctrlPrice = TextEditingController(text: res.montantTotal.toString());
     final ctrlReason = TextEditingController(text: "Annulation de séance");
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

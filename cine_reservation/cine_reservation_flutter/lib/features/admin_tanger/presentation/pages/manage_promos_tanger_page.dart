@@ -37,6 +37,8 @@ class _ManagePromosTangerPageState extends ConsumerState<ManagePromosTangerPage>
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     final promosAsync = ref.watch(allCodesPromoProvider);
 
     return Scaffold(
@@ -50,7 +52,8 @@ class _ManagePromosTangerPageState extends ConsumerState<ManagePromosTangerPage>
       ),
       body: Row(
         children: [
-          const SizedBox(width: 280, child: TangerSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: TangerSidebar()),
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(32.0),
