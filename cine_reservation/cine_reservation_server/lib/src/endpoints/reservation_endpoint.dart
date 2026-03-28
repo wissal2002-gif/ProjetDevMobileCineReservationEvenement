@@ -19,13 +19,22 @@ class ReservationEndpoint extends Endpoint {
     // ✅ FIX: On récupère l'utilisateur réel pour avoir son ID (int)
     final user = await Utilisateur.db.findFirstRow(session,
         where: (t) => t.authUserId.equals(authInfo.userIdentifier));
-    
+
     if (user == null || user.id == null) return null;
+    int? cinemaId;
+    if (seanceId != null) {
+      final seance = await Seance.db.findById(session, seanceId);
+      if (seance != null) {
+        final salle = await Salle.db.findById(session, seance.salleId);
+        cinemaId = salle?.cinemaId;
+      }
+    }
 
     final reservation = Reservation(
       utilisateurId: user.id!, // ✅ On utilise le vrai ID de la base de données
       seanceId: seanceId,
       evenementId: evenementId,
+      cinemaId: cinemaId, // ✅ Rempli automatiquement
       typeReservation: typeReservation ?? 'cinema',
       dateReservation: DateTime.now().toUtc(),
       montantTotal: montantTotal,
@@ -39,7 +48,7 @@ class ReservationEndpoint extends Endpoint {
   Future<List<Reservation>> getMesReservations(Session session) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return [];
-    
+
     final user = await Utilisateur.db.findFirstRow(session,
         where: (t) => t.authUserId.equals(authInfo.userIdentifier));
     if (user == null) return [];
@@ -55,7 +64,7 @@ class ReservationEndpoint extends Endpoint {
   Future<bool> annulerReservation(Session session, int reservationId) async {
     final authInfo = session.authenticated;
     if (authInfo == null) return false;
-    
+
     final user = await Utilisateur.db.findFirstRow(session,
         where: (t) => t.authUserId.equals(authInfo.userIdentifier));
     if (user == null) return false;

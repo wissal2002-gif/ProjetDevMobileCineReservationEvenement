@@ -17,6 +17,7 @@ abstract class Reservation implements _i1.SerializableModel {
     this.id,
     required this.utilisateurId,
     this.seanceId,
+    this.cinemaId,
     this.evenementId,
     String? typeReservation,
     required this.dateReservation,
@@ -31,6 +32,7 @@ abstract class Reservation implements _i1.SerializableModel {
     int? id,
     required int utilisateurId,
     int? seanceId,
+    int? cinemaId,
     int? evenementId,
     String? typeReservation,
     required DateTime dateReservation,
@@ -45,6 +47,7 @@ abstract class Reservation implements _i1.SerializableModel {
       id: jsonSerialization['id'] as int?,
       utilisateurId: jsonSerialization['utilisateurId'] as int,
       seanceId: jsonSerialization['seanceId'] as int?,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
       evenementId: jsonSerialization['evenementId'] as int?,
       typeReservation: jsonSerialization['typeReservation'] as String?,
       dateReservation: _i1.DateTimeJsonExtension.fromJson(
@@ -67,6 +70,8 @@ abstract class Reservation implements _i1.SerializableModel {
 
   int? seanceId;
 
+  int? cinemaId;
+
   int? evenementId;
 
   String? typeReservation;
@@ -88,6 +93,7 @@ abstract class Reservation implements _i1.SerializableModel {
     int? id,
     int? utilisateurId,
     int? seanceId,
+    int? cinemaId,
     int? evenementId,
     String? typeReservation,
     DateTime? dateReservation,
@@ -103,6 +109,7 @@ abstract class Reservation implements _i1.SerializableModel {
       if (id != null) 'id': id,
       'utilisateurId': utilisateurId,
       if (seanceId != null) 'seanceId': seanceId,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       if (evenementId != null) 'evenementId': evenementId,
       if (typeReservation != null) 'typeReservation': typeReservation,
       'dateReservation': dateReservation.toJson(),
@@ -127,6 +134,7 @@ class _ReservationImpl extends Reservation {
     int? id,
     required int utilisateurId,
     int? seanceId,
+    int? cinemaId,
     int? evenementId,
     String? typeReservation,
     required DateTime dateReservation,
@@ -138,6 +146,7 @@ class _ReservationImpl extends Reservation {
          id: id,
          utilisateurId: utilisateurId,
          seanceId: seanceId,
+         cinemaId: cinemaId,
          evenementId: evenementId,
          typeReservation: typeReservation,
          dateReservation: dateReservation,
@@ -155,6 +164,7 @@ class _ReservationImpl extends Reservation {
     Object? id = _Undefined,
     int? utilisateurId,
     Object? seanceId = _Undefined,
+    Object? cinemaId = _Undefined,
     Object? evenementId = _Undefined,
     Object? typeReservation = _Undefined,
     DateTime? dateReservation,
@@ -167,6 +177,7 @@ class _ReservationImpl extends Reservation {
       id: id is int? ? id : this.id,
       utilisateurId: utilisateurId ?? this.utilisateurId,
       seanceId: seanceId is int? ? seanceId : this.seanceId,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
       evenementId: evenementId is int? ? evenementId : this.evenementId,
       typeReservation: typeReservation is String?
           ? typeReservation

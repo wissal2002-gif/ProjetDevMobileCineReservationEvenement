@@ -18,6 +18,7 @@ abstract class Reservation
     this.id,
     required this.utilisateurId,
     this.seanceId,
+    this.cinemaId,
     this.evenementId,
     String? typeReservation,
     required this.dateReservation,
@@ -32,6 +33,7 @@ abstract class Reservation
     int? id,
     required int utilisateurId,
     int? seanceId,
+    int? cinemaId,
     int? evenementId,
     String? typeReservation,
     required DateTime dateReservation,
@@ -46,6 +48,7 @@ abstract class Reservation
       id: jsonSerialization['id'] as int?,
       utilisateurId: jsonSerialization['utilisateurId'] as int,
       seanceId: jsonSerialization['seanceId'] as int?,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
       evenementId: jsonSerialization['evenementId'] as int?,
       typeReservation: jsonSerialization['typeReservation'] as String?,
       dateReservation: _i1.DateTimeJsonExtension.fromJson(
@@ -69,6 +72,8 @@ abstract class Reservation
   int utilisateurId;
 
   int? seanceId;
+
+  int? cinemaId;
 
   int? evenementId;
 
@@ -94,6 +99,7 @@ abstract class Reservation
     int? id,
     int? utilisateurId,
     int? seanceId,
+    int? cinemaId,
     int? evenementId,
     String? typeReservation,
     DateTime? dateReservation,
@@ -109,6 +115,7 @@ abstract class Reservation
       if (id != null) 'id': id,
       'utilisateurId': utilisateurId,
       if (seanceId != null) 'seanceId': seanceId,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       if (evenementId != null) 'evenementId': evenementId,
       if (typeReservation != null) 'typeReservation': typeReservation,
       'dateReservation': dateReservation.toJson(),
@@ -127,6 +134,7 @@ abstract class Reservation
       if (id != null) 'id': id,
       'utilisateurId': utilisateurId,
       if (seanceId != null) 'seanceId': seanceId,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       if (evenementId != null) 'evenementId': evenementId,
       if (typeReservation != null) 'typeReservation': typeReservation,
       'dateReservation': dateReservation.toJson(),
@@ -175,6 +183,7 @@ class _ReservationImpl extends Reservation {
     int? id,
     required int utilisateurId,
     int? seanceId,
+    int? cinemaId,
     int? evenementId,
     String? typeReservation,
     required DateTime dateReservation,
@@ -186,6 +195,7 @@ class _ReservationImpl extends Reservation {
          id: id,
          utilisateurId: utilisateurId,
          seanceId: seanceId,
+         cinemaId: cinemaId,
          evenementId: evenementId,
          typeReservation: typeReservation,
          dateReservation: dateReservation,
@@ -203,6 +213,7 @@ class _ReservationImpl extends Reservation {
     Object? id = _Undefined,
     int? utilisateurId,
     Object? seanceId = _Undefined,
+    Object? cinemaId = _Undefined,
     Object? evenementId = _Undefined,
     Object? typeReservation = _Undefined,
     DateTime? dateReservation,
@@ -215,6 +226,7 @@ class _ReservationImpl extends Reservation {
       id: id is int? ? id : this.id,
       utilisateurId: utilisateurId ?? this.utilisateurId,
       seanceId: seanceId is int? ? seanceId : this.seanceId,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
       evenementId: evenementId is int? ? evenementId : this.evenementId,
       typeReservation: typeReservation is String?
           ? typeReservation
@@ -240,6 +252,11 @@ class ReservationUpdateTable extends _i1.UpdateTable<ReservationTable> {
 
   _i1.ColumnValue<int, int> seanceId(int? value) => _i1.ColumnValue(
     table.seanceId,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> cinemaId(int? value) => _i1.ColumnValue(
+    table.cinemaId,
     value,
   );
 
@@ -293,6 +310,10 @@ class ReservationTable extends _i1.Table<int?> {
       'seanceId',
       this,
     );
+    cinemaId = _i1.ColumnInt(
+      'cinemaId',
+      this,
+    );
     evenementId = _i1.ColumnInt(
       'evenementId',
       this,
@@ -331,6 +352,8 @@ class ReservationTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt seanceId;
 
+  late final _i1.ColumnInt cinemaId;
+
   late final _i1.ColumnInt evenementId;
 
   late final _i1.ColumnString typeReservation;
@@ -350,6 +373,7 @@ class ReservationTable extends _i1.Table<int?> {
     id,
     utilisateurId,
     seanceId,
+    cinemaId,
     evenementId,
     typeReservation,
     dateReservation,

@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/email_service.dart';
+import 'dart:typed_data'; // ✅ Nécessaire pour Uint8List et ByteData
 
 class AdminEndpoint extends Endpoint {
   // Helper pour récupérer l'utilisateur connecté de manière sécurisée
@@ -83,16 +84,16 @@ class AdminEndpoint extends Endpoint {
       }
       final eventCount = await Evenement.db.count(session, where: (t) => t.cinemaId.equals(user.cinemaId));
       final userCount = await Utilisateur.db.count(session, where: (t) => t.cinemaId.equals(user.cinemaId));
-      
+
       int filmCount = 0;
       try {
         filmCount = await Film.db.count(session, where: (t) => t.cinemaId.equals(user.cinemaId));
       } catch (e) {
-        filmCount = await Film.db.count(session); 
+        filmCount = await Film.db.count(session);
       }
-      
+
       return {
-        'totalFilms': filmCount, 
+        'totalFilms': filmCount,
         'totalEvents': eventCount,
         'totalUsers': userCount,
         'totalReservations': resCount,
@@ -138,10 +139,10 @@ class AdminEndpoint extends Endpoint {
             }
           }
           await EmailService.sendRefundNotification(
-            toEmail: user.email, 
-            nomUtilisateur: user.nom, 
-            titre: titre, 
-            montantRembourse: amt, 
+            toEmail: user.email,
+            nomUtilisateur: user.nom,
+            titre: titre,
+            montantRembourse: amt,
             raison: raison
           );
         }
@@ -258,4 +259,42 @@ class AdminEndpoint extends Endpoint {
     return list.map((r) => {'resId': r.id, 'statut': r.statut, 'montantTotal': r.montantTotal, 'dateReservation': r.dateReservation.toIso8601String()}).toList();
   }
   Future<List<Utilisateur>> getAllClients(Session session) async => await Utilisateur.db.find(session);
+  // ✅ AJOUTER CETTE MÉTHODE
+  Future<void> modifierUtilisateur(Session session, Utilisateur utilisateur) async {
+    await Utilisateur.db.updateRow(session, utilisateur);
+  }
+  // server/lib/src/endpoints/admin_endpoint.dart
+  Future<void> updateSiegesType(
+      Session session,
+      List<int> siegeIds,
+      String type,
+      ) async {
+    for (final id in siegeIds) {
+      final siege = await Siege.db.findById(session, id);
+      if (siege != null) {
+        await Siege.db.updateRow(
+          session,
+          siege.copyWith(type: type),
+        );
+      }
+    }
+  }
+  Future<String> uploadOptionImage(
+      Session session, List<int> bytes, String fileName) async {
+    final path = 'options/$fileName';
+
+    await session.storage.storeFile(
+      storageId: 'public',
+      path: path,
+      byteData: ByteData.view(Uint8List.fromList(bytes).buffer),
+    );
+
+    final url = await session.storage.getPublicUrl(
+      storageId: 'public',
+      path: path,
+    );
+
+    return url?.toString() ?? '';
+  }
+
 }

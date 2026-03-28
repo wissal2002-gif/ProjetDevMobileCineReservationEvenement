@@ -743,6 +743,37 @@ class EndpointAdmin extends _i2.EndpointRef {
         'getAllClients',
         {},
       );
+
+  _i3.Future<void> modifierUtilisateur(_i12.Utilisateur utilisateur) =>
+      caller.callServerEndpoint<void>(
+        'admin',
+        'modifierUtilisateur',
+        {'utilisateur': utilisateur},
+      );
+
+  _i3.Future<void> updateSiegesType(
+    List<int> siegeIds,
+    String type,
+  ) => caller.callServerEndpoint<void>(
+    'admin',
+    'updateSiegesType',
+    {
+      'siegeIds': siegeIds,
+      'type': type,
+    },
+  );
+
+  _i3.Future<String> uploadOptionImage(
+    List<int> bytes,
+    String fileName,
+  ) => caller.callServerEndpoint<String>(
+    'admin',
+    'uploadOptionImage',
+    {
+      'bytes': bytes,
+      'fileName': fileName,
+    },
+  );
 }
 
 /// {@category Endpoint}

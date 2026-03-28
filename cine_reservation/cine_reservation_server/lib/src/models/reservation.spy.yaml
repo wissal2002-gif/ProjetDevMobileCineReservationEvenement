@@ -5,6 +5,7 @@ managedMigration: true
 fields:
   utilisateurId: int
   seanceId: int?
+  cinemaId: int? # Indispensable pour le filtrage des revenus
   evenementId: int?
   typeReservation: String?, default='cinema'
   dateReservation: DateTime

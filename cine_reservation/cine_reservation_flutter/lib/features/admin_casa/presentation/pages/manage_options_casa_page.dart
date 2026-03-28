@@ -11,70 +11,90 @@ class ManageOptionsCasaPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 768;
-    final optionsAsync = ref.watch(allOptionsProvider);
-    const int casaCinemaId = 2;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0D0A08),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showOptionDialog(context, ref),
-        label: const Text("AJOUTER SNACK"),
-        icon: const Icon(Icons.add),
-        backgroundColor: Colors.amber,
-      ),
-      body: Row(
-        children: [
-          if (!isMobile) const SizedBox(width: 280, child: CasaSidebar()),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("GESTION DES SNACKS - CASA", style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 30),
-                  Expanded(
-                    child: optionsAsync.when(
-                      data: (options) {
-                        final casaOptions = options.where((o) => o.cinemaId == casaCinemaId).toList();
-                        if (casaOptions.isEmpty) return const Center(child: Text("Aucun snack à Casablanca.", style: TextStyle(color: Colors.white24)));
-                        return ListView.builder(
-                          itemCount: casaOptions.length,
-                          itemBuilder: (context, index) {
-                            final opt = casaOptions[index];
-                            return Card(
-                              color: Colors.white10,
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: ListTile(
-                                leading: const Icon(Icons.fastfood, color: Colors.amber),
-                                title: Text(opt.nom, style: const TextStyle(color: Colors.white)),
-                                subtitle: Text("${opt.prix} DH", style: const TextStyle(color: Colors.white54)),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.redAccent),
-                                  onPressed: () async {
-                                    await client.admin.supprimerOption(opt.id!);
-                                    ref.invalidate(allOptionsProvider);
-                                  },
-                                ),
-                              ),
+    // 1. On récupère le profil de l'admin connecté via ton provider
+    final adminAsync = ref.watch(adminProfileProvider);
+    final optionsAsync = ref.watch(allOptionsProvider);
+
+    return adminAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(body: Center(child: Text("Erreur profil: $e"))),
+      data: (admin) {
+        // 2. EXTRACTION DE L'ID DYNAMIQUE
+        // Au lieu de "2", on prend l'ID du cinéma de l'admin actuel
+        final int? currentCinemaId = admin?.cinemaId;
+        final String nomCinema = admin?.nomCinema ?? "MON CINÉMA";
+
+        return Scaffold(
+          backgroundColor: const Color(0xFF0D0A08),
+          floatingActionButton: FloatingActionButton.extended(
+            // On passe l'ID dynamique au dialogue
+            onPressed: () => _showOptionDialog(context, ref, currentCinemaId!),
+            label: const Text("AJOUTER SNACK"),
+            icon: const Icon(Icons.add),
+            backgroundColor: Colors.amber,
+          ),
+          body: Row(
+            children: [
+              if (!isMobile) const SizedBox(width: 280, child: CasaSidebar()),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // TITRE DYNAMIQUE
+                      Text("GESTION DES SNACKS - ${nomCinema.toUpperCase()}",
+                          style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 30),
+                      Expanded(
+                        child: optionsAsync.when(
+                          data: (options) {
+                            // 3. FILTRAGE DYNAMIQUE
+                            // On ne filtre que les snacks qui appartiennent au cinéma de l'admin
+                            final filteredOptions = options.where((o) => o.cinemaId == currentCinemaId).toList();
+
+                            if (filteredOptions.isEmpty) return const Center(child: Text("Aucun snack enregistré.", style: TextStyle(color: Colors.white24)));
+                            return ListView.builder(
+                              itemCount: filteredOptions.length,
+                              itemBuilder: (context, index) {
+                                final opt = filteredOptions[index];
+                                return Card(
+                                  color: Colors.white10,
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  child: ListTile(
+                                    leading: const Icon(Icons.fastfood, color: Colors.amber),
+                                    title: Text(opt.nom, style: const TextStyle(color: Colors.white)),
+                                    subtitle: Text("${opt.prix} DH", style: const TextStyle(color: Colors.white54)),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                      onPressed: () async {
+                                        await client.admin.supprimerOption(opt.id!);
+                                        ref.invalidate(allOptionsProvider);
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
                             );
                           },
-                        );
-                      },
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (e, _) => Center(child: Text("Erreur: $e")),
-                    ),
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (e, _) => Center(child: Text("Erreur: $e")),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  void _showOptionDialog(BuildContext context, WidgetRef ref) {
+  // DIALOGUE : On ajoute le paramètre 'cinemaId'
+  void _showOptionDialog(BuildContext context, WidgetRef ref, int cinemaId) {
     final nomCtrl = TextEditingController();
     final prixCtrl = TextEditingController();
     showDialog(
@@ -91,7 +111,14 @@ class ManageOptionsCasaPage extends ConsumerWidget {
         ),
         actions: [
           ElevatedButton(onPressed: () async {
-            final opt = OptionSupplementaire(cinemaId: 2, nom: nomCtrl.text, prix: double.parse(prixCtrl.text), description: "", categorie: "snack", disponible: true);
+            final opt = OptionSupplementaire(
+                cinemaId: cinemaId, // <--- UTILISE L'ID RÉCUPÉRÉ DYNAMIQUEMENT
+                nom: nomCtrl.text,
+                prix: double.parse(prixCtrl.text),
+                description: "",
+                categorie: "snack",
+                disponible: true
+            );
             await client.admin.ajouterOption(opt);
             ref.invalidate(allOptionsProvider);
             Navigator.pop(ctx);

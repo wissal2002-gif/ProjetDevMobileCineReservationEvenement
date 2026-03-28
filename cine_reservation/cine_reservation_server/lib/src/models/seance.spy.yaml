@@ -4,6 +4,7 @@ managedMigration: true
 
 fields:
   filmId: int
+  cinemaId: int? # <--- AJOUTE LE POINT D'INTERROGATION ICI
   salleId: int
   dateHeure: DateTime
   langue: String?, default='VF'
@@ -21,3 +22,5 @@ indexes:
     fields: filmId
   seance_salle_idx:
     fields: salleId
+  seance_cinema_idx:
+    fields: cinemaId

@@ -39,10 +39,11 @@ import 'package:cine_reservation_server/src/generated/faq.dart' as _i26;
 import 'package:cine_reservation_server/src/generated/option%20supplementaire.dart'
     as _i27;
 import 'package:cine_reservation_server/src/generated/code_promo.dart' as _i28;
+import 'package:cine_reservation_server/src/generated/utilisateur.dart' as _i29;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i29;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i30;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i31;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -1440,6 +1441,75 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['admin'] as _i4.AdminEndpoint)
                   .getAllClients(session),
         ),
+        'modifierUtilisateur': _i1.MethodConnector(
+          name: 'modifierUtilisateur',
+          params: {
+            'utilisateur': _i1.ParameterDescription(
+              name: 'utilisateur',
+              type: _i1.getType<_i29.Utilisateur>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).modifierUtilisateur(
+                    session,
+                    params['utilisateur'],
+                  ),
+        ),
+        'updateSiegesType': _i1.MethodConnector(
+          name: 'updateSiegesType',
+          params: {
+            'siegeIds': _i1.ParameterDescription(
+              name: 'siegeIds',
+              type: _i1.getType<List<int>>(),
+              nullable: false,
+            ),
+            'type': _i1.ParameterDescription(
+              name: 'type',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).updateSiegesType(
+                    session,
+                    params['siegeIds'],
+                    params['type'],
+                  ),
+        ),
+        'uploadOptionImage': _i1.MethodConnector(
+          name: 'uploadOptionImage',
+          params: {
+            'bytes': _i1.ParameterDescription(
+              name: 'bytes',
+              type: _i1.getType<List<int>>(),
+              nullable: false,
+            ),
+            'fileName': _i1.ParameterDescription(
+              name: 'fileName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i4.AdminEndpoint).uploadOptionImage(
+                    session,
+                    params['bytes'],
+                    params['fileName'],
+                  ),
+        ),
       },
     );
     connectors['avis'] = _i1.EndpointConnector(
@@ -2329,9 +2399,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i29.Endpoints()
+    modules['serverpod_auth_idp'] = _i30.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i30.Endpoints()
+    modules['serverpod_auth_core'] = _i31.Endpoints()
       ..initializeEndpoints(server);
   }
 }

@@ -316,12 +316,12 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
     if (t == List<_i35.Billet>) {
       return (data as List).map((e) => deserialize<_i35.Billet>(e)).toList()
           as T;
-    }
-    if (t == List<int>) {
-      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     try {
       return _i36.Protocol().deserialize<T>(data, t);

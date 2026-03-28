@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
-import '../../../../main.dart';
+import '../../../../main.dart';import '../providers/admin_provider.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../providers/admin_provider.dart';
-import 'package:intl/intl.dart';
 
 class ManageUsersPage extends ConsumerWidget {
   const ManageUsersPage({super.key});
@@ -15,213 +13,133 @@ class ManageUsersPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text("GESTION UTILISATEURS & RÔLES"),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(allUtilisateursProvider),
-          )
-        ],
-      ),
+      appBar: AppBar(title: const Text("UTILISATEURS & RÔLES")),
       body: usersAsync.when(
         data: (users) => ListView.builder(
-          padding: const EdgeInsets.all(16),
           itemCount: users.length,
           itemBuilder: (context, index) {
             final user = users[index];
-            final bool isSuspended = user.statut == 'suspendu';
-            final String role = user.role ?? 'client';
-
-            return Card(
-              color: Colors.white.withOpacity(0.05),
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: ExpansionTile(
-                leading: CircleAvatar(
-                  backgroundColor: AppColors.accent.withOpacity(0.1),
-                  child: Text(user.nom.isNotEmpty ? user.nom[0].toUpperCase() : "U", 
-                       style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
-                ),
-                title: Text(user.nom, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                subtitle: Text("${user.email} • ${role.toUpperCase()}", 
-                    style: TextStyle(color: role == 'super_admin' ? Colors.amber : Colors.white54, fontSize: 12)),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.admin_panel_settings, color: Colors.blueAccent),
-                      onPressed: () => _showRoleDialog(context, ref, user),
-                      tooltip: "Modifier le rôle",
-                    ),
-                    IconButton(
-                      icon: Icon(isSuspended ? Icons.play_circle_outline : Icons.pause_circle_outline, 
-                           color: isSuspended ? Colors.greenAccent : Colors.orangeAccent),
-                      onPressed: () => _toggleStatus(context, ref, user),
-                      tooltip: isSuspended ? "Activer" : "Suspendre",
-                    ),
-                  ],
-                ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _infoRow(Icons.fingerprint, "ID Utilisateur", "#${user.id}"),
-                        _infoRow(Icons.phone, "Téléphone", user.telephone ?? "Non renseigné"),
-                        _infoRow(Icons.location_city, "Cinéma ID", user.cinemaId?.toString() ?? "Accès Global"),
-                        _infoRow(Icons.star, "Points Fidélité", "${user.pointsFidelite ?? 0}"),
-                        _infoRow(Icons.info_outline, "Statut Compte", (user.statut ?? 'ACTIF').toUpperCase()),
-                        
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () => _showHistory(context, ref, user),
-                            icon: const Icon(Icons.history, size: 18),
-                            label: const Text("VOIR L'HISTORIQUE DES ACHATS"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white10,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-                ],
+            return ListTile(
+              title: Text(user.nom, style: const TextStyle(color: Colors.white)),
+              subtitle: Text("${user.role} - Cinéma ID: ${user.cinemaId ?? 'Aucun'}",
+                  style: const TextStyle(color: Colors.white54)),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit, color: AppColors.accent),
+                onPressed: () => _showEditUserDialog(context, ref, user),
               ),
             );
           },
         ),
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
-        error: (e, _) => Center(child: Text("Erreur: $e", style: const TextStyle(color: Colors.redAccent))),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text("Erreur: $e")),
       ),
     );
   }
 
-  void _showRoleDialog(BuildContext context, WidgetRef ref, Utilisateur user) {
-    final roles = ['client', 'admin_local', 'resp_evenements', 'super_admin'];
+  void _showEditUserDialog(BuildContext context, WidgetRef ref, Utilisateur user) {
+    // 1. Liste des rôles autorisés (doit correspondre EXACTEMENT aux items du dropdown)
+    const allowedRoles = ['client', 'admin_local', 'super_admin', 'resp_evenements', 'staff'];
+
+    // 2. Initialisation sécurisée : si le rôle du user n'est pas dans la liste, on met 'client'
+    String selectedRole = (user.role != null && allowedRoles.contains(user.role))
+        ? user.role!
+        : 'client';
+
+    int? selectedCinemaId = user.cinemaId;
+    final cinemasAsync = ref.watch(allCinemasProvider);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: Text("Assigner un rôle à ${user.nom}", style: const TextStyle(color: Colors.white, fontSize: 16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: roles.map((r) => ListTile(
-            title: Text(r.toUpperCase(), style: TextStyle(color: user.role == r ? AppColors.accent : Colors.white70)),
-            trailing: user.role == r ? const Icon(Icons.check, color: AppColors.accent) : null,
-            onTap: () async {
-              try {
-                await client.admin.modifierUtilisateurRole(user.id!, r);
-                ref.invalidate(allUtilisateursProvider);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Rôle mis à jour : ${r.toUpperCase()}"), backgroundColor: Colors.green));
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e"), backgroundColor: Colors.redAccent));
-              }
-            },
-          )).toList(),
-        ),
-      ),
-    );
-  }
-
-  void _toggleStatus(BuildContext context, WidgetRef ref, Utilisateur user) async {
-    final bool isSuspended = user.statut == 'suspendu';
-    try {
-      if (isSuspended) {
-        await client.admin.activerUtilisateur(user.id!);
-      } else {
-        await client.admin.suspendreUtilisateur(user.id!);
-      }
-      ref.invalidate(allUtilisateursProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Utilisateur ${isSuspended ? 'activé' : 'suspendu'} !"), backgroundColor: Colors.amber),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur : $e")));
-    }
-  }
-
-  void _showHistory(BuildContext context, WidgetRef ref, Utilisateur user) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF121212),
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        expand: false,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          backgroundColor: AppColors.cardBg,
+          title: Text("Modifier ${user.nom}", style: const TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Historique : ${user.nom}", style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text(user.email, style: const TextStyle(color: Colors.white38, fontSize: 12)),
-              const Divider(color: Colors.white10, height: 32),
-              Expanded(
-                child: ref.watch(userHistoryProvider(user.id!)).when(
-                  data: (history) {
-                    if (history.isEmpty) return const Center(child: Text("Aucune réservation trouvée.", style: TextStyle(color: Colors.white24)));
-                    return ListView.builder(
-                      controller: scrollController,
-                      itemCount: history.length,
-                      itemBuilder: (context, index) {
-                        final res = history[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(12)),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.receipt_long, color: AppColors.accent, size: 20),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("Réservation #${res.id}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                    Text(DateFormat('dd/MM/yyyy HH:mm').format(res.dateReservation), style: const TextStyle(color: Colors.white38, fontSize: 11)),
-                                  ],
-                                ),
-                              ),
-                              Text("${res.montantTotal} DH", style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text("Erreur : $e")),
+              // --- Choix du Rôle ---
+              DropdownButtonFormField<String>(
+                value: selectedRole,
+                dropdownColor: AppColors.cardBg,
+                style: const TextStyle(color: Colors.white),
+                items: allowedRoles.map((r) =>
+                    DropdownMenuItem(
+                        value: r,
+                        child: Text(r, style: const TextStyle(color: Colors.white))
+                    )
+                ).toList(),
+                onChanged: (v) {
+                  setState(() {
+                    selectedRole = v!;
+                    // Si on change de rôle et que ce n'est plus admin_local, on reset le cinemaId
+                    if (selectedRole != 'admin_local') {
+                      selectedCinemaId = null;
+                    }
+                  });
+                },
+                decoration: const InputDecoration(
+                  labelText: "Rôle",
+                  labelStyle: TextStyle(color: AppColors.accent),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
                 ),
               ),
+
+              const SizedBox(height: 20),
+
+              // --- Choix du Cinéma (uniquement si admin_local) ---
+              if (selectedRole == 'admin_local')
+                cinemasAsync.when(
+                  data: (list) => DropdownButtonFormField<int>(
+                    value: selectedCinemaId,
+                    dropdownColor: AppColors.cardBg,
+                    style: const TextStyle(color: Colors.white),
+                    hint: const Text("Affecter à un Cinéma", style: TextStyle(color: Colors.white54, fontSize: 14)),
+                    items: list.map((c) => DropdownMenuItem(
+                        value: c.id,
+                        child: Text(c.nom, style: const TextStyle(color: Colors.white))
+                    )).toList(),
+                    onChanged: (id) => setState(() => selectedCinemaId = id),
+                    decoration: const InputDecoration(
+                      labelText: "Cinéma affecté",
+                      labelStyle: TextStyle(color: AppColors.accent),
+                    ),
+                  ),
+                  loading: () => const LinearProgressIndicator(color: AppColors.accent),
+                  error: (_, __) => const Text("Erreur de chargement des cinémas", style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                ),
             ],
           ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("ANNULER", style: TextStyle(color: Colors.white54))
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
+              onPressed: () async {
+                // Mise à jour de l'objet utilisateur avant envoi au serveur
+                user.role = selectedRole;
+                user.cinemaId = (selectedRole == 'admin_local') ? selectedCinemaId : null;
+
+                try {
+                  await client.admin.modifierUtilisateur(user);
+                  ref.invalidate(allUtilisateursProvider);
+                  if (context.mounted) {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Utilisateur mis à jour !"), backgroundColor: Colors.green)
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Erreur : $e"), backgroundColor: Colors.redAccent)
+                  );
+                }
+              },
+              child: const Text("ENREGISTRER", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            )
+          ],
         ),
       ),
     );
-  }
-
-  Widget _infoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: Colors.white24),
-          const SizedBox(width: 12),
-          Text("$label : ", style: const TextStyle(color: Colors.white38, fontSize: 13)),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 13)),
-        ],
-      ),
-    );
-  }
-}
+  }}

@@ -74,6 +74,9 @@ admin:
   - getMonProfil:
   - getReservationsDetailed:
   - getAllClients:
+  - modifierUtilisateur:
+  - updateSiegesType:
+  - uploadOptionImage:
 avis:
   - soumettreAvis:
   - getMonAvis:
