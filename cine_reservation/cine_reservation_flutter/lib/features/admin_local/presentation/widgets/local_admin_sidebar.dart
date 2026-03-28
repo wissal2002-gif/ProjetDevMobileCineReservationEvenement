@@ -90,6 +90,12 @@ class LocalAdminSidebar extends ConsumerWidget {
                     "Salles & Sièges",        "/admin/local/salles"),
                 _navItem(context, Icons.fastfood_rounded,
                     "Snacks & Options",       "/admin/local/options"),
+                _navItem(context, Icons.favorite_rounded,
+                    "Statistiques Likes", "/admin/local/likes"),
+                _navItem(context, Icons.star_rounded,
+                    "Avis Clients", "/admin/local/avis"),
+                _navItem(context, Icons.bar_chart_rounded,
+                    "Statistiques", "/admin/local/stats"),
 
                 const SizedBox(height: 8),
                 _sectionLabel("GESTION"),

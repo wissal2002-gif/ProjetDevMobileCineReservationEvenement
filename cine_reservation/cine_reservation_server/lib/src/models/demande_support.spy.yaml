@@ -4,6 +4,7 @@ managedMigration: true
 
 fields:
   utilisateurId: int
+  cinemaId: int?        # ← AJOUTER ça
   sujet: String
   message: String
   statut: String?, default='ouvert'
@@ -14,3 +15,5 @@ fields:
 indexes:
   support_utilisateur_idx:
     fields: utilisateurId
+  support_cinema_idx: # ← AJOUTER ça
+      fields: cinemaId

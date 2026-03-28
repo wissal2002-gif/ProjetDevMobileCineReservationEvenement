@@ -2,6 +2,9 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/email_service.dart';
 import 'dart:typed_data'; // ✅ Nécessaire pour Uint8List et ByteData
+import 'dart:convert'; //
+
+
 
 class AdminEndpoint extends Endpoint {
   // Helper pour récupérer l'utilisateur connecté de manière sécurisée
@@ -296,5 +299,210 @@ class AdminEndpoint extends Endpoint {
 
     return url?.toString() ?? '';
   }
+  Future<String> getStatsFavoris(Session session) async {
+    final user = await _getRequiredUser(session);
+    final cinemaId = user.cinemaId;
 
+    final cinemaLikes = await Favori.db.count(session,
+        where: (f) => f.cinemaId.equals(cinemaId));
+
+    final films = await Film.db.find(session,
+        where: (f) => f.cinemaId.equals(cinemaId));
+    final filmIds = films.map((f) => f.id!).toSet();
+
+    final tousLesFavorisFilms = await Favori.db.find(session,
+        where: (f) => f.filmId.notEquals(null));
+    final favsFilmsCinema = tousLesFavorisFilms
+        .where((f) => filmIds.contains(f.filmId))
+        .toList();
+
+    final Map<int, int> likesParFilm = {};
+    for (final fav in favsFilmsCinema) {
+      likesParFilm[fav.filmId!] = (likesParFilm[fav.filmId!] ?? 0) + 1;
+    }
+
+    final topFilms = likesParFilm.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final topFilmsData = <Map<String, dynamic>>[];
+    for (final entry in topFilms.take(5)) {
+      final film = films.firstWhere((f) => f.id == entry.key,
+          orElse: () => Film(titre: 'Inconnu', cinemaId: cinemaId ?? 0));
+      topFilmsData.add({'titre': film.titre, 'likes': entry.value});
+    }
+
+    // ✅ Retourner JSON string au lieu de Map
+    return jsonEncode({
+      'totalLikesCinema': cinemaLikes,
+      'totalLikesFilms': favsFilmsCinema.length,
+      'topFilms': topFilmsData,
+    });
+  }
+  Future<String> getAvisFilmsCinema(Session session) async {
+
+    final user = await _getRequiredUser(session);
+    final cinemaId = user.cinemaId;
+
+    // Films du cinéma
+    final films = await Film.db.find(session,
+        where: (f) => f.cinemaId.equals(cinemaId));
+    final filmIds = films.map((f) => f.id!).toSet();
+
+    if (filmIds.isEmpty) return jsonEncode([]);
+
+    // Avis sur ces films
+    final avis = await Avis.db.find(session,
+        where: (a) => a.filmId.inSet(filmIds),
+        orderBy: (a) => a.dateAvis,
+        orderDescending: true);
+
+    // Utilisateurs
+    final userIds = avis.map((a) => a.utilisateurId).toSet();
+    final utilisateurs = userIds.isEmpty ? <Utilisateur>[] :
+    await Utilisateur.db.find(session,
+        where: (u) => u.id.inSet(userIds));
+
+    final result = avis.map((a) {
+      final film = films.firstWhere((f) => f.id == a.filmId,
+          orElse: () => Film(titre: 'Inconnu', cinemaId: cinemaId ?? 0));
+      final utilisateur = utilisateurs.firstWhere((u) => u.id == a.utilisateurId,
+          orElse: () => Utilisateur(nom: 'Client', email: ''));
+      return {
+        'id': a.id,
+        'filmTitre': film.titre,
+        'filmId': a.filmId,
+        'utilisateurNom': utilisateur.nom ?? 'Client',
+        'note': a.note,
+        'dateAvis': a.dateAvis.toIso8601String(),
+      };
+    }).toList();
+
+    return jsonEncode(result);
+  }
+  Future<String> getStatistiquesDetaillees(Session session) async {
+    final user = await _getRequiredUser(session);
+    final cinemaId = user.cinemaId;
+
+    // ── 1. Stats sièges par salle ─────────────────────────────
+    final salles = await Salle.db.find(session,
+        where: (s) => s.cinemaId.equals(cinemaId));
+
+    final statsParSalle = <Map<String, dynamic>>[];
+    for (final salle in salles) {
+      final totalSieges = await Siege.db.count(session,
+          where: (s) => s.salleId.equals(salle.id));
+
+      // Sièges occupés = dans reservation_sieges avec réservation confirmée
+      final reservationsSalle = await Reservation.db.find(session,
+          where: (r) => r.cinemaId.equals(cinemaId) &
+          r.statut.equals('confirme'));
+      final resIds = reservationsSalle
+          .map((r) => r.id!)
+          .toSet();
+
+      int siegesOccupes = 0;
+      if (resIds.isNotEmpty) {
+        siegesOccupes = await ReservationSiege.db.count(session,
+            where: (rs) => rs.reservationId.inSet(resIds));
+      }
+
+      statsParSalle.add({
+        'salleName': salle.codeSalle,
+        'total': totalSieges,
+        'occupes': siegesOccupes,
+        'libres': totalSieges - siegesOccupes,
+      });
+    }
+
+    // ── 2. Stats par film ────────────────────────────────────
+    final films = await Film.db.find(session,
+        where: (f) => f.cinemaId.equals(cinemaId));
+    final seances = await Seance.db.find(session,
+        where: (s) => s.cinemaId.equals(cinemaId));
+    final seanceIds = seances.map((s) => s.id!).toSet();
+
+    final statsParFilm = <Map<String, dynamic>>[];
+    for (final film in films) {
+      final seancesFilm = seances
+          .where((s) => s.filmId == film.id)
+          .toList();
+      final seanceFilmIds = seancesFilm
+          .map((s) => s.id!)
+          .toSet();
+
+      int totalRes = 0;
+      double revenu = 0;
+      if (seanceFilmIds.isNotEmpty) {
+        final reservations = await Reservation.db.find(session,
+            where: (r) => r.seanceId.inSet(seanceFilmIds) &
+            r.statut.notEquals('annule'));
+        totalRes = reservations.length;
+        revenu = reservations.fold(0.0,
+                (sum, r) => sum + r.montantTotal);
+      }
+
+      statsParFilm.add({
+        'filmTitre': film.titre,
+        'nbSeances': seancesFilm.length,
+        'nbReservations': totalRes,
+        'revenu': revenu,
+      });
+    }
+
+    // ── 3. Options consommées aujourd'hui ─────────────────────
+    final maintenant = DateTime.now().toUtc();
+    final debutJour = DateTime(
+        maintenant.year, maintenant.month, maintenant.day);
+    final finJour = debutJour.add(const Duration(days: 1));
+
+    final resAujourdHui = await Reservation.db.find(session,
+    where: (r) => r.cinemaId.equals(cinemaId) &
+    r.dateReservation.between(debutJour, finJour));
+    final resIdsAujourdHui = resAujourdHui
+        .map((r) => r.id!)
+        .toSet();
+
+    final statsOptions = <Map<String, dynamic>>[];
+    if (resIdsAujourdHui.isNotEmpty) {
+    final resOptions = await ReservationOption.db.find(session,
+    where: (ro) =>
+    ro.reservationId.inSet(resIdsAujourdHui));
+
+    final optionIds = resOptions
+        .map((ro) => ro.optionId)
+        .toSet();
+    final options = optionIds.isEmpty
+    ? <OptionSupplementaire>[]
+        : await OptionSupplementaire.db.find(session,
+    where: (o) => o.id.inSet(optionIds));
+
+    final Map<int, int> qteParOption = {};
+    final Map<int, double> revenuParOption = {};
+    for (final ro in resOptions) {
+    qteParOption[ro.optionId] =
+    (qteParOption[ro.optionId] ?? 0) + (ro.quantite ?? 1);
+    revenuParOption[ro.optionId] =
+    (revenuParOption[ro.optionId] ?? 0) +
+    ((ro.prixUnitaire ?? 0) * (ro.quantite ?? 1));
+    }
+
+    for (final opt in options) {
+    statsOptions.add({
+    'nom': opt.nom,
+    'categorie': opt.categorie ?? 'snack',
+    'quantite': qteParOption[opt.id] ?? 0,
+    'revenu': revenuParOption[opt.id] ?? 0.0,
+    });
+    }
+    statsOptions.sort((a, b) =>
+    (b['quantite'] as int).compareTo(a['quantite'] as int));
+    }
+
+    return jsonEncode({
+    'statsParSalle': statsParSalle,
+    'statsParFilm': statsParFilm,
+    'statsOptions': statsOptions,
+    'dateJour': debutJour.toIso8601String(),
+    });
+  }
 }

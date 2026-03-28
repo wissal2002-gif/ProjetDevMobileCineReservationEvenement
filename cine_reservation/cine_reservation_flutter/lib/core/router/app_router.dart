@@ -74,6 +74,10 @@ import '../../features/admin_events/presentation/pages/revenues_events_page.dart
 // Admin Local
 import '../../features/admin_local/presentation/pages/manage_options_page.dart' as local_options;
 import '../../features/admin/presentation/providers/admin_provider.dart';
+import '../../features/admin_local/presentation/pages/stats_likes_page.dart';
+import '../../features/admin_local/presentation/pages/avis_clients_page.dart';
+import '../../features/admin_local/presentation/pages/statistiques_detaillees_page.dart';
+
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   // ✅ Rend le router réactif au chargement du profil
@@ -356,6 +360,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/local/salles',
         builder: (context, state) => const ManageSallesLocalPage(),
+      ),
+      GoRoute(
+        path: '/admin/local/likes',
+        builder: (context, state) => const StatsLikesPage(),
+      ),
+      GoRoute(
+        path: '/admin/local/avis',
+        builder: (context, state) => const AvisClientsPage(),
+      ),
+      GoRoute(
+        path: '/admin/local/stats',
+        builder: (context, state) => const StatistiquesDetailleesPage(),
       ),
     ],
   );

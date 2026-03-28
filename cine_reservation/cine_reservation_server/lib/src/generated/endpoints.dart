@@ -1510,6 +1510,36 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['fileName'],
                   ),
         ),
+        'getStatsFavoris': _i1.MethodConnector(
+          name: 'getStatsFavoris',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getStatsFavoris(session),
+        ),
+        'getAvisFilmsCinema': _i1.MethodConnector(
+          name: 'getAvisFilmsCinema',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getAvisFilmsCinema(session),
+        ),
+        'getStatistiquesDetaillees': _i1.MethodConnector(
+          name: 'getStatistiquesDetaillees',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i4.AdminEndpoint)
+                  .getStatistiquesDetaillees(session),
+        ),
       },
     );
     connectors['avis'] = _i1.EndpointConnector(

@@ -774,6 +774,25 @@ class EndpointAdmin extends _i2.EndpointRef {
       'fileName': fileName,
     },
   );
+
+  _i3.Future<String> getStatsFavoris() => caller.callServerEndpoint<String>(
+    'admin',
+    'getStatsFavoris',
+    {},
+  );
+
+  _i3.Future<String> getAvisFilmsCinema() => caller.callServerEndpoint<String>(
+    'admin',
+    'getAvisFilmsCinema',
+    {},
+  );
+
+  _i3.Future<String> getStatistiquesDetaillees() =>
+      caller.callServerEndpoint<String>(
+        'admin',
+        'getStatistiquesDetaillees',
+        {},
+      );
 }
 
 /// {@category Endpoint}
