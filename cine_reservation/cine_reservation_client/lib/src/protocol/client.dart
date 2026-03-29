@@ -1243,12 +1243,16 @@ class EndpointSupport extends _i2.EndpointRef {
   _i3.Future<bool> creerDemande(
     String sujet,
     String message,
+    int utilisateurId,
+    int? cinemaId,
   ) => caller.callServerEndpoint<bool>(
     'support',
     'creerDemande',
     {
       'sujet': sujet,
       'message': message,
+      'utilisateurId': utilisateurId,
+      'cinemaId': cinemaId,
     },
   );
 
@@ -1257,6 +1261,13 @@ class EndpointSupport extends _i2.EndpointRef {
         'support',
         'getDemandes',
         {},
+      );
+
+  _i3.Future<List<_i13.DemandeSupport>> getDemandesByCinema(int cinemaId) =>
+      caller.callServerEndpoint<List<_i13.DemandeSupport>>(
+        'support',
+        'getDemandesByCinema',
+        {'cinemaId': cinemaId},
       );
 }
 

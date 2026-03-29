@@ -58,8 +58,24 @@ class LocalDashboardPage extends ConsumerWidget {
 
         return Scaffold(
           backgroundColor: AppColors.background,
+          drawer: isMobile ? const Drawer(
+            backgroundColor: Color(0xFF0D0A08),
+            child: LocalAdminSidebar(),
+          ) : null,
+          appBar: isMobile ? AppBar(
+            backgroundColor: const Color(0xFF0D0A08),
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: Text(
+              nomCine.toUpperCase(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ) : null,
           body: Row(
-            children: [
+          children: [
               if (!isMobile) const LocalAdminSidebar(),
               Expanded(
                 child: SingleChildScrollView(

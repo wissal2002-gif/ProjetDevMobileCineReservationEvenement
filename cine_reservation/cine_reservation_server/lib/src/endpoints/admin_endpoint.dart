@@ -228,7 +228,21 @@ class AdminEndpoint extends Endpoint {
     return await Siege.db.find(session, where: (t) => t.id.inSet(ids));
   }
   Future<double> getTauxRemplissageSeance(Session session, int sId) async => 0.0;
-  Future<List<DemandeSupport>> getAllDemandesSupport(Session session) async => await DemandeSupport.db.find(session);
+  Future<List<DemandeSupport>> getAllDemandesSupport(Session session) async {
+    final user = await _getRequiredUser(session);
+
+    if (user.role == 'super_admin') {
+      return await DemandeSupport.db.find(session,
+          orderBy: (t) => t.createdAt,
+          orderDescending: true);
+    } else if (user.role == 'admin_local') {
+      return await DemandeSupport.db.find(session,
+          where: (t) => t.cinemaId.equals(user.cinemaId),
+          orderBy: (t) => t.createdAt,
+          orderDescending: true);
+    }
+    return [];
+  }
   Future<void> repondreDemande(Session session, int id, String resp) async {
     final d = await DemandeSupport.db.findById(session, id);
     if (d != null) { d.reponse = resp; d.statut = 'traité'; await DemandeSupport.db.updateRow(session, d); }

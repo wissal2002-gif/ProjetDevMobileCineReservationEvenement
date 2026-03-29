@@ -2381,6 +2381,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'utilisateurId': _i1.ParameterDescription(
+              name: 'utilisateurId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'cinemaId': _i1.ParameterDescription(
+              name: 'cinemaId',
+              type: _i1.getType<int?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -2391,6 +2401,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['sujet'],
                     params['message'],
+                    params['utilisateurId'],
+                    params['cinemaId'],
                   ),
         ),
         'getDemandes': _i1.MethodConnector(
@@ -2402,6 +2414,25 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['support'] as _i19.SupportEndpoint)
                   .getDemandes(session),
+        ),
+        'getDemandesByCinema': _i1.MethodConnector(
+          name: 'getDemandesByCinema',
+          params: {
+            'cinemaId': _i1.ParameterDescription(
+              name: 'cinemaId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['support'] as _i19.SupportEndpoint)
+                  .getDemandesByCinema(
+                    session,
+                    params['cinemaId'],
+                  ),
         ),
       },
     );

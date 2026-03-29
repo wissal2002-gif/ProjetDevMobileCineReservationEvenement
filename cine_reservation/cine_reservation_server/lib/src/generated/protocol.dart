@@ -474,6 +474,12 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'int',
         ),
         _i2.ColumnDefinition(
+          name: 'cinemaId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _i2.ColumnDefinition(
           name: 'sujet',
           columnType: _i2.ColumnType.text,
           isNullable: false,
@@ -533,6 +539,19 @@ class Protocol extends _i1.SerializationManagerServer {
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
               definition: 'utilisateurId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'support_cinema_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'cinemaId',
             ),
           ],
           type: 'btree',

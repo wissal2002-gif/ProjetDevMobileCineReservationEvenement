@@ -77,6 +77,7 @@ import '../../features/admin/presentation/providers/admin_provider.dart';
 import '../../features/admin_local/presentation/pages/stats_likes_page.dart';
 import '../../features/admin_local/presentation/pages/avis_clients_page.dart';
 import '../../features/admin_local/presentation/pages/statistiques_detaillees_page.dart';
+import '../../features/admin_local/presentation/pages/manage_support_local_page.dart';
 
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -372,6 +373,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/local/stats',
         builder: (context, state) => const StatistiquesDetailleesPage(),
+      ),
+      GoRoute(
+        path: '/admin/local/support',
+        builder: (context, state) => const ManageSupportLocalPage(),
       ),
     ],
   );

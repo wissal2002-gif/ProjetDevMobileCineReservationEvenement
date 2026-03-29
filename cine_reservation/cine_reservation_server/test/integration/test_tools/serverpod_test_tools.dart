@@ -4266,6 +4266,8 @@ class _SupportEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String sujet,
     String message,
+    int utilisateurId,
+    int? cinemaId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -4281,6 +4283,8 @@ class _SupportEndpoint {
           parameters: _i1.testObjectToJson({
             'sujet': sujet,
             'message': message,
+            'utilisateurId': utilisateurId,
+            'cinemaId': cinemaId,
           }),
           serializationManager: _serializationManager,
         );
@@ -4312,6 +4316,37 @@ class _SupportEndpoint {
           endpointPath: 'support',
           methodName: 'getDemandes',
           parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i13.DemandeSupport>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i13.DemandeSupport>> getDemandesByCinema(
+    _i1.TestSessionBuilder sessionBuilder,
+    int cinemaId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'support',
+            method: 'getDemandesByCinema',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'support',
+          methodName: 'getDemandesByCinema',
+          parameters: _i1.testObjectToJson({'cinemaId': cinemaId}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =

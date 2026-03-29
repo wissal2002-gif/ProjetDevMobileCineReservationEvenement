@@ -96,6 +96,8 @@ class LocalAdminSidebar extends ConsumerWidget {
                     "Avis Clients", "/admin/local/avis"),
                 _navItem(context, Icons.bar_chart_rounded,
                     "Statistiques", "/admin/local/stats"),
+                _navItem(context, Icons.support_agent_rounded,
+                    "Support Client", "/admin/local/support"),
 
                 const SizedBox(height: 8),
                 _sectionLabel("GESTION"),

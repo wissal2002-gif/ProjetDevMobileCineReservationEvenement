@@ -139,5 +139,6 @@ sieges:
 support:
   - creerDemande:
   - getDemandes:
+  - getDemandesByCinema:
 greeting:
   - hello:
