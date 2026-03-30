@@ -14,16 +14,16 @@ class RevenuesEventsPage extends ConsumerStatefulWidget {
 }
 
 class _RevenuesEventsPageState extends ConsumerState<RevenuesEventsPage> {
-  String _selectedCity = "Toutes";
-  String _selectedPeriod = "Tout"; // Tout, Ce mois, Cette année
-  String _selectedLocationType = "Tous"; // Tous, Au Cinéma, Hors Cinéma
+  String _selectedCity         = "Toutes";
+  String _selectedPeriod       = "Tout";
+  String _selectedLocationType = "Tous";
 
   @override
   Widget build(BuildContext context) {
-    // Utilisation des providers de base pour la stabilité
-    final resAsync = ref.watch(allReservationsProvider);
+    final isMobile    = MediaQuery.of(context).size.width < 768;
+    final resAsync    = ref.watch(allReservationsProvider);
     final eventsAsync = ref.watch(allEvenementsProvider);
-    final usersAsync = ref.watch(allClientsProvider);
+    final usersAsync  = ref.watch(allClientsProvider);
 
     final isLoading = resAsync.isLoading || eventsAsync.isLoading || usersAsync.isLoading;
 
@@ -31,49 +31,40 @@ class _RevenuesEventsPageState extends ConsumerState<RevenuesEventsPage> {
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
         children: [
-          const EventsSidebar(),
+          if (!isMobile) SizedBox(width: 280, child: EventsSidebar()),
+
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator(color: Colors.amber))
                 : _buildContent(
-                    context,
-                    resAsync.value ?? [],
-                    eventsAsync.value ?? [],
-                    usersAsync.value ?? [],
-                  ),
+              context,
+              isMobile,
+              resAsync.value ?? [],
+              eventsAsync.value ?? [],
+              usersAsync.value ?? [],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, List<Reservation> allRes, List<Evenement> allEvents, List<Utilisateur> allUsers) {
-    // 1. Filtrer les réservations liées à un événement
+  Widget _buildContent(BuildContext context, bool isMobile, List<Reservation> allRes, List<Evenement> allEvents, List<Utilisateur> allUsers) {
     List<Reservation> eventRes = allRes.where((r) => r.evenementId != null).toList();
 
-    // 2. Extraire les villes pour le filtre
     final cities = ["Toutes", ...allEvents.map((e) => e.ville ?? "Inconnue").toSet()];
 
-    // 3. Appliquer les filtres
     final now = DateTime.now();
-    
-    // On crée une liste d'objets "joints" pour faciliter le filtrage
+
     var filteredData = eventRes.map((res) {
-      final ev = allEvents.firstWhere((e) => e.id == res.evenementId, orElse: () => Evenement(titre: "Inconnu", dateDebut: DateTime.now()));
+      final ev   = allEvents.firstWhere((e) => e.id == res.evenementId, orElse: () => Evenement(titre: "Inconnu", dateDebut: DateTime.now()));
       final user = allUsers.firstWhere((u) => u.id == res.utilisateurId, orElse: () => Utilisateur(nom: "Client #${res.utilisateurId}", email: "N/A"));
-      return {
-        'res': res,
-        'ev': ev,
-        'user': user,
-      };
+      return {'res': res, 'ev': ev, 'user': user};
     }).toList();
 
-    // Filtre Ville
     if (_selectedCity != "Toutes") {
       filteredData = filteredData.where((item) => (item['ev'] as Evenement).ville == _selectedCity).toList();
     }
-
-    // Filtre Période
     if (_selectedPeriod == "Ce mois") {
       filteredData = filteredData.where((item) {
         final date = (item['ev'] as Evenement).dateDebut;
@@ -85,43 +76,52 @@ class _RevenuesEventsPageState extends ConsumerState<RevenuesEventsPage> {
         return date.year == now.year;
       }).toList();
     }
-
-    // Filtre Lieu
     if (_selectedLocationType == "Au Cinéma") {
       filteredData = filteredData.where((item) => (item['ev'] as Evenement).cinemaId != null).toList();
     } else if (_selectedLocationType == "Hors Cinéma") {
       filteredData = filteredData.where((item) => (item['ev'] as Evenement).cinemaId == null).toList();
     }
 
-    // Calculs sur les données filtrées
     final double totalRevenu = filteredData.fold(0.0, (sum, item) => sum + (item['res'] as Reservation).montantTotal);
-    final int totalTickets = filteredData.length;
-    final int nbAnnulees = filteredData.where((item) => (item['res'] as Reservation).statut == 'annule').length;
+    final int    totalTickets = filteredData.length;
+    final int    nbAnnulees   = filteredData.where((item) => (item['res'] as Reservation).statut == 'annule').length;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(isMobile ? 16 : 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
-          const SizedBox(height: 32),
-          
-          _buildFilterBar(cities),
+          _buildHeader(isMobile),
           const SizedBox(height: 32),
 
-          Row(
+          _buildFilterBar(cities, isMobile),
+          const SizedBox(height: 32),
+
+          // ─── KPI cards ───
+          isMobile
+              ? GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.3,
             children: [
-              Expanded(child: _kpiCard("REVENU FILTRÉ", "${totalRevenu.toStringAsFixed(0)} DH", Icons.account_balance_wallet, Colors.amber)),
-              const SizedBox(width: 16),
-              Expanded(child: _kpiCard("BILLETS", "$totalTickets", Icons.confirmation_number, Colors.blue)),
-              const SizedBox(width: 16),
-              Expanded(child: _kpiCard("ANNULATIONS", "$nbAnnulees", Icons.cancel, Colors.orange)),
+              _kpiCard("REVENU FILTRÉ", "${totalRevenu.toStringAsFixed(0)} DH", Icons.account_balance_wallet, Colors.amber),
+              _kpiCard("BILLETS",       "$totalTickets",                        Icons.confirmation_number,    Colors.blue),
+              _kpiCard("ANNULATIONS",   "$nbAnnulees",                          Icons.cancel,                 Colors.orange),
             ],
-          ),
+          )
+              : Row(children: [
+            Expanded(child: _kpiCard("REVENU FILTRÉ", "${totalRevenu.toStringAsFixed(0)} DH", Icons.account_balance_wallet, Colors.amber)),
+            const SizedBox(width: 16),
+            Expanded(child: _kpiCard("BILLETS",       "$totalTickets",  Icons.confirmation_number, Colors.blue)),
+            const SizedBox(width: 16),
+            Expanded(child: _kpiCard("ANNULATIONS",   "$nbAnnulees",    Icons.cancel,              Colors.orange)),
+          ]),
 
           const SizedBox(height: 40),
           _buildTypeChart(filteredData),
-
           const SizedBox(height: 40),
           _buildTransactionList(filteredData),
         ],
@@ -129,19 +129,19 @@ class _RevenuesEventsPageState extends ConsumerState<RevenuesEventsPage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("ANALYSE FINANCIÈRE DES ÉVÉNEMENTS",
-            style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+        Text("ANALYSE FINANCIÈRE DES ÉVÉNEMENTS",
+            style: TextStyle(color: Colors.white, fontSize: isMobile ? 20 : 28, fontWeight: FontWeight.bold)),
         Text("Filtrez vos revenus par ville, période ou type de lieu",
             style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13)),
       ],
     );
   }
 
-  Widget _buildFilterBar(List<String> cities) {
+  Widget _buildFilterBar(List<String> cities, bool isMobile) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -149,15 +149,22 @@ class _RevenuesEventsPageState extends ConsumerState<RevenuesEventsPage> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
-      child: Row(
-        children: [
-          _filterDropdown("VILLE", _selectedCity, cities, (val) => setState(() => _selectedCity = val!)),
-          const SizedBox(width: 20),
-          _filterDropdown("PÉRIODE", _selectedPeriod, ["Tout", "Ce mois", "Cette année"], (val) => setState(() => _selectedPeriod = val!)),
-          const SizedBox(width: 20),
-          _filterDropdown("LIEU", _selectedLocationType, ["Tous", "Au Cinéma", "Hors Cinéma"], (val) => setState(() => _selectedLocationType = val!)),
-        ],
-      ),
+      // ─── Column sur mobile, Row sur desktop ───
+      child: isMobile
+          ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _filterDropdown("VILLE",    _selectedCity,         cities,                                          (val) => setState(() => _selectedCity         = val!)),
+        const SizedBox(height: 16),
+        _filterDropdown("PÉRIODE",  _selectedPeriod,       ["Tout", "Ce mois", "Cette année"],             (val) => setState(() => _selectedPeriod       = val!)),
+        const SizedBox(height: 16),
+        _filterDropdown("LIEU",     _selectedLocationType, ["Tous", "Au Cinéma", "Hors Cinéma"],           (val) => setState(() => _selectedLocationType = val!)),
+      ])
+          : Row(children: [
+        _filterDropdown("VILLE",    _selectedCity,         cities,                                          (val) => setState(() => _selectedCity         = val!)),
+        const SizedBox(width: 20),
+        _filterDropdown("PÉRIODE",  _selectedPeriod,       ["Tout", "Ce mois", "Cette année"],             (val) => setState(() => _selectedPeriod       = val!)),
+        const SizedBox(width: 20),
+        _filterDropdown("LIEU",     _selectedLocationType, ["Tous", "Au Cinéma", "Hors Cinéma"],           (val) => setState(() => _selectedLocationType = val!)),
+      ]),
     );
   }
 
@@ -199,7 +206,7 @@ class _RevenuesEventsPageState extends ConsumerState<RevenuesEventsPage> {
   Widget _buildTypeChart(List<Map<String, dynamic>> filteredData) {
     final Map<String, double> revParType = {};
     for (var item in filteredData) {
-      final ev = item['ev'] as Evenement;
+      final ev  = item['ev']  as Evenement;
       final res = item['res'] as Reservation;
       final type = ev.type ?? 'autre';
       revParType[type] = (revParType[type] ?? 0) + res.montantTotal;
@@ -237,10 +244,9 @@ class _RevenuesEventsPageState extends ConsumerState<RevenuesEventsPage> {
           itemCount: filteredData.length,
           itemBuilder: (context, index) {
             final item = filteredData[index];
-            final res = item['res'] as Reservation;
-            final ev = item['ev'] as Evenement;
+            final res  = item['res']  as Reservation;
+            final ev   = item['ev']   as Evenement;
             final user = item['user'] as Utilisateur;
-
             return ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(ev.titre, style: const TextStyle(color: Colors.white, fontSize: 14)),

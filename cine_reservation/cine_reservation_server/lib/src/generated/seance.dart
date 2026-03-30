@@ -16,6 +16,7 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   Seance._({
     this.id,
     required this.filmId,
+    this.cinemaId,
     required this.salleId,
     required this.dateHeure,
     String? langue,
@@ -34,6 +35,7 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   factory Seance({
     int? id,
     required int filmId,
+    int? cinemaId,
     required int salleId,
     required DateTime dateHeure,
     String? langue,
@@ -51,6 +53,7 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     return Seance(
       id: jsonSerialization['id'] as int?,
       filmId: jsonSerialization['filmId'] as int,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
       salleId: jsonSerialization['salleId'] as int,
       dateHeure: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['dateHeure'],
@@ -75,6 +78,8 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   int? id;
 
   int filmId;
+
+  int? cinemaId;
 
   int salleId;
 
@@ -107,6 +112,7 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   Seance copyWith({
     int? id,
     int? filmId,
+    int? cinemaId,
     int? salleId,
     DateTime? dateHeure,
     String? langue,
@@ -125,6 +131,7 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       '__className__': 'Seance',
       if (id != null) 'id': id,
       'filmId': filmId,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       'salleId': salleId,
       'dateHeure': dateHeure.toJson(),
       if (langue != null) 'langue': langue,
@@ -145,6 +152,7 @@ abstract class Seance implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       '__className__': 'Seance',
       if (id != null) 'id': id,
       'filmId': filmId,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       'salleId': salleId,
       'dateHeure': dateHeure.toJson(),
       if (langue != null) 'langue': langue,
@@ -195,6 +203,7 @@ class _SeanceImpl extends Seance {
   _SeanceImpl({
     int? id,
     required int filmId,
+    int? cinemaId,
     required int salleId,
     required DateTime dateHeure,
     String? langue,
@@ -209,6 +218,7 @@ class _SeanceImpl extends Seance {
   }) : super._(
          id: id,
          filmId: filmId,
+         cinemaId: cinemaId,
          salleId: salleId,
          dateHeure: dateHeure,
          langue: langue,
@@ -229,6 +239,7 @@ class _SeanceImpl extends Seance {
   Seance copyWith({
     Object? id = _Undefined,
     int? filmId,
+    Object? cinemaId = _Undefined,
     int? salleId,
     DateTime? dateHeure,
     Object? langue = _Undefined,
@@ -244,6 +255,7 @@ class _SeanceImpl extends Seance {
     return Seance(
       id: id is int? ? id : this.id,
       filmId: filmId ?? this.filmId,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
       salleId: salleId ?? this.salleId,
       dateHeure: dateHeure ?? this.dateHeure,
       langue: langue is String? ? langue : this.langue,
@@ -266,6 +278,11 @@ class SeanceUpdateTable extends _i1.UpdateTable<SeanceTable> {
 
   _i1.ColumnValue<int, int> filmId(int value) => _i1.ColumnValue(
     table.filmId,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> cinemaId(int? value) => _i1.ColumnValue(
+    table.cinemaId,
     value,
   );
 
@@ -334,6 +351,10 @@ class SeanceTable extends _i1.Table<int?> {
       'filmId',
       this,
     );
+    cinemaId = _i1.ColumnInt(
+      'cinemaId',
+      this,
+    );
     salleId = _i1.ColumnInt(
       'salleId',
       this,
@@ -387,6 +408,8 @@ class SeanceTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt filmId;
 
+  late final _i1.ColumnInt cinemaId;
+
   late final _i1.ColumnInt salleId;
 
   late final _i1.ColumnDateTime dateHeure;
@@ -413,6 +436,7 @@ class SeanceTable extends _i1.Table<int?> {
   List<_i1.Column> get columns => [
     id,
     filmId,
+    cinemaId,
     salleId,
     dateHeure,
     langue,

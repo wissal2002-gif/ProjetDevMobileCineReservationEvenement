@@ -12,6 +12,7 @@ class ManageStaffTangerPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     // On observe le staff de Tanger via le provider (à définir dans admin_provider.dart)
     final staffAsync = ref.watch(staffTangerProvider);
 
@@ -28,7 +29,8 @@ class ManageStaffTangerPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Sidebar fixe (SANS CONST pour éviter les erreurs de calcul sur Chrome)
-          SizedBox(width: 280, child: TangerSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: TangerSidebar()),
+
 
           // 2. Contenu principal
           Expanded(

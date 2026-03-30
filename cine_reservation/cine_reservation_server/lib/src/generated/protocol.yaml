@@ -14,6 +14,8 @@ admin:
   - getDashboardData:
   - getDashboardActions:
   - getAdminStats:
+  - getAllReservations:
+  - rembourserReservation:
   - getAllCinemas:
   - ajouterCinema:
   - modifierCinema:
@@ -26,6 +28,7 @@ admin:
   - supprimerSalle:
   - getSiegesBySalle:
   - genererSiegesPourSalle:
+  - genererSiegesAutomatique:
   - getAllSeances:
   - ajouterSeance:
   - modifierSeance:
@@ -47,8 +50,7 @@ admin:
   - supprimerUtilisateur:
   - getHistoriqueUtilisateur:
   - modifierUtilisateurRole:
-  - getAllReservations:
-  - rembourserReservation:
+  - traiterRemboursement:
   - getSiegesByReservation:
   - getTauxRemplissageSeance:
   - getAllDemandesSupport:
@@ -69,11 +71,15 @@ admin:
   - getGlobalPromoSummary:
   - getStaffTanger:
   - ajouterStaff:
-  - traiterRemboursement:
-  - genererSiegesAutomatique:
   - getMonProfil:
   - getReservationsDetailed:
   - getAllClients:
+  - modifierUtilisateur:
+  - updateSiegesType:
+  - uploadOptionImage:
+  - getStatsFavoris:
+  - getAvisFilmsCinema:
+  - getStatistiquesDetaillees:
 avis:
   - soumettreAvis:
   - getMonAvis:
@@ -91,10 +97,20 @@ evenements:
   - searchEvenements:
 faq:
   - getAllFaqs:
+favori:
+  - ajouterFilm:
+  - retirerFilm:
+  - ajouterCinema:
+  - retirerCinema:
+  - getMesFilmsFavoris:
+  - getMesCinemasFavoris:
+  - estFilmFavori:
+  - estCinemaFavori:
 films:
   - getFilms:
   - getFilmById:
   - searchFilms:
+  - getFilmsByCinema:
 options:
   - getOptions:
 paiement:
@@ -108,6 +124,8 @@ profil:
   - supprimerCompte:
 reservation:
   - creerReservation:
+  - getSiegesReservesBySeance:
+  - getSiegesReservesByEvenement:
   - getMesReservations:
   - annulerReservation:
   - validerCodePromo:
@@ -123,5 +141,6 @@ sieges:
 support:
   - creerDemande:
   - getDemandes:
+  - getDemandesByCinema:
 greeting:
   - hello:

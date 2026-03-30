@@ -16,6 +16,7 @@ abstract class Seance implements _i1.SerializableModel {
   Seance._({
     this.id,
     required this.filmId,
+    this.cinemaId,
     required this.salleId,
     required this.dateHeure,
     String? langue,
@@ -34,6 +35,7 @@ abstract class Seance implements _i1.SerializableModel {
   factory Seance({
     int? id,
     required int filmId,
+    int? cinemaId,
     required int salleId,
     required DateTime dateHeure,
     String? langue,
@@ -51,6 +53,7 @@ abstract class Seance implements _i1.SerializableModel {
     return Seance(
       id: jsonSerialization['id'] as int?,
       filmId: jsonSerialization['filmId'] as int,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
       salleId: jsonSerialization['salleId'] as int,
       dateHeure: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['dateHeure'],
@@ -73,6 +76,8 @@ abstract class Seance implements _i1.SerializableModel {
   int? id;
 
   int filmId;
+
+  int? cinemaId;
 
   int salleId;
 
@@ -102,6 +107,7 @@ abstract class Seance implements _i1.SerializableModel {
   Seance copyWith({
     int? id,
     int? filmId,
+    int? cinemaId,
     int? salleId,
     DateTime? dateHeure,
     String? langue,
@@ -120,6 +126,7 @@ abstract class Seance implements _i1.SerializableModel {
       '__className__': 'Seance',
       if (id != null) 'id': id,
       'filmId': filmId,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       'salleId': salleId,
       'dateHeure': dateHeure.toJson(),
       if (langue != null) 'langue': langue,
@@ -146,6 +153,7 @@ class _SeanceImpl extends Seance {
   _SeanceImpl({
     int? id,
     required int filmId,
+    int? cinemaId,
     required int salleId,
     required DateTime dateHeure,
     String? langue,
@@ -160,6 +168,7 @@ class _SeanceImpl extends Seance {
   }) : super._(
          id: id,
          filmId: filmId,
+         cinemaId: cinemaId,
          salleId: salleId,
          dateHeure: dateHeure,
          langue: langue,
@@ -180,6 +189,7 @@ class _SeanceImpl extends Seance {
   Seance copyWith({
     Object? id = _Undefined,
     int? filmId,
+    Object? cinemaId = _Undefined,
     int? salleId,
     DateTime? dateHeure,
     Object? langue = _Undefined,
@@ -195,6 +205,7 @@ class _SeanceImpl extends Seance {
     return Seance(
       id: id is int? ? id : this.id,
       filmId: filmId ?? this.filmId,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
       salleId: salleId ?? this.salleId,
       dateHeure: dateHeure ?? this.dateHeure,
       langue: langue is String? ? langue : this.langue,

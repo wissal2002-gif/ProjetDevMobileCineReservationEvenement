@@ -16,20 +16,23 @@ abstract class Favori implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   Favori._({
     this.id,
     required this.utilisateurId,
-    required this.cinemaId,
+    this.filmId,
+    this.cinemaId,
   });
 
   factory Favori({
     int? id,
     required int utilisateurId,
-    required int cinemaId,
+    int? filmId,
+    int? cinemaId,
   }) = _FavoriImpl;
 
   factory Favori.fromJson(Map<String, dynamic> jsonSerialization) {
     return Favori(
       id: jsonSerialization['id'] as int?,
       utilisateurId: jsonSerialization['utilisateurId'] as int,
-      cinemaId: jsonSerialization['cinemaId'] as int,
+      filmId: jsonSerialization['filmId'] as int?,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
     );
   }
 
@@ -42,7 +45,9 @@ abstract class Favori implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   int utilisateurId;
 
-  int cinemaId;
+  int? filmId;
+
+  int? cinemaId;
 
   @override
   _i1.Table<int?> get table => t;
@@ -53,6 +58,7 @@ abstract class Favori implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   Favori copyWith({
     int? id,
     int? utilisateurId,
+    int? filmId,
     int? cinemaId,
   });
   @override
@@ -61,7 +67,8 @@ abstract class Favori implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       '__className__': 'Favori',
       if (id != null) 'id': id,
       'utilisateurId': utilisateurId,
-      'cinemaId': cinemaId,
+      if (filmId != null) 'filmId': filmId,
+      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 
@@ -71,7 +78,8 @@ abstract class Favori implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       '__className__': 'Favori',
       if (id != null) 'id': id,
       'utilisateurId': utilisateurId,
-      'cinemaId': cinemaId,
+      if (filmId != null) 'filmId': filmId,
+      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 
@@ -111,10 +119,12 @@ class _FavoriImpl extends Favori {
   _FavoriImpl({
     int? id,
     required int utilisateurId,
-    required int cinemaId,
+    int? filmId,
+    int? cinemaId,
   }) : super._(
          id: id,
          utilisateurId: utilisateurId,
+         filmId: filmId,
          cinemaId: cinemaId,
        );
 
@@ -125,12 +135,14 @@ class _FavoriImpl extends Favori {
   Favori copyWith({
     Object? id = _Undefined,
     int? utilisateurId,
-    int? cinemaId,
+    Object? filmId = _Undefined,
+    Object? cinemaId = _Undefined,
   }) {
     return Favori(
       id: id is int? ? id : this.id,
       utilisateurId: utilisateurId ?? this.utilisateurId,
-      cinemaId: cinemaId ?? this.cinemaId,
+      filmId: filmId is int? ? filmId : this.filmId,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
     );
   }
 }
@@ -143,7 +155,12 @@ class FavoriUpdateTable extends _i1.UpdateTable<FavoriTable> {
     value,
   );
 
-  _i1.ColumnValue<int, int> cinemaId(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<int, int> filmId(int? value) => _i1.ColumnValue(
+    table.filmId,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> cinemaId(int? value) => _i1.ColumnValue(
     table.cinemaId,
     value,
   );
@@ -156,6 +173,10 @@ class FavoriTable extends _i1.Table<int?> {
       'utilisateurId',
       this,
     );
+    filmId = _i1.ColumnInt(
+      'filmId',
+      this,
+    );
     cinemaId = _i1.ColumnInt(
       'cinemaId',
       this,
@@ -166,12 +187,15 @@ class FavoriTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt utilisateurId;
 
+  late final _i1.ColumnInt filmId;
+
   late final _i1.ColumnInt cinemaId;
 
   @override
   List<_i1.Column> get columns => [
     id,
     utilisateurId,
+    filmId,
     cinemaId,
   ];
 }

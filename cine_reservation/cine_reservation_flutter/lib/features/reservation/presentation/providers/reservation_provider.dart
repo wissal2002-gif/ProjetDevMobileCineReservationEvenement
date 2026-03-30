@@ -12,14 +12,25 @@ class SiegeSelectionne {
   final Siege siege;
   final String typeBillet;
   final double prix;
-  const SiegeSelectionne({required this.siege, required this.typeBillet, required this.prix});
+  const SiegeSelectionne({
+    required this.siege,
+    required this.typeBillet,
+    required this.prix,
+  });
 }
 
+// ✅ FIX 1 & 2 : OptionPanier avec id
 class OptionPanier {
+  final int id;
   final String nom;
   final double prix;
   int quantite;
-  OptionPanier({required this.nom, required this.prix, this.quantite = 1});
+  OptionPanier({
+    required this.id,
+    required this.nom,
+    required this.prix,
+    this.quantite = 1,
+  });
 }
 
 class PanierState {
@@ -27,17 +38,22 @@ class PanierState {
   final List<OptionPanier> options;
   final double reduction;
   final String? codePromo;
+  final int? codePromoId; // ✅ FIX 3 : stocker l'ID réel du promo
 
   const PanierState({
     this.sieges = const [],
     this.options = const [],
     this.reduction = 0,
     this.codePromo,
+    this.codePromoId,
   });
 
-  double get sousTotalSieges => sieges.fold(0, (s, e) => s + e.prix);
-  double get sousTotalOptions => options.fold(0, (s, e) => s + e.prix * e.quantite);
-  double get total => (sousTotalSieges + sousTotalOptions) * (1 - reduction);
+  double get sousTotalSieges =>
+      sieges.fold(0, (s, e) => s + e.prix);
+  double get sousTotalOptions =>
+      options.fold(0, (s, e) => s + e.prix * e.quantite);
+  double get total =>
+      (sousTotalSieges + sousTotalOptions) * (1 - reduction);
   int get nombreSieges => sieges.length;
 }
 
@@ -51,6 +67,7 @@ class PanierNotifier extends StateNotifier<PanierState> {
       options: state.options,
       reduction: state.reduction,
       codePromo: state.codePromo,
+      codePromoId: state.codePromoId,
     );
   }
 
@@ -60,76 +77,125 @@ class PanierNotifier extends StateNotifier<PanierState> {
       options: state.options,
       reduction: state.reduction,
       codePromo: state.codePromo,
+      codePromoId: state.codePromoId,
     );
   }
 
+  // ✅ FIX 1 : Comparaison par id
   void ajouterOption(OptionPanier opt) {
-    final idx = state.options.indexWhere((o) => o.nom == opt.nom);
+    final idx = state.options.indexWhere((o) => o.id == opt.id);
     if (idx >= 0) {
       final updated = [...state.options];
       updated[idx].quantite++;
       state = PanierState(
-          sieges: state.sieges, options: updated,
-          reduction: state.reduction, codePromo: state.codePromo);
+        sieges: state.sieges,
+        options: updated,
+        reduction: state.reduction,
+        codePromo: state.codePromo,
+        codePromoId: state.codePromoId,
+      );
     } else {
       state = PanierState(
-          sieges: state.sieges, options: [...state.options, opt],
-          reduction: state.reduction, codePromo: state.codePromo);
+        sieges: state.sieges,
+        options: [...state.options, opt],
+        reduction: state.reduction,
+        codePromo: state.codePromo,
+        codePromoId: state.codePromoId,
+      );
     }
   }
 
   void retirerOption(String nom) {
+    final idx = state.options.indexWhere((o) => o.nom == nom);
+    if (idx < 0) return;
+    final updated = [...state.options];
+    if (updated[idx].quantite > 1) {
+      updated[idx].quantite--;
+      state = PanierState(
+        sieges: state.sieges,
+        options: updated,
+        reduction: state.reduction,
+        codePromo: state.codePromo,
+        codePromoId: state.codePromoId,
+      );
+    } else {
+      state = PanierState(
+        sieges: state.sieges,
+        options: state.options.where((o) => o.nom != nom).toList(),
+        reduction: state.reduction,
+        codePromo: state.codePromo,
+        codePromoId: state.codePromoId,
+      );
+    }
+  }
+
+  // ✅ FIX 3 : Stocker l'ID réel du code promo
+  void appliquerCodePromo(String code, double taux, {int? promoId}) {
     state = PanierState(
       sieges: state.sieges,
-      options: state.options.where((o) => o.nom != nom).toList(),
-      reduction: state.reduction,
-      codePromo: state.codePromo,
+      options: state.options,
+      reduction: taux,
+      codePromo: code,
+      codePromoId: promoId,
     );
   }
 
-  void appliquerCodePromo(String code, double taux) {
-    state = PanierState(
-        sieges: state.sieges, options: state.options,
-        reduction: taux, codePromo: code);
+  void vider() {
+    state = const PanierState();
   }
-
-  void vider() => state = const PanierState();
 }
 
-final panierProvider = StateNotifierProvider<PanierNotifier, PanierState>(
+final panierProvider =
+StateNotifierProvider<PanierNotifier, PanierState>(
       (ref) => PanierNotifier(),
 );
 
 // ─── ASYNC PROVIDERS ───
 final siegesBySalleProvider =
 FutureProvider.family<List<Siege>, int>((ref, salleId) async {
-  return await ref.read(reservationDatasourceProvider).getSiegesBySalle(salleId);
+  return await ref
+      .read(reservationDatasourceProvider)
+      .getSiegesBySalle(salleId);
 });
 
 final siegesOccupesSeanceProvider =
 FutureProvider.family<List<int>, int>((ref, seanceId) async {
-  return await ref.read(reservationDatasourceProvider).getSiegesReservesBySeance(seanceId);
+  return await ref
+      .read(reservationDatasourceProvider)
+      .getSiegesReservesBySeance(seanceId);
 });
 
 final siegesOccupesEvenementProvider =
 FutureProvider.family<List<int>, int>((ref, evenementId) async {
-  return await ref.read(reservationDatasourceProvider).getSiegesReservesByEvenement(evenementId);
+  return await ref
+      .read(reservationDatasourceProvider)
+      .getSiegesReservesByEvenement(evenementId);
 });
 
-final mesReservationsProvider = FutureProvider<List<Reservation>>((ref) async {
-  return await ref.read(reservationDatasourceProvider).getMesReservations();
+final mesReservationsProvider =
+FutureProvider<List<Reservation>>((ref) async {
+  return await ref
+      .read(reservationDatasourceProvider)
+      .getMesReservations();
 });
 
-final mesBilletsProvider = FutureProvider<List<Billet>>((ref) async {
-  return await ref.read(reservationDatasourceProvider).getMesBillets();
+final mesBilletsProvider =
+FutureProvider<List<Billet>>((ref) async {
+  return await ref
+      .read(reservationDatasourceProvider)
+      .getMesBillets();
 });
 
 final billetsByReservationProvider =
 FutureProvider.family<List<Billet>, int>((ref, reservationId) async {
-  return await ref.read(reservationDatasourceProvider).getBilletsByReservation(reservationId);
+  return await ref
+      .read(reservationDatasourceProvider)
+      .getBilletsByReservation(reservationId);
 });
 
-// Options supplementaires
-final optionsSupplementairesProvider = FutureProvider<List<OptionSupplementaire>>((ref) async {
-  return await ref.read(reservationDatasourceProvider).getOptions();
+final optionsSupplementairesProvider =
+FutureProvider<List<OptionSupplementaire>>((ref) async {
+  return await ref
+      .read(reservationDatasourceProvider)
+      .getOptions();
 });

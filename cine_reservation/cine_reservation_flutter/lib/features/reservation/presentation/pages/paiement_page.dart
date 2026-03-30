@@ -6,6 +6,44 @@ import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/reservation_provider.dart';
 import '../../data/reservation_remote_datasource.dart';
+import '../../../../core/router/navigation_state_provider.dart';
+
+class _CardNumberFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue old, TextEditingValue newVal) {
+    final digits = newVal.text.replaceAll(' ', '');
+    final buffer = StringBuffer();
+    for (int i = 0; i < digits.length; i++) {
+      if (i > 0 && i % 4 == 0) buffer.write(' ');
+      buffer.write(digits[i]);
+    }
+    final str = buffer.toString();
+    return newVal.copyWith(
+      text: str,
+      selection: TextSelection.collapsed(offset: str.length),
+    );
+  }
+}
+
+class _ExpiryFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue old, TextEditingValue newVal) {
+    var digits = newVal.text.replaceAll('/', '');
+    if (digits.length > 4) digits = digits.substring(0, 4);
+    final buffer = StringBuffer();
+    for (int i = 0; i < digits.length; i++) {
+      if (i == 2) buffer.write('/');
+      buffer.write(digits[i]);
+    }
+    final str = buffer.toString();
+    return newVal.copyWith(
+      text: str,
+      selection: TextSelection.collapsed(offset: str.length),
+    );
+  }
+}
 
 class PaiementPage extends ConsumerStatefulWidget {
   final Seance? seance;
@@ -24,17 +62,15 @@ class PaiementPage extends ConsumerStatefulWidget {
 }
 
 class _PaiementPageState extends ConsumerState<PaiementPage> {
-  String _methode = 'carte';
+  String _methodePaiement = 'carte';
   bool _chargement = false;
 
-  // Contrôleurs formulaire carte
-  final _carteCtrl    = TextEditingController();
-  final _nomCtrl      = TextEditingController();
-  final _expiryCtrl   = TextEditingController();
-  final _cvvCtrl      = TextEditingController();
-  // Contrôleur PayPal
-  final _emailCtrl    = TextEditingController();
-  final _formKey      = GlobalKey<FormState>();
+  final _carteCtrl = TextEditingController();
+  final _nomCtrl = TextEditingController();
+  final _expiryCtrl = TextEditingController();
+  final _cvvCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -47,8 +83,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
   }
 
   final List<Map<String, dynamic>> _methodes = [
-    {'id': 'carte',   'label': 'Carte Bancaire',      'icon': Icons.credit_card},
-    {'id': 'paypal',  'label': 'PayPal',              'icon': Icons.account_balance_wallet},
+    {'id': 'carte', 'label': 'Carte Bancaire', 'icon': Icons.credit_card},
+    {'id': 'paypal', 'label': 'PayPal', 'icon': Icons.account_balance_wallet},
     {'id': 'especes', 'label': 'Espèces (en caisse)', 'icon': Icons.money},
   ];
 
@@ -60,7 +96,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        title:
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.filmTitre,
               style: const TextStyle(color: Colors.white, fontSize: 16)),
           const Text('Paiement',
@@ -75,60 +112,59 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // ── Récapitulatif ──────────────────────────────────────────────
-            _buildRecap(panier),
-            const SizedBox(height: 28),
-
-            // ── Méthode de paiement ────────────────────────────────────────
-            const Text('MÉTHODE DE PAIEMENT',
-                style: TextStyle(
-                    color: AppColors.accent,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    letterSpacing: 1.5)),
-            const SizedBox(height: 14),
-            ..._methodes.map((m) => _methodeItem(m)),
-            const SizedBox(height: 24),
-
-            // ── Formulaire selon méthode ───────────────────────────────────
-            if (_methode == 'carte')   _buildFormulaireCarte(),
-            if (_methode == 'paypal')  _buildFormulairePaypal(),
-            if (_methode == 'especes') _buildInfoEspeces(),
-
-            const SizedBox(height: 32),
-
-            // ── Bouton payer ───────────────────────────────────────────────
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: _chargement ? null : () => _payer(context, ref, panier),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildRecap(panier),
+                const SizedBox(height: 28),
+                const Text('MÉTHODE DE PAIEMENT',
+                    style: TextStyle(
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        letterSpacing: 1.5)),
+                const SizedBox(height: 14),
+                ..._methodes.map((m) => _methodeItem(m)),
+                const SizedBox(height: 24),
+                if (_methodePaiement == 'carte') _buildFormulaireCarte(),
+                if (_methodePaiement == 'paypal') _buildFormulairePaypal(),
+                if (_methodePaiement == 'especes') _buildInfoEspeces(),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _chargement
+                        ? null
+                        : () => _payer(context, ref, panier),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: _chargement
+                        ? const CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2)
+                        : Text(
+                        'PAYER ${panier.total.toStringAsFixed(2)} MAD',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16)),
+                  ),
                 ),
-                child: _chargement
-                    ? const CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2)
-                    : Text('PAYER ${panier.total.toStringAsFixed(2)} MAD',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Center(
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.lock, color: Colors.white38, size: 14),
-                SizedBox(width: 4),
-                Text('Paiement sécurisé SSL',
-                    style: TextStyle(color: Colors.white38, fontSize: 12)),
+                const SizedBox(height: 16),
+                const Center(
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.lock, color: Colors.white38, size: 14),
+                    SizedBox(width: 4),
+                    Text('Paiement sécurisé SSL',
+                        style:
+                        TextStyle(color: Colors.white38, fontSize: 12)),
+                  ]),
+                ),
+                const SizedBox(height: 20),
               ]),
-            ),
-            const SizedBox(height: 20),
-          ]),
         ),
       ),
     );
@@ -142,48 +178,82 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.divider),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('RÉCAPITULATIF',
-            style: TextStyle(
-                color: AppColors.accent,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                letterSpacing: 1.5)),
-        const SizedBox(height: 12),
-        Text(widget.filmTitre,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-        const SizedBox(height: 8),
-        Text('${panier.nombreSieges} siège(s)',
-            style: const TextStyle(color: Colors.white70)),
-        if (panier.sousTotalOptions > 0) ...[
-          const SizedBox(height: 4),
-          Text('Options : ${panier.sousTotalOptions.toStringAsFixed(2)} MAD',
-              style: const TextStyle(color: Colors.white70, fontSize: 13)),
-        ],
-        const Divider(color: Colors.white12, height: 20),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          const Text('TOTAL',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          Text('${panier.total.toStringAsFixed(2)} MAD',
-              style: const TextStyle(
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18)),
-        ]),
-      ]),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('RÉCAPITULATIF',
+                style: TextStyle(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    letterSpacing: 1.5)),
+            const SizedBox(height: 12),
+            Text(widget.filmTitre,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16)),
+            const SizedBox(height: 8),
+            Text('${panier.nombreSieges} siège(s)',
+                style: const TextStyle(color: Colors.white70)),
+            // ✅ Afficher les options sélectionnées dans le récap
+            if (panier.options.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              ...panier.options.map((o) => Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${o.nom} x${o.quantite}',
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 12)),
+                    Text(
+                        '${(o.prix * o.quantite).toStringAsFixed(0)} MAD',
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 12)),
+                  ],
+                ),
+              )),
+              const SizedBox(height: 4),
+              Text(
+                  'Sous-total options : ${panier.sousTotalOptions.toStringAsFixed(2)} MAD',
+                  style: const TextStyle(
+                      color: Colors.white70, fontSize: 13)),
+            ],
+            if (panier.codePromo != null &&
+                panier.codePromo!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text('Code promo : ${panier.codePromo}',
+                  style:
+                  const TextStyle(color: Colors.green, fontSize: 12)),
+            ],
+            const Divider(color: Colors.white12, height: 20),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('TOTAL',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                  Text('${panier.total.toStringAsFixed(2)} MAD',
+                      style: const TextStyle(
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18)),
+                ]),
+          ]),
     );
   }
 
   Widget _methodeItem(Map<String, dynamic> m) {
-    final sel = _methode == m['id'];
+    final sel = _methodePaiement == m['id'];
     return GestureDetector(
-      onTap: () => setState(() => _methode = m['id'] as String),
+      onTap: () => setState(() => _methodePaiement = m['id'] as String),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: sel ? AppColors.accent.withOpacity(0.15) : AppColors.cardBg,
+          color:
+          sel ? AppColors.accent.withOpacity(0.15) : AppColors.cardBg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
               color: sel ? AppColors.accent : AppColors.divider,
@@ -196,16 +266,17 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           Text(m['label'] as String,
               style: TextStyle(
                   color: sel ? Colors.white : Colors.white70,
-                  fontWeight: sel ? FontWeight.bold : FontWeight.normal)),
+                  fontWeight:
+                  sel ? FontWeight.bold : FontWeight.normal)),
           const Spacer(),
           if (sel)
-            const Icon(Icons.check_circle, color: AppColors.accent, size: 20),
+            const Icon(Icons.check_circle,
+                color: AppColors.accent, size: 20),
         ]),
       ),
     );
   }
 
-  // ── Formulaire Carte Bancaire ────────────────────────────────────────────
   Widget _buildFormulaireCarte() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -214,9 +285,11 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.accent.withOpacity(0.4)),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      child:
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.credit_card, color: AppColors.accent, size: 20),
+          const Icon(Icons.credit_card,
+              color: AppColors.accent, size: 20),
           const SizedBox(width: 8),
           const Text('Informations de carte',
               style: TextStyle(
@@ -224,7 +297,6 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                   fontWeight: FontWeight.bold,
                   fontSize: 13)),
           const Spacer(),
-          // Logos cartes
           Row(children: [
             _cardLogo('VISA'),
             const SizedBox(width: 6),
@@ -232,8 +304,6 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           ]),
         ]),
         const SizedBox(height: 20),
-
-        // Numéro de carte
         _buildField(
           controller: _carteCtrl,
           label: 'Numéro de carte',
@@ -252,8 +322,6 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           },
         ),
         const SizedBox(height: 16),
-
-        // Nom sur la carte
         _buildField(
           controller: _nomCtrl,
           label: 'Nom sur la carte',
@@ -261,14 +329,11 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           icon: Icons.person_outline,
           textCapitalization: TextCapitalization.characters,
           validator: (v) {
-            if (v == null || v.trim().length < 3)
-              return 'Nom requis';
+            if (v == null || v.trim().length < 3) return 'Nom requis';
             return null;
           },
         ),
         const SizedBox(height: 16),
-
-        // Expiry + CVV
         Row(children: [
           Expanded(
             child: _buildField(
@@ -296,7 +361,9 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
               hint: '•••',
               icon: Icons.lock_outline,
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly
+              ],
               maxLength: 3,
               obscureText: true,
               validator: (v) {
@@ -310,19 +377,21 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
     );
   }
 
-  // ── Formulaire PayPal ───────────────────────────────────────────────────
   Widget _buildFormulairePaypal() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF0070BA).withOpacity(0.5)),
+        border: Border.all(
+            color: const Color(0xFF0070BA).withOpacity(0.5)),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      child:
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFF0070BA),
               borderRadius: BorderRadius.circular(6),
@@ -335,7 +404,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           ),
           const SizedBox(width: 12),
           const Text('Connexion à votre compte',
-              style: TextStyle(color: AppColors.textLight, fontSize: 13)),
+              style:
+              TextStyle(color: AppColors.textLight, fontSize: 13)),
         ]),
         const SizedBox(height: 20),
         _buildField(
@@ -345,7 +415,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           icon: Icons.email_outlined,
           keyboardType: TextInputType.emailAddress,
           validator: (v) {
-            if (v == null || !v.contains('@')) return 'Email invalide';
+            if (v == null || !v.contains('@'))
+              return 'Email invalide';
             return null;
           },
         ),
@@ -357,12 +428,14 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: const Row(children: [
-            Icon(Icons.info_outline, color: Color(0xFF0070BA), size: 16),
+            Icon(Icons.info_outline,
+                color: Color(0xFF0070BA), size: 16),
             SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Vous serez redirigé vers PayPal pour confirmer le paiement.',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+                style:
+                TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ),
           ]),
@@ -371,7 +444,6 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
     );
   }
 
-  // ── Info Espèces ────────────────────────────────────────────────────────
   Widget _buildInfoEspeces() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -385,22 +457,28 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         const SizedBox(height: 12),
         const Text('Paiement en caisse',
             style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16)),
         const SizedBox(height: 8),
         const Text(
           'Votre réservation sera confirmée. Présentez-vous à la caisse 30 minutes avant la séance pour régler.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textLight, fontSize: 13, height: 1.5),
+          style: TextStyle(
+              color: AppColors.textLight, fontSize: 13, height: 1.5),
         ),
         const SizedBox(height: 12),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.green.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.green.withOpacity(0.3)),
+            border:
+            Border.all(color: Colors.green.withOpacity(0.3)),
           ),
-          child: const Text('Réservation gratuite — paiement sur place',
+          child: const Text(
+              'Réservation gratuite — paiement sur place',
               style: TextStyle(color: Colors.green, fontSize: 12)),
         ),
       ]),
@@ -443,7 +521,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+          borderSide:
+          const BorderSide(color: AppColors.accent, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -451,14 +530,16 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide:
+          const BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
   }
 
   Widget _cardLogo(String label) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    padding:
+    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
     decoration: BoxDecoration(
       color: Colors.white10,
       borderRadius: BorderRadius.circular(4),
@@ -473,8 +554,7 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
 
   Future<void> _payer(
       BuildContext context, WidgetRef ref, PanierState panier) async {
-    // Valider le formulaire selon la méthode
-    if (_methode == 'carte' || _methode == 'paypal') {
+    if (_methodePaiement == 'carte' || _methodePaiement == 'paypal') {
       if (!(_formKey.currentState?.validate() ?? false)) return;
     }
 
@@ -482,101 +562,68 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
     final ds = ReservationRemoteDatasource();
 
     try {
-      // 1. Créer réservation
+      final nav = ref.read(navigationProvider);
+      final isEvenement = nav.evenement != null;
+
+      // ✅ FIX 1 : Lire options depuis panierProvider
+      // Répéter chaque id selon sa quantité
+      final optionsIds = panier.options
+          .expand((o) => List.filled(o.quantite, o.id))
+          .toList();
+
+      print('💰 Sièges: ${panier.sieges.map((s) => s.siege.id).toList()}');
+      print('💰 Options IDs: $optionsIds');
+      print('💰 CodePromo ID: ${panier.codePromoId}');
+      print('💰 Total: ${panier.total}');
+
       final reservation = await ds.creerReservation(
-        seanceId: widget.seance?.id,
-        evenementId: widget.evenement?.id,
-        typeReservation: widget.seance != null ? 'seance' : 'evenement',
+        seanceId: isEvenement ? null : nav.seance?.id,
+        evenementId: isEvenement ? nav.evenement!.id : null,
         montantTotal: panier.total,
+        siegeIds: panier.sieges.map((s) => s.siege.id!).toList(),
+        optionsIds: optionsIds.isEmpty ? null : optionsIds, // ✅ FIX 1
+        codePromoId: panier.codePromoId, // ✅ FIX 3
       );
 
       if (reservation == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Erreur lors de la réservation'),
-              backgroundColor: Colors.red));
-        }
-        setState(() => _chargement = false);
-        return;
+        throw Exception('Erreur lors de la création de la réservation');
       }
 
-      // 2. Simuler traitement paiement (1.5s)
-      await Future.delayed(const Duration(milliseconds: 1500));
+      await Future.delayed(const Duration(milliseconds: 800));
 
-      // 3. Enregistrer paiement
       final paiement = await ds.effectuerPaiement(
-          reservation.id!, panier.total, _methode);
+        reservationId: reservation.id!,
+        montant: panier.total,
+        methode: _methodePaiement,
+      );
 
       if (paiement == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Erreur lors du paiement'),
-              backgroundColor: Colors.red));
-        }
-        setState(() => _chargement = false);
-        return;
+        throw Exception('Erreur lors du paiement');
       }
 
-      // 4. Récupérer billets
-      final billets = await ds.getBilletsByReservation(reservation.id!);
-
-      // 5. Vider panier
+      final billets =
+      await ds.getBilletsByReservation(reservation.id!);
       ref.read(panierProvider.notifier).vider();
 
-      // 6. Aller à la confirmation
       if (mounted) {
         context.pushReplacement('/confirmation', extra: {
           'reservation': reservation,
           'paiement': paiement,
           'billets': billets,
+          'filmTitre': widget.filmTitre,
+          'seance': widget.seance,
+          'evenement': widget.evenement,
+          'sieges': panier.sieges,
         });
       }
     } catch (e) {
+      print('❌ Erreur paiement: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Erreur: $e'),
-                backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red));
       }
       setState(() => _chargement = false);
     }
-  }
-}
-
-// ── Formatters ────────────────────────────────────────────────────────────────
-class _CardNumberFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue old, TextEditingValue newVal) {
-    final digits = newVal.text.replaceAll(' ', '');
-    final buffer = StringBuffer();
-    for (int i = 0; i < digits.length; i++) {
-      if (i > 0 && i % 4 == 0) buffer.write(' ');
-      buffer.write(digits[i]);
-    }
-    final str = buffer.toString();
-    return newVal.copyWith(
-      text: str,
-      selection: TextSelection.collapsed(offset: str.length),
-    );
-  }
-}
-
-class _ExpiryFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue old, TextEditingValue newVal) {
-    var digits = newVal.text.replaceAll('/', '');
-    if (digits.length > 4) digits = digits.substring(0, 4);
-    final buffer = StringBuffer();
-    for (int i = 0; i < digits.length; i++) {
-      if (i == 2) buffer.write('/');
-      buffer.write(digits[i]);
-    }
-    final str = buffer.toString();
-    return newVal.copyWith(
-      text: str,
-      selection: TextSelection.collapsed(offset: str.length),
-    );
   }
 }

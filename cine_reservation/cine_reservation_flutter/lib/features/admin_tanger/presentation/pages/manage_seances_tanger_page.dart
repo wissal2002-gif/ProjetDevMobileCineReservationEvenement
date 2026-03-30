@@ -21,8 +21,10 @@ class _ManageSeancesTangerPageState extends ConsumerState<ManageSeancesTangerPag
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final seancesAsync = ref.watch(allSeancesProvider);
     final filmsAsync = ref.watch(prog.filmsProvider);
+    final sallesAsync = ref.watch(sallesProvider(tangerCinemaId));
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0A08),
@@ -35,7 +37,8 @@ class _ManageSeancesTangerPageState extends ConsumerState<ManageSeancesTangerPag
       ),
       body: Row(
         children: [
-          const SizedBox(width: 280, child: TangerSidebar()),
+          if (!isMobile) const SizedBox(width: 280, child: TangerSidebar()),  // ← ajout de if (!isMobile)
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(32.0),
@@ -50,20 +53,29 @@ class _ManageSeancesTangerPageState extends ConsumerState<ManageSeancesTangerPag
                   Expanded(
                     child: seancesAsync.when(
                       data: (seances) => filmsAsync.when(
-                        data: (films) {
-                          if (seances.isEmpty) {
-                            return const Center(child: Text("Aucune séance programmée.", style: TextStyle(color: Colors.white54)));
-                          }
-                          return ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: seances.length,
-                            itemBuilder: (context, index) {
-                              final seance = seances[index];
-                              final film = films.firstWhere((f) => f.id == seance.filmId, orElse: () => Film(titre: "Film inconnu"));
-                              return _buildSeanceCard(seance, film.titre);
-                            },
-                          );
-                        },
+                        data: (films) => sallesAsync.when(
+                          data: (salles) {
+                            final salleIds = salles.map((s) => s.id).toSet();
+                            // ✅ FILTRAGE : Uniquement les séances de Tanger
+                            final filteredSeances = seances.where((s) => salleIds.contains(s.salleId)).toList();
+
+                            if (filteredSeances.isEmpty) {
+                              return const Center(child: Text("Aucune séance programmée.", style: TextStyle(color: Colors.white54)));
+                            }
+                            return ListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: filteredSeances.length,
+                              itemBuilder: (context, index) {
+                                final seance = filteredSeances[index];
+                                final film = films.firstWhere((f) => f.id == seance.filmId, orElse: () => Film(titre: "Film inconnu"));
+                                final salle = salles.firstWhere((s) => s.id == seance.salleId, orElse: () => Salle(cinemaId: tangerCinemaId, codeSalle: "?", capacite: 0, typeProjection: ""));
+                                return _buildSeanceCard(seance, film.titre, salle.codeSalle);
+                              },
+                            );
+                          },
+                          loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+                          error: (e, __) => Center(child: Text("Erreur salles: $e")),
+                        ),
                         loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
                         error: (e, __) => Center(child: Text("Erreur films: $e")),
                       ),
@@ -80,7 +92,7 @@ class _ManageSeancesTangerPageState extends ConsumerState<ManageSeancesTangerPag
     );
   }
 
-  Widget _buildSeanceCard(Seance seance, String filmTitre) {
+  Widget _buildSeanceCard(Seance seance, String filmTitre, String salleNom) {
     return Card(
       color: Colors.white.withOpacity(0.05),
       margin: const EdgeInsets.only(bottom: 12),
@@ -95,7 +107,7 @@ class _ManageSeancesTangerPageState extends ConsumerState<ManageSeancesTangerPag
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Salle: ${seance.salleId} • ${seance.typeProjection} • ${seance.langue}", style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            Text("Salle: $salleNom • ${seance.typeProjection} • ${seance.langue}", style: const TextStyle(color: Colors.white70, fontSize: 12)),
             Text(_dateFormat.format(seance.dateHeure), style: const TextStyle(color: Colors.amber, fontSize: 13, fontWeight: FontWeight.w600)),
           ],
         ),
@@ -139,21 +151,23 @@ class _ManageSeancesTangerPageState extends ConsumerState<ManageSeancesTangerPag
         title: const Text("PROGRAMMATION DÉTAILLÉE", style: TextStyle(color: Colors.amber)),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            // Dropdown Film
             ref.watch(prog.filmsProvider).when(
-              data: (films) => DropdownButtonFormField<int>(
-                value: selectedFilmId,
-                dropdownColor: Colors.black,
-                style: const TextStyle(color: Colors.white),
-                items: films.map((f) => DropdownMenuItem(value: f.id, child: Text(f.titre))).toList(),
-                onChanged: (v) => setSt(() => selectedFilmId = v),
-                decoration: const InputDecoration(labelText: "Film", labelStyle: TextStyle(color: Colors.amber)),
-              ),
+              data: (films) {
+                // ✅ FILTRAGE : Uniquement les films de Tanger (ou tous si vous préférez)
+                final filteredFilms = films.where((f) => f.cinemaId == tangerCinemaId).toList();
+                return DropdownButtonFormField<int>(
+                  value: selectedFilmId,
+                  dropdownColor: Colors.black,
+                  style: const TextStyle(color: Colors.white),
+                  items: filteredFilms.map((f) => DropdownMenuItem(value: f.id, child: Text(f.titre))).toList(),
+                  onChanged: (v) => setSt(() => selectedFilmId = v),
+                  decoration: const InputDecoration(labelText: "Film", labelStyle: TextStyle(color: Colors.amber)),
+                );
+              },
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => const Text("Erreur films"),
             ),
             const SizedBox(height: 10),
-            // Dropdown Salle
             ref.watch(sallesProvider(tangerCinemaId)).when(
               data: (salles) => DropdownButtonFormField<int>(
                 value: selectedSalleId,
@@ -167,7 +181,6 @@ class _ManageSeancesTangerPageState extends ConsumerState<ManageSeancesTangerPag
               error: (e, _) => const Text("Erreur salles"),
             ),
             const SizedBox(height: 15),
-            // Date et Heure
             Row(children: [
               Expanded(child: TextButton(
                 onPressed: () async {

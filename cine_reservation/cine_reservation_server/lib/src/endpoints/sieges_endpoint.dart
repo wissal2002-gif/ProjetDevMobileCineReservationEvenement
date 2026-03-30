@@ -10,31 +10,49 @@ class SiegesEndpoint extends Endpoint {
     );
   }
 
+  // Récupérer les sièges occupés pour une séance (inclut les réservations en attente)
   Future<List<int>> getSiegesReservesBySeance(Session session, int seanceId) async {
+    // 1. Récupérer les réservations pour cette séance (non annulées)
     final reservations = await Reservation.db.find(
       session,
-      where: (r) => r.seanceId.equals(seanceId) & r.statut.notEquals('annule'),
+      where: (r) =>
+      r.seanceId.equals(seanceId) &
+      r.statut.notEquals('annule') &
+      r.statut.notEquals('rembourse'),
     );
+
     if (reservations.isEmpty) return [];
-    final ids = reservations.map((r) => r.id!).toSet();
-    final billets = await Billet.db.find(
+
+    final reservationIds = reservations.map((r) => r.id!).toSet();
+
+    // 2. Récupérer les sièges directement depuis reservation_sieges
+    final siegeRelations = await ReservationSiege.db.find(
       session,
-      where: (b) => b.reservationId.inSet(ids),
+      where: (rs) => rs.reservationId.inSet(reservationIds),
     );
-    return billets.where((b) => b.siegeId != null).map((b) => b.siegeId!).toList();
+
+    return siegeRelations.map((rs) => rs.siegeId).toList();
   }
 
+  // Récupérer les sièges occupés pour un événement
   Future<List<int>> getSiegesReservesByEvenement(Session session, int evenementId) async {
     final reservations = await Reservation.db.find(
       session,
-      where: (r) => r.evenementId.equals(evenementId) & r.statut.notEquals('annule'),
+      where: (r) =>
+      r.evenementId.equals(evenementId) &
+      r.statut.notEquals('annule') &
+      r.statut.notEquals('rembourse'),
     );
+
     if (reservations.isEmpty) return [];
-    final ids = reservations.map((r) => r.id!).toSet();
-    final billets = await Billet.db.find(
+
+    final reservationIds = reservations.map((r) => r.id!).toSet();
+
+    final siegeRelations = await ReservationSiege.db.find(
       session,
-      where: (b) => b.reservationId.inSet(ids),
+      where: (rs) => rs.reservationId.inSet(reservationIds),
     );
-    return billets.where((b) => b.siegeId != null).map((b) => b.siegeId!).toList();
+
+    return siegeRelations.map((rs) => rs.siegeId).toList();
   }
 }

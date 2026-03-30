@@ -26,6 +26,7 @@ abstract class Utilisateur
     String? statut,
     String? role,
     this.cinemaId,
+    this.nomCinema,
     int? pointsFidelite,
     this.photoProfil,
   }) : statut = statut ?? 'actif',
@@ -43,6 +44,7 @@ abstract class Utilisateur
     String? statut,
     String? role,
     int? cinemaId,
+    String? nomCinema,
     int? pointsFidelite,
     String? photoProfil,
   }) = _UtilisateurImpl;
@@ -67,6 +69,7 @@ abstract class Utilisateur
       statut: jsonSerialization['statut'] as String?,
       role: jsonSerialization['role'] as String?,
       cinemaId: jsonSerialization['cinemaId'] as int?,
+      nomCinema: jsonSerialization['nomCinema'] as String?,
       pointsFidelite: jsonSerialization['pointsFidelite'] as int?,
       photoProfil: jsonSerialization['photoProfil'] as String?,
     );
@@ -97,6 +100,8 @@ abstract class Utilisateur
 
   int? cinemaId;
 
+  String? nomCinema;
+
   int? pointsFidelite;
 
   String? photoProfil;
@@ -118,6 +123,7 @@ abstract class Utilisateur
     String? statut,
     String? role,
     int? cinemaId,
+    String? nomCinema,
     int? pointsFidelite,
     String? photoProfil,
   });
@@ -135,6 +141,7 @@ abstract class Utilisateur
       if (statut != null) 'statut': statut,
       if (role != null) 'role': role,
       if (cinemaId != null) 'cinemaId': cinemaId,
+      if (nomCinema != null) 'nomCinema': nomCinema,
       if (pointsFidelite != null) 'pointsFidelite': pointsFidelite,
       if (photoProfil != null) 'photoProfil': photoProfil,
     };
@@ -154,6 +161,7 @@ abstract class Utilisateur
       if (statut != null) 'statut': statut,
       if (role != null) 'role': role,
       if (cinemaId != null) 'cinemaId': cinemaId,
+      if (nomCinema != null) 'nomCinema': nomCinema,
       if (pointsFidelite != null) 'pointsFidelite': pointsFidelite,
       if (photoProfil != null) 'photoProfil': photoProfil,
     };
@@ -203,6 +211,7 @@ class _UtilisateurImpl extends Utilisateur {
     String? statut,
     String? role,
     int? cinemaId,
+    String? nomCinema,
     int? pointsFidelite,
     String? photoProfil,
   }) : super._(
@@ -216,6 +225,7 @@ class _UtilisateurImpl extends Utilisateur {
          statut: statut,
          role: role,
          cinemaId: cinemaId,
+         nomCinema: nomCinema,
          pointsFidelite: pointsFidelite,
          photoProfil: photoProfil,
        );
@@ -235,6 +245,7 @@ class _UtilisateurImpl extends Utilisateur {
     Object? statut = _Undefined,
     Object? role = _Undefined,
     Object? cinemaId = _Undefined,
+    Object? nomCinema = _Undefined,
     Object? pointsFidelite = _Undefined,
     Object? photoProfil = _Undefined,
   }) {
@@ -253,6 +264,7 @@ class _UtilisateurImpl extends Utilisateur {
       statut: statut is String? ? statut : this.statut,
       role: role is String? ? role : this.role,
       cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
+      nomCinema: nomCinema is String? ? nomCinema : this.nomCinema,
       pointsFidelite: pointsFidelite is int?
           ? pointsFidelite
           : this.pointsFidelite,
@@ -312,6 +324,11 @@ class UtilisateurUpdateTable extends _i1.UpdateTable<UtilisateurTable> {
     value,
   );
 
+  _i1.ColumnValue<String, String> nomCinema(String? value) => _i1.ColumnValue(
+    table.nomCinema,
+    value,
+  );
+
   _i1.ColumnValue<int, int> pointsFidelite(int? value) => _i1.ColumnValue(
     table.pointsFidelite,
     value,
@@ -364,6 +381,10 @@ class UtilisateurTable extends _i1.Table<int?> {
       'cinemaId',
       this,
     );
+    nomCinema = _i1.ColumnString(
+      'nomCinema',
+      this,
+    );
     pointsFidelite = _i1.ColumnInt(
       'pointsFidelite',
       this,
@@ -395,6 +416,8 @@ class UtilisateurTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt cinemaId;
 
+  late final _i1.ColumnString nomCinema;
+
   late final _i1.ColumnInt pointsFidelite;
 
   late final _i1.ColumnString photoProfil;
@@ -411,6 +434,7 @@ class UtilisateurTable extends _i1.Table<int?> {
     statut,
     role,
     cinemaId,
+    nomCinema,
     pointsFidelite,
     photoProfil,
   ];

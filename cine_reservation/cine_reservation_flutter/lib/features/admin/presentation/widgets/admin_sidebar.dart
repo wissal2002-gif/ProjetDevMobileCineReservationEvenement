@@ -24,8 +24,13 @@ class AdminSidebar extends ConsumerWidget {
           
           final bool isSuperAdmin = email == 'elbouzidi.imane@etu.uae.ac.ma' || role == 'super_admin';
           final bool isAdminTanger = email == 'elbouzidiimane794@gmail.com' || (role == 'admin_local' && user?.cinemaId == 9);
-          final bool isAdminCasa = email == 'elbouzidiingenieurimanee@gmail.com' || (role == 'admin_local' && user?.cinemaId == 2);
+          final bool isAdminCasa = email == 'elbouzzidiimane@gmail.com' || email == 'elbouzidiingenieurimanee@gmail.com' || (role == 'admin_local' && user?.cinemaId == 2);
           final bool isRespEvents = role == 'resp_evenements' || email == 'aya.elbouzidi1@etu.uae.ac.ma';
+
+          String baseRoute = "/admin";
+          if (isAdminTanger) baseRoute = "/admin/tanger";
+          else if (isAdminCasa) baseRoute = "/admin/casa";
+          else if (isRespEvents) baseRoute = "/admin/events";
 
           return Column(
             children: [
@@ -35,25 +40,35 @@ class AdminSidebar extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   children: [
-                    _navItem(context, Icons.dashboard_outlined, "Tableau de Bord", 
-                      isSuperAdmin ? "/admin" : (isAdminTanger ? "/admin/tanger" : (isRespEvents ? "/admin/events" : "/admin"))),
+                    _navItem(context, Icons.dashboard_outlined, "Tableau de Bord", baseRoute),
                     
-                    // --- ESPACE SUPER ADMIN ---
                     if (isSuperAdmin) ...[
                       _sectionTitle("ADMINISTRATION GLOBALE"),
                       _navItem(context, Icons.business_outlined, "Gestion Cinémas", "/admin/cinemas"),
                       _navItem(context, Icons.people_outline, "Utilisateurs & Rôles", "/admin/users"),
                       _navItem(context, Icons.local_offer_outlined, "Codes Promotions", "/admin/promos"),
                       _navItem(context, Icons.help_outline_rounded, "Gérer FAQ", "/admin/faq"),
-                      
                       _sectionTitle("ANALYSE & RAPPORTS"),
                       _navItem(context, Icons.assessment_outlined, "Rapports Activités", "/admin/reports"),
                       _navItem(context, Icons.monetization_on_outlined, "Revenus Globaux", "/admin/revenues"),
                     ],
 
-                    // --- ESPACE ADMIN LOCAL ---
-                    if (isAdminTanger || isAdminCasa || isSuperAdmin) ...[
-                      _sectionTitle(isSuperAdmin ? "GESTION LOCALE (DEBUG)" : "GESTION DU SITE"),
+                    if (isAdminTanger || isAdminCasa) ...[
+                      _sectionTitle("GESTION DU SITE"),
+                      _navItem(context, Icons.movie_outlined, "Gérer les Films", "$baseRoute/films"),
+                      _navItem(context, Icons.schedule, "Gérer les Séances", "$baseRoute/seances"),
+                      _navItem(context, Icons.grid_on_outlined, "Salles & Sièges", "$baseRoute/sieges"),
+                      _navItem(context, Icons.fastfood_outlined, "Snacks & Options", "$baseRoute/options"),
+                      _navItem(context, Icons.confirmation_number_outlined, "Réservations", "$baseRoute/reservations"),
+                      _navItem(context, Icons.badge_outlined, "Gestion Staff", "$baseRoute/staff"),
+                      _navItem(context, Icons.account_balance_wallet_outlined, "Voir Revenus", "$baseRoute/revenus"),
+                    ],
+
+                    if (isRespEvents) ...[
+                      _sectionTitle("SPECTACLES & FESTIVALS"),
+                      _navItem(context, Icons.event_note_outlined, "Gestion Événements", "/admin/events/manage"),
+                      _navItem(context, Icons.confirmation_number_outlined, "Réservations Tickets", "/admin/events/reservations"),
+                      _navItem(context, Icons.account_balance_wallet_outlined, "Revenus & Stats", "/admin/events/revenus"),
                     ],
 
                     const Divider(color: Colors.white10, height: 40, indent: 20, endIndent: 20),
@@ -77,8 +92,8 @@ class AdminSidebar extends ConsumerWidget {
   Widget _buildAdminHeader(bool isSuper, bool isTanger, bool isCasa, bool isEvents, String name) {
     String roleLabel = "ADMINISTRATEUR";
     if (isSuper) roleLabel = "SUPER ADMIN";
-    else if (isTanger) roleLabel = "ADMIN CINÉVENT TANGER";
-    else if (isCasa) roleLabel = "ADMIN CINÉVENT CASA";
+    else if (isTanger) roleLabel = "ADMIN TANGER";
+    else if (isCasa) roleLabel = "ADMIN CASABLANCA";
     else if (isEvents) roleLabel = "RESP. ÉVÉNEMENTS";
 
     return Container(

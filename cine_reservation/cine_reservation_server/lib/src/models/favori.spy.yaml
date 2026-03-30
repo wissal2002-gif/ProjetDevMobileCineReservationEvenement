@@ -3,8 +3,17 @@ table: favoris
 managedMigration: true
 fields:
   utilisateurId: int
-  cinemaId: int
+  filmId: int?
+  cinemaId: int?
 indexes:
-  favori_unique_idx:
+  favori_film_unique_idx:
+    fields: utilisateurId, filmId
+    unique: true
+  favori_cinema_unique_idx:
     fields: utilisateurId, cinemaId
     unique: true
+  # Ajoutez ces deux index pour corriger l'erreur de migration
+  favori_film_idx:
+    fields: filmId
+  favori_cinema_idx:
+    fields: cinemaId

@@ -16,6 +16,7 @@ abstract class DemandeSupport implements _i1.SerializableModel {
   DemandeSupport._({
     this.id,
     required this.utilisateurId,
+    this.cinemaId,
     required this.sujet,
     required this.message,
     String? statut,
@@ -27,6 +28,7 @@ abstract class DemandeSupport implements _i1.SerializableModel {
   factory DemandeSupport({
     int? id,
     required int utilisateurId,
+    int? cinemaId,
     required String sujet,
     required String message,
     String? statut,
@@ -39,6 +41,7 @@ abstract class DemandeSupport implements _i1.SerializableModel {
     return DemandeSupport(
       id: jsonSerialization['id'] as int?,
       utilisateurId: jsonSerialization['utilisateurId'] as int,
+      cinemaId: jsonSerialization['cinemaId'] as int?,
       sujet: jsonSerialization['sujet'] as String,
       message: jsonSerialization['message'] as String,
       statut: jsonSerialization['statut'] as String?,
@@ -59,6 +62,8 @@ abstract class DemandeSupport implements _i1.SerializableModel {
 
   int utilisateurId;
 
+  int? cinemaId;
+
   String sujet;
 
   String message;
@@ -77,6 +82,7 @@ abstract class DemandeSupport implements _i1.SerializableModel {
   DemandeSupport copyWith({
     int? id,
     int? utilisateurId,
+    int? cinemaId,
     String? sujet,
     String? message,
     String? statut,
@@ -90,6 +96,7 @@ abstract class DemandeSupport implements _i1.SerializableModel {
       '__className__': 'DemandeSupport',
       if (id != null) 'id': id,
       'utilisateurId': utilisateurId,
+      if (cinemaId != null) 'cinemaId': cinemaId,
       'sujet': sujet,
       'message': message,
       if (statut != null) 'statut': statut,
@@ -111,6 +118,7 @@ class _DemandeSupportImpl extends DemandeSupport {
   _DemandeSupportImpl({
     int? id,
     required int utilisateurId,
+    int? cinemaId,
     required String sujet,
     required String message,
     String? statut,
@@ -120,6 +128,7 @@ class _DemandeSupportImpl extends DemandeSupport {
   }) : super._(
          id: id,
          utilisateurId: utilisateurId,
+         cinemaId: cinemaId,
          sujet: sujet,
          message: message,
          statut: statut,
@@ -135,6 +144,7 @@ class _DemandeSupportImpl extends DemandeSupport {
   DemandeSupport copyWith({
     Object? id = _Undefined,
     int? utilisateurId,
+    Object? cinemaId = _Undefined,
     String? sujet,
     String? message,
     Object? statut = _Undefined,
@@ -145,6 +155,7 @@ class _DemandeSupportImpl extends DemandeSupport {
     return DemandeSupport(
       id: id is int? ? id : this.id,
       utilisateurId: utilisateurId ?? this.utilisateurId,
+      cinemaId: cinemaId is int? ? cinemaId : this.cinemaId,
       sujet: sujet ?? this.sujet,
       message: message ?? this.message,
       statut: statut is String? ? statut : this.statut,

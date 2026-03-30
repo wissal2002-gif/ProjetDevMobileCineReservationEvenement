@@ -5,7 +5,7 @@ class SupportRemoteDataSource {
   SupportRemoteDataSource(this.client);
 
   Future<void> envoyerDemande(DemandeSupport demande) async {
-    await client.support.creerDemande(demande.sujet, demande.message);
+    await client.support.creerDemande(demande.sujet, demande.message,demande.utilisateurId, demande.cinemaId,);
   }
 
   Future<List<DemandeSupport>> getMesDemandes() async {

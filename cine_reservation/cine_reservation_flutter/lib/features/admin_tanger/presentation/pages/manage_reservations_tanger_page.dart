@@ -11,6 +11,7 @@ class ManageReservationsTangerPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     final resAsync     = ref.watch(allReservationsProvider);
     final usersAsync   = ref.watch(allClientsProvider);
     final seancesAsync = ref.watch(allSeancesProvider);
@@ -33,7 +34,8 @@ class ManageReservationsTangerPage extends ConsumerWidget {
       backgroundColor: const Color(0xFF0D0A08),
       body: Row(
         children: [
-          const TangerSidebar(),
+          if (!isMobile) const SizedBox(width: 280, child: TangerSidebar()),
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(32),
@@ -43,14 +45,20 @@ class ManageReservationsTangerPage extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Text("GESTION DES RÉSERVATIONS - TANGER",
-                            style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-                        Text("Exclusif Mégarama Tanger — ID: 9",
-                            style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13)),
-                      ]),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                           Text("RÉSERVATIONS CINÉMA - TANGER",
+                              style: TextStyle(color: Colors.white, fontSize: isMobile ? 18 : 28, fontWeight: FontWeight.bold)),
+
+                          Text("Exclusif Mégarama Tanger — ID: 9",
+                              style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13)),
+                        ],
+                      ),
+                      // ✅ BOUTON ACTUALISER
                       IconButton(
-                        icon: const Icon(Icons.refresh, color: Colors.amber),
+                        icon: const Icon(Icons.refresh, color: Colors.amber, size: 28),
+                        tooltip: "Actualiser les données",
                         onPressed: () {
                           ref.invalidate(allReservationsProvider);
                           ref.invalidate(allClientsProvider);
@@ -69,14 +77,14 @@ class ManageReservationsTangerPage extends ConsumerWidget {
                         : hasError
                         ? const Center(child: Text("Erreur de chargement", style: TextStyle(color: Colors.redAccent)))
                         : _buildFilteredTangerList(
-                            context,
-                            ref,
-                            resAsync.value ?? [],
-                            usersAsync.value ?? [],
-                            seancesAsync.value ?? [],
-                            filmsAsync.value ?? [],
-                            sallesAsync.value ?? [],
-                          ),
+                      context,
+                      ref,
+                      resAsync.value ?? [],
+                      usersAsync.value ?? [],
+                      seancesAsync.value ?? [],
+                      filmsAsync.value ?? [],
+                      sallesAsync.value ?? [],
+                    ),
                   ),
                 ],
               ),
@@ -96,11 +104,11 @@ class ManageReservationsTangerPage extends ConsumerWidget {
       List<Film> films,
       List<Salle> salles,
       ) {
-    
+
     // ✅ FILTRE STRICT : Uniquement Cinéma ID 9 et exclure les événements
     final tangerReservations = reservations.where((r) {
       if (r.seanceId == null) return false; // Exclure les événements
-      
+
       try {
         final seance = seances.firstWhere((s) => s.id == r.seanceId);
         final salle = salles.firstWhere((s) => s.id == seance.salleId);
@@ -118,9 +126,13 @@ class ManageReservationsTangerPage extends ConsumerWidget {
       itemCount: tangerReservations.length,
       itemBuilder: (context, index) {
         final res = tangerReservations[index];
-        final user = users.firstWhere((u) => u.id == res.utilisateurId, orElse: () => Utilisateur(nom: "Client #${res.utilisateurId}", email: "N/A"));
-        
-        final seance = seances.firstWhere((s) => s.id == res.seanceId);
+        // ✅ RECHERCHE ROBUSTE DU NOM DU CLIENT
+        final user = users.firstWhere(
+                (u) => u.id == res.utilisateurId,
+            orElse: () => Utilisateur(nom: "Client #${res.utilisateurId}", email: "N/A")
+        );
+
+        final seance = seances.firstWhere((s) => s.id == res.seanceId, orElse: () => seances.firstWhere((s) => s.id == res.seanceId));
         final film = films.firstWhere((f) => f.id == seance.filmId, orElse: () => Film(titre: "Film #${seance.filmId}"));
         final salle = salles.firstWhere((s) => s.id == seance.salleId, orElse: () => Salle(cinemaId: 9, codeSalle: "Salle #${seance.salleId}", capacite: 0, typeProjection: ""));
 
@@ -132,7 +144,7 @@ class ManageReservationsTangerPage extends ConsumerWidget {
   Widget _buildResCard(BuildContext context, WidgetRef ref, Reservation res, Utilisateur user, Film film, Salle salle, Seance seance) {
     final bool isCancelled = res.statut == 'annule';
     final bool isRefunded  = res.statut == 'rembourse';
-    
+
     return Card(
       color: Colors.white.withOpacity(0.04),
       margin: const EdgeInsets.only(bottom: 16),
@@ -148,15 +160,18 @@ class ManageReservationsTangerPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _infoRow("Email:", user.email),
+                _infoRow("Téléphone:", user.telephone ?? "Non renseigné"),
                 _infoRow("Salle:", salle.codeSalle),
                 _infoRow("Montant:", "${res.montantTotal} DH"),
                 _infoRow("Statut:", (res.statut ?? "N/A").toUpperCase()),
                 if (isCancelled) ...[
                   const SizedBox(height: 10),
-                  ElevatedButton(
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.currency_exchange),
+                    label: const Text("PROCÉDER AU REMBOURSEMENT"),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, foregroundColor: Colors.white),
                     onPressed: () => _handleRefund(context, ref, res),
-                    child: const Text("REMBOURSER"),
-                  )
+                  ),
                 ]
               ],
             ),
@@ -172,7 +187,38 @@ class ManageReservationsTangerPage extends ConsumerWidget {
   );
 
   void _handleRefund(BuildContext context, WidgetRef ref, Reservation res) async {
-    await client.admin.rembourserReservation(res.id!, res.montantTotal);
-    ref.invalidate(allReservationsProvider);
+    final ctrlPrice = TextEditingController(text: res.montantTotal.toString());
+    final ctrlReason = TextEditingController(text: "Annulation de séance");
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text("Confirmer le remboursement", style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Le client recevra un e-mail de confirmation après validation.", style: TextStyle(color: Colors.white54, fontSize: 12)),
+            const SizedBox(height: 15),
+            TextField(controller: ctrlPrice, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Montant à rembourser (DH)"), style: const TextStyle(color: Colors.white)),
+            const SizedBox(height: 10),
+            TextField(controller: ctrlReason, decoration: const InputDecoration(labelText: "Raison du remboursement"), style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("ANNULER")),
+          ElevatedButton(
+            onPressed: () async {
+              // ✅ FIX: Appel corrigé avec les bons arguments
+              await client.admin.rembourserReservation(res.id!, double.parse(ctrlPrice.text), ctrlReason.text);
+              ref.invalidate(allReservationsProvider);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Remboursement effectué et e-mail envoyé !"), backgroundColor: Colors.green));
+            },
+            child: const Text("VALIDER"),
+          )
+        ],
+      ),
+    );
   }
 }

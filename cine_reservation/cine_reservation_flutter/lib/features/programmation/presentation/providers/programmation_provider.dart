@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../main.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 
-final filmsProvider = FutureProvider<List<Film>>((ref) async {
+final filmsProvider = FutureProvider.autoDispose<List<Film>>((ref) async {
   try {
     return await client.films.getFilms();
   } catch (e) {
@@ -46,7 +46,7 @@ FutureProvider<List<OptionSupplementaire>>((ref) async {
   }
 });
 
-final allCinemasProvider = FutureProvider<List<Cinema>>((ref) async {
+final allCinemasProvider = FutureProvider.autoDispose<List<Cinema>>((ref) async {
   try {
     return await client.cinemas.getCinemas();
   } catch (e) {

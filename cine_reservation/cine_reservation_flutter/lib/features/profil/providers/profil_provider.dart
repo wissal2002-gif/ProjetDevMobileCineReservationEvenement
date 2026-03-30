@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../main.dart';
+import '../auth_provider.dart';
 
-// ─── State ───
 class ProfilState {
   final bool isLoading;
   final bool isSaving;
@@ -35,19 +35,26 @@ class ProfilState {
   }
 }
 
-// ─── Notifier ───
 class ProfilNotifier extends StateNotifier<ProfilState> {
   ProfilNotifier() : super(const ProfilState());
 
   Future<void> loadProfil() async {
+    if (state.isLoading) return;
+
     state = state.copyWith(isLoading: true);
     try {
       final utilisateur = await client.profil.getProfil();
-      state = state.copyWith(isLoading: false, utilisateur: utilisateur);
-    } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Erreur lors du chargement du profil.',
+        utilisateur: utilisateur,
+        error: null,
+      );
+    } catch (e) {
+      // Pas d'erreur affichée, juste utilisateur null
+      state = state.copyWith(
+        isLoading: false,
+        utilisateur: null,
+        error: null,
       );
     }
   }
@@ -68,6 +75,7 @@ class ProfilNotifier extends StateNotifier<ProfilState> {
         isSaving: false,
         utilisateur: updated,
         saveSuccess: true,
+        error: null,
       );
     } catch (e) {
       state = state.copyWith(
@@ -78,7 +86,6 @@ class ProfilNotifier extends StateNotifier<ProfilState> {
   }
 }
 
-// ─── Provider ───
 final profilProvider = StateNotifierProvider<ProfilNotifier, ProfilState>((ref) {
   return ProfilNotifier();
 });

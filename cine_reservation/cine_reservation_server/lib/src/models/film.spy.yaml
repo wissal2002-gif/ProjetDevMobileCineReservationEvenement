@@ -17,3 +17,8 @@ fields:
   dateDebut: DateTime?
   dateFin: DateTime?
   langue: String?, default='VF'
+  cinemaId: int? # ✅ Ajout pour séparer les films par cinéma
+
+indexes:
+  film_cinema_idx:
+    fields: cinemaId

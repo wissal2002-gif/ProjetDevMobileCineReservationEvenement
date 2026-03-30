@@ -66,7 +66,6 @@ class _PanierPageState extends ConsumerState<PanierPage> {
         return;
       }
 
-      // Vérifier montant minimum
       final sous = panier.sousTotalSieges + panier.sousTotalOptions;
       if ((promo.montantMinimum ?? 0) > sous) {
         setState(() {
@@ -82,20 +81,30 @@ class _PanierPageState extends ConsumerState<PanierPage> {
         _promoLoading = false;
       });
 
-      // Appliquer la réduction dans le panier
       double taux = 0;
       if (promo.typeReduction == 'pourcentage') {
         taux = promo.reduction / 100;
+      } else {
+        // Réduction montant fixe → convertir en taux
+        final sousTotal = panier.sousTotalSieges + panier.sousTotalOptions;
+        taux = sousTotal > 0
+            ? (promo.reduction / sousTotal).clamp(0.0, 1.0)
+            : 0;
       }
-      ref
-          .read(panierProvider.notifier)
-          .appliquerCodePromo(code, taux);
+
+      // ✅ FIX 3 : passer l'ID réel du promo
+      ref.read(panierProvider.notifier).appliquerCodePromo(
+        code,
+        taux,
+        promoId: promo.id,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Code "$code" appliqué ! -${promo.typeReduction == 'pourcentage' ? '${promo.reduction.toStringAsFixed(0)}%' : '${promo.reduction.toStringAsFixed(0)} MAD'}'),
+              'Code "$code" appliqué ! -${promo.typeReduction == 'pourcentage' ? '${promo.reduction.toStringAsFixed(0)}%' : '${promo.reduction.toStringAsFixed(0)} MAD'}',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -114,7 +123,44 @@ class _PanierPageState extends ConsumerState<PanierPage> {
       _promoError = null;
       _promoCtrl.clear();
     });
-    ref.read(panierProvider.notifier).appliquerCodePromo('', 0);
+    ref
+        .read(panierProvider.notifier)
+        .appliquerCodePromo('', 0, promoId: null);
+  }
+
+  void _viderPanier() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.cardBg,
+        title: const Text('Vider le panier',
+            style: TextStyle(color: Colors.white)),
+        content: const Text(
+            'Voulez-vous vraiment supprimer tous les articles du panier ?',
+            style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('ANNULER',
+                style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(panierProvider.notifier).vider();
+              Navigator.pop(ctx);
+              setState(() {});
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Panier vidé'),
+                    backgroundColor: Colors.green),
+              );
+            },
+            child:
+            const Text('VIDER', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -128,7 +174,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        title:
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.filmTitre,
               style: const TextStyle(color: Colors.white, fontSize: 16)),
           const Text('Votre panier',
@@ -138,41 +185,50 @@ class _PanierPageState extends ConsumerState<PanierPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_sweep, color: Colors.red),
+            onPressed: _viderPanier,
+            tooltip: 'Vider le panier',
+          ),
+        ],
       ),
-      body: panier.nombreSieges == 0
+      body: panier.nombreSieges == 0 && panier.options.isEmpty
           ? const Center(
         child: Text('Votre panier est vide',
-            style:
-            TextStyle(color: AppColors.textLight, fontSize: 16)),
+            style: TextStyle(
+                color: AppColors.textLight, fontSize: 16)),
       )
           : Column(children: [
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // ── Sièges ──────────────────────────────────────
-              _sectionTitle('SIÈGES SÉLECTIONNÉS'),
-              const SizedBox(height: 12),
-              ...panier.sieges.map((s) => _siegeItem(notifier, s)),
-              const SizedBox(height: 24),
-
-              // ── Options ──────────────────────────────────────
+              if (panier.sieges.isNotEmpty) ...[
+                _sectionTitle('SIÈGES SÉLECTIONNÉS'),
+                const SizedBox(height: 12),
+                ...panier.sieges
+                    .map((s) => _siegeItem(notifier, s)),
+                const SizedBox(height: 24),
+              ],
               _sectionTitle('OPTIONS SUPPLÉMENTAIRES'),
               const SizedBox(height: 12),
               optionsAsync.when(
                 data: (options) {
                   if (options.isEmpty) {
-                    return const Text('Aucune option disponible',
+                    return const Text(
+                        'Aucune option disponible',
                         style: TextStyle(
                             color: AppColors.textLight));
                   }
                   final Map<String,
-                      List<OptionSupplementaire>> parCat = {};
+                      List<OptionSupplementaire>> parCat =
+                  {};
                   for (final o in options) {
                     if (o.disponible != true) continue;
                     parCat
                         .putIfAbsent(
-                        o.categorie ?? 'autre', () => [])
+                        o.categorie ?? 'snack', () => [])
                         .add(o);
                   }
                   return Column(
@@ -182,7 +238,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                       _categorieTitle(entry.key),
                       const SizedBox(height: 8),
                       ...entry.value.map((opt) =>
-                          _optionRow(notifier, opt, panier)),
+                          _optionRow(
+                              notifier, opt, panier)),
                       const SizedBox(height: 16),
                     ])
                         .toList(),
@@ -200,12 +257,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                         color: AppColors.textLight)),
               ),
               const SizedBox(height: 24),
-
-              // ── Code Promo ────────────────────────────────────
               _buildCodePromo(panier),
               const SizedBox(height: 24),
-
-              // ── Récap ─────────────────────────────────────────
               _recap(panier, total),
             ],
           ),
@@ -215,7 +268,6 @@ class _PanierPageState extends ConsumerState<PanierPage> {
     );
   }
 
-  // ── Code Promo Widget ─────────────────────────────────────────────────────
   Widget _buildCodePromo(PanierState panier) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -243,16 +295,14 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                     letterSpacing: 1.5)),
           ]),
           const SizedBox(height: 12),
-
-          // Si promo appliquée
           if (_promoApplique != null) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                    color: Colors.green.withOpacity(0.4)),
+                border:
+                Border.all(color: Colors.green.withOpacity(0.4)),
               ),
               child: Row(children: [
                 const Icon(Icons.check_circle,
@@ -291,7 +341,6 @@ class _PanierPageState extends ConsumerState<PanierPage> {
               ]),
             ),
           ] else ...[
-            // Champ code promo
             Row(children: [
               Expanded(
                 child: TextFormField(
@@ -361,7 +410,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
               ),
             ]),
             const SizedBox(height: 8),
-            const Text('Codes disponibles: CINE10, CINE20, REDUC50, WELCOME',
+            const Text(
+                'Codes disponibles: CINE10, CINE20, REDUC50, WELCOME',
                 style: TextStyle(
                     color: AppColors.textLight, fontSize: 10)),
           ],
@@ -410,7 +460,10 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                 color: Colors.white, fontWeight: FontWeight.bold)),
         IconButton(
           icon: const Icon(Icons.close, color: Colors.red, size: 18),
-          onPressed: () => notifier.retirerSiege(s.siege.id!),
+          onPressed: () {
+            notifier.retirerSiege(s.siege.id!);
+            setState(() {});
+          },
         ),
       ]),
     );
@@ -422,6 +475,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
       'drink': '🥤 Boissons',
       'boisson': '🥤 Boissons',
       'combo': '🎁 Combos',
+      'service': '⭐ Services',
+      'vip': '👑 VIP',
     };
     return Text(
       labels[cat.toLowerCase()] ?? cat.toUpperCase(),
@@ -433,10 +488,13 @@ class _PanierPageState extends ConsumerState<PanierPage> {
     );
   }
 
-  Widget _optionRow(PanierNotifier notifier, OptionSupplementaire opt,
+  // ✅ FIX 1 & 2 : id dans OptionPanier + image affichée
+  Widget _optionRow(
+      PanierNotifier notifier,
+      OptionSupplementaire opt,
       PanierState panier) {
     final existant =
-    panier.options.where((o) => o.nom == opt.nom).toList();
+    panier.options.where((o) => o.id == opt.id).toList();
     final qte = existant.isNotEmpty ? existant.first.quantite : 0;
 
     return Container(
@@ -452,6 +510,20 @@ class _PanierPageState extends ConsumerState<PanierPage> {
             color: qte > 0 ? AppColors.accent : AppColors.divider),
       ),
       child: Row(children: [
+        // ✅ FIX 2 : Affichage image option
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: opt.image != null && opt.image!.isNotEmpty
+              ? Image.network(
+            opt.image!,
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _iconOption(),
+          )
+              : _iconOption(),
+        ),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -475,19 +547,9 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                 color: AppColors.textLight, fontSize: 13)),
         const SizedBox(width: 10),
         Row(mainAxisSize: MainAxisSize.min, children: [
-          if (qte > 0)
+          if (qte > 0) ...[
             GestureDetector(
-              onTap: () {
-                if (qte == 1) {
-                  notifier.retirerOption(opt.nom);
-                } else {
-                  notifier.retirerOption(opt.nom);
-                  for (var i = 0; i < qte - 1; i++) {
-                    notifier.ajouterOption(
-                        OptionPanier(nom: opt.nom, prix: opt.prix));
-                  }
-                }
-              },
+              onTap: () => notifier.retirerOption(opt.nom),
               child: Container(
                 width: 30,
                 height: 30,
@@ -498,7 +560,6 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                     color: Colors.white, size: 16),
               ),
             ),
-          if (qte > 0)
             SizedBox(
               width: 32,
               child: Center(
@@ -509,9 +570,14 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                         fontSize: 15)),
               ),
             ),
+          ],
           GestureDetector(
+            // ✅ FIX 1 : passer opt.id!
             onTap: () => notifier.ajouterOption(
-                OptionPanier(nom: opt.nom, prix: opt.prix)),
+                OptionPanier(
+                    id: opt.id!,
+                    nom: opt.nom,
+                    prix: opt.prix)),
             child: Container(
               width: 30,
               height: 30,
@@ -526,6 +592,14 @@ class _PanierPageState extends ConsumerState<PanierPage> {
       ]),
     );
   }
+
+  Widget _iconOption() => Container(
+    width: 48,
+    height: 48,
+    color: Colors.black26,
+    child: const Icon(Icons.fastfood,
+        color: Colors.white24, size: 24),
+  );
 
   Widget _recap(PanierState panier, double total) {
     final sous = panier.sousTotalSieges + panier.sousTotalOptions;
@@ -543,8 +617,7 @@ class _PanierPageState extends ConsumerState<PanierPage> {
         if (panier.sousTotalOptions > 0)
           _ligne('Options', panier.sousTotalOptions),
         if (_promoApplique != null && reduction > 0)
-          _ligne('Réduction (${_promoApplique!.code})',
-              -reduction,
+          _ligne('Réduction (${_promoApplique!.code})', -reduction,
               color: Colors.green),
         const Divider(color: Colors.white12, height: 20),
         Row(
@@ -595,8 +668,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
             children: [
               if (_promoApplique != null)
                 const Text('Promo appliquée ✓',
-                    style: TextStyle(
-                        color: Colors.green, fontSize: 11)),
+                    style:
+                    TextStyle(color: Colors.green, fontSize: 11)),
               Text('Total : ${total.toStringAsFixed(2)} MAD',
                   style: const TextStyle(
                       color: Colors.white,
@@ -608,7 +681,17 @@ class _PanierPageState extends ConsumerState<PanierPage> {
         SizedBox(
           width: 120,
           child: ElevatedButton(
-            onPressed: () => context.push('/paiement'),
+            onPressed: () {
+              final panier = ref.read(panierProvider);
+              if (panier.sieges.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Aucun siège sélectionné')),
+                );
+                return;
+              }
+              context.push('/paiement');
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
               foregroundColor: Colors.white,

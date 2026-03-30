@@ -12,6 +12,7 @@ fields:
   statut: String?, default='actif'
   role: String?, default='client' # client, super_admin, admin_local, staff
   cinemaId: int?
+  nomCinema: String? # Ajoutez ceci pour corriger l'erreur de la sidebar
   pointsFidelite: int?, default=0
   photoProfil: String?
 
