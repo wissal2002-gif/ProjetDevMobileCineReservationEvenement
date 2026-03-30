@@ -5,6 +5,16 @@ class AvisEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
 
+  // Récupérer l'utilisateur à partir de l'authentification
+  Future<Utilisateur?> _getUser(Session session) async {
+    final authInfo = session.authenticated;
+    if (authInfo == null) return null;
+    return await Utilisateur.db.findFirstRow(
+      session,
+      where: (t) => t.authUserId.equals(authInfo.userIdentifier),
+    );
+  }
+
   // Vérifie si l'utilisateur a une réservation confirmée pour ce film
   Future<bool> _aReserveFilm(Session session, int utilisateurId, int filmId) async {
     final seances = await Seance.db.find(
@@ -28,29 +38,30 @@ class AvisEndpoint extends Endpoint {
   Future<Avis?> soumettreAvis(Session session, int filmId, int note) async {
     if (note < 1 || note > 5) return null;
 
-    final authInfo = session.authenticated;
-    if (authInfo == null) return null;
-    final utilisateurId = int.tryParse(authInfo.userIdentifier) ?? 0;
+    final user = await _getUser(session);
+    if (user == null || user.id == null) return null;
 
     // Vérifier que l'utilisateur a réservé ce film
-    final aReserve = await _aReserveFilm(session, utilisateurId, filmId);
+    final aReserve = await _aReserveFilm(session, user.id!, filmId);
     if (!aReserve) {
       throw Exception("Vous ne pouvez noter que des films que vous avez réservés.");
     }
 
     final existants = await Avis.db.find(
       session,
-      where: (a) => a.utilisateurId.equals(utilisateurId) & a.filmId.equals(filmId),
+      where: (a) => a.utilisateurId.equals(user.id!) & a.filmId.equals(filmId),
     );
 
     if (existants.isNotEmpty) {
       final avis = existants.first;
       avis.note = note;
       avis.dateAvis = DateTime.now().toUtc();
-      return await Avis.db.updateRow(session, avis);
+      final updated = await Avis.db.updateRow(session, avis);
+      await _updateNoteMoyenne(session, filmId);
+      return updated;
     } else {
       final avis = Avis(
-        utilisateurId: utilisateurId,
+        utilisateurId: user.id!,
         filmId: filmId,
         note: note,
         dateAvis: DateTime.now().toUtc(),
@@ -63,13 +74,12 @@ class AvisEndpoint extends Endpoint {
 
   // Note de l'utilisateur connecté pour un film
   Future<int?> getMonAvis(Session session, int filmId) async {
-    final authInfo = session.authenticated;
-    if (authInfo == null) return null;
-    final utilisateurId = int.tryParse(authInfo.userIdentifier) ?? 0;
+    final user = await _getUser(session);
+    if (user == null || user.id == null) return null;
 
     final avis = await Avis.db.find(
       session,
-      where: (a) => a.utilisateurId.equals(utilisateurId) & a.filmId.equals(filmId),
+      where: (a) => a.utilisateurId.equals(user.id!) & a.filmId.equals(filmId),
     );
     return avis.isEmpty ? null : avis.first.note;
   }
