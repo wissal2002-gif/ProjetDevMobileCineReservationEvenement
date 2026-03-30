@@ -308,7 +308,7 @@ class SalleRepository {
   /// );
   /// ```
   Future<List<Salle>> find(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<SalleTable>? where,
     int? limit,
     int? offset,
@@ -316,6 +316,8 @@ class SalleRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<SalleTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Salle>(
       where: where?.call(Salle.t),
@@ -325,6 +327,8 @@ class SalleRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -346,13 +350,15 @@ class SalleRepository {
   /// );
   /// ```
   Future<Salle?> findFirstRow(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<SalleTable>? where,
     int? offset,
     _i1.OrderByBuilder<SalleTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<SalleTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Salle>(
       where: where?.call(Salle.t),
@@ -361,18 +367,24 @@ class SalleRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Salle] by its [id] or null if no such row exists.
   Future<Salle?> findById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Salle>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -382,14 +394,20 @@ class SalleRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<Salle>> insert(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Salle> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Salle>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -397,7 +415,7 @@ class SalleRepository {
   ///
   /// The returned [Salle] will have its `id` field set.
   Future<Salle> insertRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Salle row, {
     _i1.Transaction? transaction,
   }) async {
@@ -413,7 +431,7 @@ class SalleRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Salle>> update(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Salle> rows, {
     _i1.ColumnSelections<SalleTable>? columns,
     _i1.Transaction? transaction,
@@ -429,7 +447,7 @@ class SalleRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Salle> updateRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Salle row, {
     _i1.ColumnSelections<SalleTable>? columns,
     _i1.Transaction? transaction,
@@ -444,7 +462,7 @@ class SalleRepository {
   /// Updates a single [Salle] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Salle?> updateById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     required _i1.ColumnValueListBuilder<SalleUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -459,7 +477,7 @@ class SalleRepository {
   /// Updates all [Salle]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Salle>> updateWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.ColumnValueListBuilder<SalleUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<SalleTable> where,
     int? limit,
@@ -485,7 +503,7 @@ class SalleRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Salle>> delete(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Salle> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -497,7 +515,7 @@ class SalleRepository {
 
   /// Deletes a single [Salle].
   Future<Salle> deleteRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Salle row, {
     _i1.Transaction? transaction,
   }) async {
@@ -509,7 +527,7 @@ class SalleRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Salle>> deleteWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.WhereExpressionBuilder<SalleTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -522,7 +540,7 @@ class SalleRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<SalleTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -530,6 +548,22 @@ class SalleRepository {
     return session.db.count<Salle>(
       where: where?.call(Salle.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [Salle] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<SalleTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<Salle>(
+      where: where(Salle.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

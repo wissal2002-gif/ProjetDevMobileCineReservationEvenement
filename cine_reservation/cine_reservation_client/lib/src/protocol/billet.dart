@@ -48,7 +48,9 @@ abstract class Billet implements _i1.SerializableModel {
       dateEmission: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['dateEmission'],
       ),
-      estValide: jsonSerialization['estValide'] as bool?,
+      estValide: jsonSerialization['estValide'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['estValide']),
       typeBillet: jsonSerialization['typeBillet'] as String?,
       qrCode: jsonSerialization['qrCode'] as String?,
       dateValidation: jsonSerialization['dateValidation'] == null
