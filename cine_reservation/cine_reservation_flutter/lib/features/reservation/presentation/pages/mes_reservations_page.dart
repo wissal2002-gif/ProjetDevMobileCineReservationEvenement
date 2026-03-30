@@ -1,15 +1,18 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:cine_reservation_client/cine_reservation_client.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/reservation_provider.dart';
+import '../../data/reservation_remote_datasource.dart';
 
 class MesReservationsPage extends ConsumerWidget {
-  MesReservationsPage({super.key});
+  const MesReservationsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final reservationsAsync = ref.watch(mesReservationsProvider);
+    final ds = ref.read(reservationDatasourceProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -49,7 +52,7 @@ class MesReservationsPage extends ConsumerWidget {
               )
                   : ListView.builder(
                 itemCount: list.length,
-                itemBuilder: (ctx, i) => _card(ctx, ref, list[i]),
+                itemBuilder: (ctx, i) => _card(ctx, ds, ref, list[i]),
               ),
               loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.accent)),
@@ -76,7 +79,7 @@ class MesReservationsPage extends ConsumerWidget {
     );
   }
 
-  Widget _card(BuildContext context, WidgetRef ref, reservation) {
+  Widget _card(BuildContext context, ReservationRemoteDatasource ds, WidgetRef ref, Reservation reservation) {
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
     final couleur = _statutColor(reservation.statut);
 
@@ -118,14 +121,18 @@ class MesReservationsPage extends ConsumerWidget {
                   color: AppColors.accent,
                   fontWeight: FontWeight.bold,
                   fontSize: 16)),
-          if (reservation.statut != 'annule' &&
-              reservation.statut != 'remboursement_demande')
+          if (reservation.statut != 'annule' && reservation.statut != 'rembourse')
             TextButton.icon(
               onPressed: () async {
-                final ok = await ref
-                    .read(reservationDatasourceProvider)
-                    .annulerReservation(reservation.id!);
-                if (ok) ref.refresh(mesReservationsProvider);
+                final ok = await ds.annulerReservation(reservation.id!);
+                if (ok) {
+                  ref.refresh(mesReservationsProvider);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Réservation annulée'), backgroundColor: Colors.green),
+                    );
+                  }
+                }
               },
               icon: const Icon(Icons.cancel_outlined, size: 16, color: Colors.red),
               label: const Text('Annuler',
@@ -138,12 +145,16 @@ class MesReservationsPage extends ConsumerWidget {
 
   Color _statutColor(String? s) {
     switch (s) {
-      case 'confirmee': return Colors.green;
-      case 'en_attente': return Colors.orange;
-      case 'annule': return Colors.red;
-      case 'remboursement_demande': return Colors.blue;
-      default: return Colors.grey;
+      case 'confirmee':
+        return Colors.green;
+      case 'en_attente':
+        return Colors.orange;
+      case 'annule':
+        return Colors.red;
+      case 'rembourse':
+        return Colors.blue;
+      default:
+        return Colors.grey;
     }
   }
 }
-

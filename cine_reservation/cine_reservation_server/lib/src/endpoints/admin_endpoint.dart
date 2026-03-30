@@ -263,7 +263,36 @@ class AdminEndpoint extends Endpoint {
   Future<CodePromo> modifierCodePromo(Session session, CodePromo c) async => await CodePromo.db.updateRow(session, c);
   Future<void> supprimerCodePromo(Session session, int id) async => await CodePromo.db.deleteWhere(session, where: (t) => t.id.equals(id));
   Future<Map<String, dynamic>> getCodePromoStats(Session session, int id) async => {};
-  Future<Map<String, dynamic>> getGlobalPromoSummary(Session session) async => {};
+  Future<String> getGlobalPromoSummary(Session session) async {
+    final promos = await CodePromo.db.find(session);
+    final now = DateTime.now().toUtc();
+
+    final activeCodes = promos.where((p) =>
+    p.actif == true &&
+        (p.dateExpiration == null || p.dateExpiration!.isAfter(now))
+    ).length;
+
+    // Usages aujourd'hui — via reservations avec codePromoId
+    final debutJour = DateTime(now.year, now.month, now.day);
+    final finJour = debutJour.add(const Duration(days: 1));
+    final resAvecPromo = await Reservation.db.find(session,
+        where: (r) => r.codePromoId.notEquals(null) &
+        r.dateReservation.between(debutJour, finJour));
+
+    final todayUsages = resAvecPromo.length;
+
+    // Économies totales
+    final toutesRes = await Reservation.db.find(session,
+        where: (r) => r.codePromoId.notEquals(null));
+    final totalSavings = toutesRes.fold<double>(0.0, (sum, r) =>
+    sum + ((r.montantTotal) - (r.montantApresReduction ?? r.montantTotal)));
+
+    return jsonEncode({
+      'activeCodes': activeCodes,
+      'todayUsages': todayUsages,
+      'totalSavings': totalSavings,
+    });
+  }
   Future<List<Utilisateur>> getStaffTanger(Session session) async => [];
   Future<void> ajouterStaff(Session session, String nom, String email) async {}
   Future<Utilisateur?> getMonProfil(Session session) async {
@@ -409,7 +438,8 @@ class AdminEndpoint extends Endpoint {
       // Sièges occupés = dans reservation_sieges avec réservation confirmée
       final reservationsSalle = await Reservation.db.find(session,
           where: (r) => r.cinemaId.equals(cinemaId) &
-          r.statut.equals('confirme'));
+          r.statut.notEquals('annule') &
+          r.statut.notEquals('rembourse'));
       final resIds = reservationsSalle
           .map((r) => r.id!)
           .toSet();

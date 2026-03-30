@@ -124,6 +124,8 @@ profil:
   - supprimerCompte:
 reservation:
   - creerReservation:
+  - getSiegesReservesBySeance:
+  - getSiegesReservesByEvenement:
   - getMesReservations:
   - annulerReservation:
   - validerCodePromo:

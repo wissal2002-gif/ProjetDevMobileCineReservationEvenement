@@ -180,8 +180,14 @@ class ManageReservationsLocalPage extends ConsumerWidget {
             try { salle = salles.firstWhere((s) => s.id == seance!.salleId); } catch (_) {}
           }
         }
-
-        return _buildResCard(context, ref, res, user, film, salle, seance);
+        return _ResCard(
+          res: res,
+          user: user,
+          film: film,
+          salle: salle,
+          seance: seance,
+          onRefund: () => _handleRefund(context, ref, res),
+        );
       },
     );
   }
@@ -218,7 +224,8 @@ class ManageReservationsLocalPage extends ConsumerWidget {
         ),
         subtitle: Text(
           seance != null
-              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(seance.dateHeure)}"
+              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(res.dateReservation)}"
+
               : "Réservation #${res.id}",
           style: const TextStyle(color: Colors.white54, fontSize: 12),
         ),
@@ -324,4 +331,185 @@ class ManageReservationsLocalPage extends ConsumerWidget {
       ),
     );
   }
+}
+// ── Ajoute ce widget à la fin du fichier ──────────────────────────────────
+class _ResCard extends ConsumerWidget {
+  final Reservation res;
+  final Utilisateur user;
+  final Film? film;
+  final Salle? salle;
+  final Seance? seance;
+  final VoidCallback onRefund;
+
+  const _ResCard({
+    required this.res,
+    required this.user,
+    required this.film,
+    required this.salle,
+    required this.seance,
+    required this.onRefund,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final siegesAsync = res.id != null
+        ? ref.watch(reservationSiegesProvider(res.id!))
+        : const AsyncValue<List<Siege>>.data([]);
+
+    final bool isCancelled = res.statut == 'annule';
+    final bool isRefunded  = res.statut == 'rembourse';
+
+    Color statusColor = Colors.orange;
+    if (res.statut == 'confirme')  statusColor = Colors.green;
+    if (res.statut == 'rembourse') statusColor = Colors.blue;
+    if (res.statut == 'annule')    statusColor = Colors.redAccent;
+
+    return Card(
+      color: Colors.white.withOpacity(0.04),
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: statusColor.withOpacity(0.2)),
+      ),
+      child: ExpansionTile(
+        leading: Icon(Icons.movie_rounded, color: statusColor),
+        title: Text(user.nom,
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
+        subtitle: Text(
+          seance != null
+              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(res.dateReservation)}"
+              : "Réservation #${res.id}",
+          style: const TextStyle(color: Colors.white54, fontSize: 12),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _infoRow("Email:", user.email),
+                _infoRow("Téléphone:", user.telephone ?? "Non renseigné"),
+                if (salle != null) _infoRow("Salle:", salle!.codeSalle),
+                _infoRow("Montant:", "${res.montantTotal} DH"),
+                _infoRow("Statut:", (res.statut ?? "N/A").toUpperCase()),
+
+                const Divider(color: Colors.white10, height: 20),
+
+                // ── SIÈGES ───────────────────────────────────────
+                const Text("SIÈGES RÉSERVÉS",
+                    style: TextStyle(
+                        color: Colors.amber,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        letterSpacing: 1.2)),
+                const SizedBox(height: 10),
+
+                siegesAsync.when(
+                  loading: () => const SizedBox(
+                    height: 30,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                          color: Colors.amber, strokeWidth: 2),
+                    ),
+                  ),
+                  error: (e, _) => Text("Erreur: $e",
+                      style: const TextStyle(
+                          color: Colors.redAccent, fontSize: 12)),
+                  data: (sieges) {
+                    if (sieges.isEmpty) {
+                      return Text("Aucun siège enregistré",
+                          style: TextStyle(
+                              color: Colors.white.withOpacity(0.3),
+                              fontSize: 12));
+                    }
+                    return Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: sieges.map((s) {
+                        final isVip = s.type == 'vip';
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isVip
+                                ? Colors.amber.withOpacity(0.15)
+                                : Colors.white.withOpacity(0.07),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isVip
+                                  ? Colors.amber.withOpacity(0.4)
+                                  : Colors.white.withOpacity(0.15),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.event_seat_rounded,
+                                  color: isVip ? Colors.amber : Colors.white54,
+                                  size: 14),
+                              const SizedBox(width: 5),
+                              Text(s.numero,
+                                  style: TextStyle(
+                                      color: isVip ? Colors.amber : Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12)),
+                              if (isVip) ...[
+                                const SizedBox(width: 4),
+                                const Text("VIP",
+                                    style: TextStyle(
+                                        color: Colors.amber,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+
+                if (isCancelled) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.currency_exchange, size: 16),
+                      label: const Text("PROCÉDER AU REMBOURSEMENT"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade700,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: onRefund,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(
+      children: [
+        SizedBox(
+            width: 100,
+            child: Text(label,
+                style: const TextStyle(
+                    color: Colors.white38, fontSize: 13))),
+        Expanded(
+            child: Text(value,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 13))),
+      ],
+    ),
+  );
 }

@@ -13,6 +13,7 @@ import '../../features/admin_local/presentation/pages/manage_salles_page.dart';
 // Core
 import '../constants/app_constants.dart';
 import 'navigation_state_provider.dart';
+import 'auth_guard.dart';
 
 // Home
 import '../../features/home/presentation/pages/main_navigation_page.dart';
@@ -42,7 +43,7 @@ import '../../features/reservation/presentation/pages/panier_page.dart';
 import '../../features/reservation/presentation/pages/paiement_page.dart';
 import '../../features/reservation/presentation/pages/confirmation_page.dart';
 import '../../features/reservation/presentation/pages/mes_reservations_page.dart';
-
+import 'package:cine_reservation_flutter/features/reservation/presentation/providers/reservation_provider.dart';
 // Billets
 import '../../features/billets/presentation/pages/billets_page.dart';
 import '../../features/billets/presentation/pages/billet_detail_page.dart';
@@ -181,11 +182,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/seat-selection',
         builder: (context, state) {
           final nav = ref.read(navigationProvider);
-          return SeatSelectionPage(
-            seance: nav.seance,
-            evenement: nav.evenement,
-            salleId: nav.salleId,
-            filmTitre: nav.filmTitre,
+          return AuthGuard(  // ← AJOUTER LE GUARD
+            child: SeatSelectionPage(
+              seance: nav.seance,
+              evenement: nav.evenement,
+              salleId: nav.salleId,
+              filmTitre: nav.filmTitre,
+            ),
           );
         },
       ),
@@ -193,58 +196,74 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/panier',
         builder: (context, state) {
           final nav = ref.read(navigationProvider);
-          return PanierPage(
-            seance: nav.seance,
-            evenement: nav.evenement,
-            filmTitre: nav.filmTitre,
+          return AuthGuard(  // ← AJOUTER LE GUARD
+            child: PanierPage(
+              seance: nav.seance,
+              evenement: nav.evenement,
+              filmTitre: nav.filmTitre,
+            ),
           );
         },
       ),
+      // Dans app_router.dart, modifiez la route /paiement
       GoRoute(
         path: '/paiement',
         builder: (context, state) {
           final nav = ref.read(navigationProvider);
-          return PaiementPage(
-            seance: nav.seance,
-            evenement: nav.evenement,
-            filmTitre: nav.filmTitre,
+          return AuthGuard(
+            child: PaiementPage(
+              seance: nav.seance,
+              evenement: nav.evenement,
+              filmTitre: nav.filmTitre,
+              // ✅ selectedOptions supprimé — les options viennent du panierProvider
+            ),
           );
         },
       ),
       GoRoute(
         path: '/confirmation',
+        name: 'confirmation',
         builder: (context, state) {
-          final nav = ref.read(navigationProvider);
           final extra = state.extra as Map<String, dynamic>;
-          return ConfirmationPage(
-            reservation: extra['reservation'] as Reservation,
-            paiement: extra['paiement'] as Paiement,
-            billets: (extra['billets'] as List).cast<Billet>(),
-            filmTitre: nav.filmTitre,
-            seance: nav.seance,
-            evenement: nav.evenement,
+          return AuthGuard(  // ← AJOUTER LE GUARD
+            child: ConfirmationPage(
+              reservation: extra['reservation'] as Reservation,
+              paiement: extra['paiement'] as Paiement,
+              billets: extra['billets'] as List<Billet>,
+              filmTitre: extra['filmTitre'] as String,
+              seance: extra['seance'] as Seance?,
+              evenement: extra['evenement'] as Evenement?,
+              sieges: extra['sieges'] as List<SiegeSelectionne>,
+            ),
           );
         },
       ),
       GoRoute(
         path: '/mes-reservations',
-        builder: (context, state) => MesReservationsPage(),
+        builder: (context, state) => AuthGuard(  // ← AJOUTER LE GUARD
+          child: const MesReservationsPage(),
+        ),
       ),
 
       // ─── BILLETS ──────────────────────────────────────
       GoRoute(
         path: '/mes-billets',
-        builder: (context, state) => const BilletsPage(),
+        builder: (context, state) => AuthGuard(  // ← AJOUTER LE GUARD
+          child: const BilletsPage(),
+        ),
       ),
       GoRoute(
         path: '/billet-detail',
-        builder: (context, state) => BilletDetailPage(billet: state.extra as Billet),
+        builder: (context, state) => AuthGuard(  // ← AJOUTER LE GUARD
+          child: BilletDetailPage(billet: state.extra as Billet),
+        ),
       ),
       GoRoute(
         path: '/favoris',
-        builder: (context, state) => const FavorisPage(),
+        builder: (context, state) => AuthGuard(  // ← AJOUTER LE GUARD
+          child: const FavorisPage(),
+        ),
       ),
-
       // ─── ADMIN GLOBAL ─────────────────────────────────
       GoRoute(
         path: '/admin',

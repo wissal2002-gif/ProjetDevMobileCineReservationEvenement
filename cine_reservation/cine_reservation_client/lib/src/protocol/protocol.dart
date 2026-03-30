@@ -323,6 +323,12 @@ class Protocol extends _i1.SerializationManager {
       return (data as List).map((e) => deserialize<_i35.Billet>(e)).toList()
           as T;
     }
+    if (t == _i1.getType<List<int>?>()) {
+      return (data != null
+              ? (data as List).map((e) => deserialize<int>(e)).toList()
+              : null)
+          as T;
+    }
     try {
       return _i36.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}

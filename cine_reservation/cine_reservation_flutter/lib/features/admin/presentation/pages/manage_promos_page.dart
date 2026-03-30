@@ -6,6 +6,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../providers/admin_provider.dart';
 import '../widgets/admin_sidebar.dart'; // Import de la sidebar
 import 'package:intl/intl.dart';
+import 'dart:convert';
 
 class ManagePromosPage extends ConsumerStatefulWidget {
   const ManagePromosPage({super.key});

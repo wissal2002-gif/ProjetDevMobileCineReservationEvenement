@@ -374,14 +374,35 @@ class EvenementDetailPage extends ConsumerWidget {
 
   void _naviguerVersPanier(BuildContext context, WidgetRef ref,
       Evenement event, int nbPlaces, double prixUnitaire) {
+    // 1. D'abord, mettre à jour le navigation provider
+    ref.read(navigationProvider.notifier).setContext(
+      seance: null,
+      evenement: event,
+      filmTitre: event.titre,
+      salleId: event.cinemaId ?? 0,
+    );
+
+    // 2. Ensuite, vider le panier
     ref.read(panierProvider.notifier).vider();
+
+    // 3. Vérifier si c'est un événement dans un cinéma (avec salle)
+    final isCinemaEvent = event.cinemaId != null && (event.cinemaId ?? 0) > 0;
+
+    if (isCinemaEvent) {
+      // Pour événement cinéma, naviguer vers sélection des sièges
+      context.push('/seat-selection');
+      return;
+    }
+
+    // Pour événement externe, créer des sièges virtuels
     for (int i = 0; i < nbPlaces; i++) {
       ref.read(panierProvider.notifier).ajouterSiege(
         SiegeSelectionne(
           siege: Siege(
+            id: -i - 1,
             salleId: 0,
-            numero: 'P${i + 1}',
-            rangee: 'EVENT',
+            numero: 'T${i + 1}',
+            rangee: 'EXT',
             type: 'standard',
           ),
           typeBillet: 'evenement',
@@ -390,20 +411,12 @@ class EvenementDetailPage extends ConsumerWidget {
       );
     }
 
-    ref.read(navigationProvider.notifier).setContext(
-      seance: null,
-      evenement: event,
-      filmTitre: event.titre,
-      salleId: 0,
-    );
-
+    // 4. Naviguer vers le panier
     context.push('/panier');
   }
 
-  // ── Badges — couleur dynamique depuis version Imane ──
   Widget _buildTypeBadge(String type) => Container(
-    padding:
-    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     decoration: BoxDecoration(
         color: Colors.pink.withOpacity(0.2),
         borderRadius: BorderRadius.circular(20),

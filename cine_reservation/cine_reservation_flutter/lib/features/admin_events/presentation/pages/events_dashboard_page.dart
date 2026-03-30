@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_theme.dart';import '../widgets/events_sidebar.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../widgets/events_sidebar.dart';
 import '../../../admin/presentation/providers/admin_provider.dart';
 
 class EventsDashboardPage extends ConsumerStatefulWidget {
   const EventsDashboardPage({super.key});
 
   @override
-  ConsumerState<EventsDashboardPage> createState() => _EventsDashboardPageState();
+  ConsumerState<EventsDashboardPage> createState() =>
+      _EventsDashboardPageState();
 }
 
 class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
@@ -16,9 +19,19 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
   @override
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(allEvenementsProvider);
+    final resAsync    = ref.watch(allReservationsProvider);
     final isMobile    = MediaQuery.of(context).size.width < 768;
 
-    // Utilisation de SingleChildScrollView pour éviter le débordement (jaune) sur Pixel 7
+    final billetsVendus = resAsync.when(
+      data: (res) => res
+          .where((r) =>
+      r.typeReservation == 'evenement' && r.statut != 'annule')
+          .length
+          .toString(),
+      loading: () => "...",
+      error: (_, __) => "0",
+    );
+
     final mainContent = SingleChildScrollView(
       padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
       child: Column(
@@ -35,11 +48,12 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
           ),
           const SizedBox(height: 32),
 
-          // ─── Stats ───
+          // ─── Stats ───────────────────────────────────────────
           eventsAsync.when(
             data: (events) {
               final totalEvents  = events.length;
-              final activeEvents = events.where((e) => e.statut == 'actif').length;
+              final activeEvents =
+                  events.where((e) => e.statut == 'actif').length;
 
               if (isMobile) {
                 return GridView.count(
@@ -48,41 +62,58 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 1.0, // Ajusté pour le Pixel 7
+                  childAspectRatio: 1.0,
                   children: [
-                    _buildStatCard("Total Événements",    totalEvents.toString(),  Icons.event, isMobile),
-                    _buildStatCard("Événements Actifs",   activeEvents.toString(), Icons.check_circle_outline, isMobile),
-                    _buildStatCard("Billets Vendus",      "---",                   Icons.confirmation_number_outlined, isMobile),
+                    _buildStatCard("Total Événements",
+                        totalEvents.toString(), Icons.event, isMobile),
+                    _buildStatCard("Événements Actifs",
+                        activeEvents.toString(),
+                        Icons.check_circle_outline, isMobile),
+                    _buildStatCard("Billets Vendus", billetsVendus,
+                        Icons.confirmation_number_outlined, isMobile),
                   ],
                 );
               }
 
               return Row(
                 children: [
-                  _buildStatCard("Total Événements",  totalEvents.toString(),  Icons.event, isMobile),
+                  _buildStatCard("Total Événements",
+                      totalEvents.toString(), Icons.event, isMobile),
                   const SizedBox(width: 20),
-                  _buildStatCard("Événements Actifs", activeEvents.toString(), Icons.check_circle_outline, isMobile),
+                  _buildStatCard("Événements Actifs",
+                      activeEvents.toString(),
+                      Icons.check_circle_outline, isMobile),
                   const SizedBox(width: 20),
-                  _buildStatCard("Billets Vendus",    "---",                   Icons.confirmation_number_outlined, isMobile),
+                  _buildStatCard("Billets Vendus", billetsVendus,
+                      Icons.confirmation_number_outlined, isMobile),
                 ],
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
-            error: (e, _) => Text("Erreur stats: $e", style: const TextStyle(color: Colors.red)),
+            loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.accent)),
+            error: (e, _) => Text("Erreur stats: $e",
+                style: const TextStyle(color: Colors.red)),
           ),
 
           const SizedBox(height: 40),
           const Text(
             "DERNIERS ÉVÉNEMENTS",
-            style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 16),
+            style: TextStyle(
+                color: AppColors.accent,
+                fontWeight: FontWeight.bold,
+                fontSize: 16),
           ),
           const SizedBox(height: 20),
 
-          // Remplacement de Expanded par un ListView avec shrinkWrap pour fonctionner dans un ScrollView
+          // ─── Liste événements ─────────────────────────────────
           eventsAsync.when(
             data: (events) {
-              if (events.isEmpty) return const Center(child: Text("Aucun événement", style: TextStyle(color: Colors.white24)));
-
+              if (events.isEmpty) {
+                return const Center(
+                  child: Text("Aucun événement",
+                      style: TextStyle(color: Colors.white24)),
+                );
+              }
               return ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -94,12 +125,24 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
                     margin: const EdgeInsets.only(bottom: 10),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: ev.affiche != null ? NetworkImage(ev.affiche!) : null,
-                        child: ev.affiche == null ? const Icon(Icons.event) : null,
+                        backgroundImage: ev.affiche != null
+                            ? NetworkImage(ev.affiche!)
+                            : null,
+                        child: ev.affiche == null
+                            ? const Icon(Icons.event)
+                            : null,
                       ),
-                      title: Text(ev.titre, style: const TextStyle(color: Colors.white, fontSize: 14)),
-                      subtitle: Text("${ev.ville} - ${ev.prix} DH", style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.white24),
+                      title: Text(ev.titre,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 14)),
+                      subtitle: Text(
+                          "${ev.ville} - ${ev.prix} DH",
+                          style: const TextStyle(
+                              color: Colors.white54, fontSize: 12)),
+                      trailing: const Icon(Icons.chevron_right,
+                          color: Colors.white24),
+                      onTap: () =>
+                          context.push('/event-detail', extra: ev.id),
                     ),
                   );
                 },
@@ -112,7 +155,7 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
       ),
     );
 
-    // ── Mobile : Drawer + AppBar ──
+    // ── Mobile ────────────────────────────────────────────────────
     if (isMobile) {
       return Scaffold(
         key: _scaffoldKey,
@@ -125,7 +168,10 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
           title: const Text("Tableau de bord",
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold)),
         ),
         drawer: Drawer(
           backgroundColor: AppColors.background,
@@ -135,7 +181,7 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
       );
     }
 
-    // ── Desktop : Row avec sidebar ──
+    // ── Desktop ───────────────────────────────────────────────────
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Row(
@@ -147,8 +193,8 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, bool isMobile) {
-    // On enlève le "Expanded" ici car il est géré par la Row ou le GridView parent
+  Widget _buildStatCard(
+      String title, String value, IconData icon, bool isMobile) {
     Widget card = Container(
       padding: EdgeInsets.all(isMobile ? 12 : 24),
       decoration: BoxDecoration(
@@ -162,27 +208,26 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
         children: [
           Icon(icon, color: AppColors.accent, size: isMobile ? 24 : 30),
           SizedBox(height: isMobile ? 8 : 16),
-          Text(value,
+          Text(
+            value,
             style: TextStyle(
                 color: Colors.white,
                 fontSize: isMobile ? 18 : 28,
-                fontWeight: FontWeight.bold
-            ),
+                fontWeight: FontWeight.bold),
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          Text(title,
+          Text(
+            title,
             style: TextStyle(
                 color: Colors.white.withOpacity(0.5),
-                fontSize: isMobile ? 10 : 12
-            ),
+                fontSize: isMobile ? 10 : 12),
             overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
 
-    // On n'ajoute Expanded que si on est dans une Row (Desktop)
     return isMobile ? card : Expanded(child: card);
   }
 }

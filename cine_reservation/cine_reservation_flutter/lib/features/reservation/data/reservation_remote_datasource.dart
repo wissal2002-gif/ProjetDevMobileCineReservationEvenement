@@ -1,5 +1,5 @@
 ﻿import 'package:cine_reservation_client/cine_reservation_client.dart';
-import '../../../../main.dart';
+import '../../../main.dart';
 
 class ReservationRemoteDatasource {
   // ─── SIEGES ───────────────────────────────────────────
@@ -12,28 +12,33 @@ class ReservationRemoteDatasource {
   }
 
   Future<List<int>> getSiegesReservesByEvenement(int evenementId) async {
-    return await client.sieges.getSiegesReservesByEvenement(evenementId);
+    return await client.sieges
+        .getSiegesReservesByEvenement(evenementId);
   }
 
   // ─── RESERVATIONS ─────────────────────────────────────
-  Future<Reservation?> creerReservation({
+  Future<Reservation> creerReservation({
     int? seanceId,
     int? evenementId,
-    String? typeReservation,
-    double montantTotal = 0.0,
+    required double montantTotal,
+    required List<int> siegeIds,
+    List<int>? optionsIds,
     int? codePromoId,
   }) async {
-    return await client.reservation.creerReservation(
+    final result = await client.reservation.creerReservation(
       seanceId: seanceId,
       evenementId: evenementId,
-      typeReservation: typeReservation,
       montantTotal: montantTotal,
-      codePromoId: codePromoId,
+      siegeIds: siegeIds,
+      optionsIds: optionsIds,     // ✅ FIX 1
+      codePromoId: codePromoId,   // ✅ FIX 3
     );
+    if (result == null) {
+      throw Exception('Erreur lors de la création de la réservation');
+    }
+    return result;
   }
 
-  // PAS de try/catch ici — l'erreur remonte au FutureProvider
-  // qui l'affiche correctement dans l'UI avec .error(...)
   Future<List<Reservation>> getMesReservations() async {
     return await client.reservation.getMesReservations();
   }
@@ -47,10 +52,16 @@ class ReservationRemoteDatasource {
   }
 
   // ─── PAIEMENTS ────────────────────────────────────────
-  Future<Paiement?> effectuerPaiement(
-      int reservationId, double montant, String methode) async {
-    return await client.paiement
-        .effectuerPaiement(reservationId, montant, methode);
+  Future<Paiement?> effectuerPaiement({
+    required int reservationId,
+    required double montant,
+    required String methode,
+  }) async {
+    return await client.paiement.effectuerPaiement(
+      reservationId,
+      montant,
+      methode,
+    );
   }
 
   // ─── BILLETS ──────────────────────────────────────────
@@ -58,8 +69,10 @@ class ReservationRemoteDatasource {
     return await client.billet.getMesBillets();
   }
 
-  Future<List<Billet>> getBilletsByReservation(int reservationId) async {
-    return await client.billet.getBilletsByReservation(reservationId);
+  Future<List<Billet>> getBilletsByReservation(
+      int reservationId) async {
+    return await client.billet
+        .getBilletsByReservation(reservationId);
   }
 
   Future<bool> validerBillet(String qrCode) async {

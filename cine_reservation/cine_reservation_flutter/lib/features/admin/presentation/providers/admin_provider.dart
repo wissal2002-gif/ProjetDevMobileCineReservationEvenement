@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../main.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-
+import 'dart:convert';
 // --- VÉRIFICATION ADMIN RÉACTIVE ---
 final isUserAdminProvider = FutureProvider<bool>((ref) async {
   final authState = ref.watch(authProvider); // Réactif à la connexion
@@ -110,9 +110,9 @@ final allCodesPromoProvider = FutureProvider<List<CodePromo>>((ref) async {
 final codePromoStatsProvider = FutureProvider.family<Map<String, dynamic>, int>((ref, id) async {
   return await client.admin.getCodePromoStats(id);
 });
-
 final globalPromoSummaryProvider = FutureProvider<Map<String, dynamic>>((ref) async {
-  return await client.admin.getGlobalPromoSummary();
+  final jsonStr = await client.admin.getGlobalPromoSummary();
+  return jsonDecode(jsonStr) as Map<String, dynamic>;
 });
 final staffTangerProvider = FutureProvider<List<Utilisateur>>((ref) async {
   return await client.admin.getStaffTanger();

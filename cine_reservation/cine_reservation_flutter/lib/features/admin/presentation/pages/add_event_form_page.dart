@@ -5,6 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../main.dart';
 import 'package:intl/intl.dart';
 import '../providers/admin_provider.dart';
+import 'package:file_picker/file_picker.dart';
 
 class AddEventFormPage extends ConsumerStatefulWidget {
   final Evenement? event;
@@ -29,6 +30,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
   String? _selectedSalleName; 
   bool _isAtCinema = false;
   bool _annulationGratuite = true;
+  bool _isUploading = false;
 
   DateTime _dateDebut = DateTime.now().add(const Duration(days: 1));
   DateTime? _dateFin;
@@ -220,7 +222,90 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
 
               _buildSectionTitle("Médias"),
               _buildCard([
-                _buildTextField(_afficheCtrl, "URL Affiche", Icons.image),
+
+                // ── Aperçu affiche ───────────────────────────────
+                if (_afficheCtrl.text.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            _afficheCtrl.text,
+                            height: 140,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 140,
+                              color: Colors.white10,
+                              child: const Icon(Icons.broken_image, color: Colors.white38),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 6, right: 6,
+                          child: GestureDetector(
+                            onTap: () => setState(() => _afficheCtrl.text = ''),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(Icons.close, color: Colors.white, size: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // ── Bouton import depuis PC ──────────────────────
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    side: BorderSide(color: AppColors.accent.withOpacity(0.5)),
+                    foregroundColor: AppColors.accent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: _isUploading ? null : () async {
+                    final result = await FilePicker.platform.pickFiles(
+                      type: FileType.image,
+                      withData: true,
+                    );
+                    if (result == null) return;
+
+                    final bytes    = result.files.first.bytes!;
+                    final fileName = result.files.first.name;
+
+                    setState(() => _isUploading = true);
+                    try {
+                      final url = await client.admin.uploadOptionImage(bytes, fileName);
+                      setState(() {
+                        _afficheCtrl.text = url;
+                        _isUploading = false;
+                      });
+                    } catch (e) {
+                      setState(() => _isUploading = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Erreur upload: $e"), backgroundColor: Colors.red),
+                      );
+                    }
+                  },
+                  icon: _isUploading
+                      ? const SizedBox(
+                    width: 16, height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent),
+                  )
+                      : const Icon(Icons.upload_rounded, size: 18),
+                  label: Text(_isUploading
+                      ? "Upload en cours..."
+                      : _afficheCtrl.text.isNotEmpty
+                      ? "Changer l'affiche"
+                      : "Importer affiche depuis PC"),
+                ),
+
                 const SizedBox(height: 10),
                 _buildTextField(_baCtrl, "URL Bande Annonce", Icons.movie),
               ]),

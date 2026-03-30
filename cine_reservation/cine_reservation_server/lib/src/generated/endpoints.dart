@@ -2175,6 +2175,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<int?>(),
               nullable: true,
             ),
+            'siegeIds': _i1.ParameterDescription(
+              name: 'siegeIds',
+              type: _i1.getType<List<int>>(),
+              nullable: false,
+            ),
+            'optionsIds': _i1.ParameterDescription(
+              name: 'optionsIds',
+              type: _i1.getType<List<int>?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -2188,6 +2198,46 @@ class Endpoints extends _i1.EndpointDispatch {
                     typeReservation: params['typeReservation'],
                     montantTotal: params['montantTotal'],
                     codePromoId: params['codePromoId'],
+                    siegeIds: params['siegeIds'],
+                    optionsIds: params['optionsIds'],
+                  ),
+        ),
+        'getSiegesReservesBySeance': _i1.MethodConnector(
+          name: 'getSiegesReservesBySeance',
+          params: {
+            'seanceId': _i1.ParameterDescription(
+              name: 'seanceId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['reservation'] as _i15.ReservationEndpoint)
+                  .getSiegesReservesBySeance(
+                    session,
+                    params['seanceId'],
+                  ),
+        ),
+        'getSiegesReservesByEvenement': _i1.MethodConnector(
+          name: 'getSiegesReservesByEvenement',
+          params: {
+            'evenementId': _i1.ParameterDescription(
+              name: 'evenementId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['reservation'] as _i15.ReservationEndpoint)
+                  .getSiegesReservesByEvenement(
+                    session,
+                    params['evenementId'],
                   ),
         ),
         'getMesReservations': _i1.MethodConnector(

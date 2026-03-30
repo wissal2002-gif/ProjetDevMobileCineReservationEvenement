@@ -2402,7 +2402,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>> getGlobalPromoSummary(
+  _i3.Future<String> getGlobalPromoSummary(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2424,7 +2424,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<String>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3907,6 +3907,8 @@ class _ReservationEndpoint {
     String? typeReservation,
     required double montantTotal,
     int? codePromoId,
+    required List<int> siegeIds,
+    List<int>? optionsIds,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3925,6 +3927,8 @@ class _ReservationEndpoint {
             'typeReservation': typeReservation,
             'montantTotal': montantTotal,
             'codePromoId': codePromoId,
+            'siegeIds': siegeIds,
+            'optionsIds': optionsIds,
           }),
           serializationManager: _serializationManager,
         );
@@ -3934,6 +3938,68 @@ class _ReservationEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<_i5.Reservation?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<int>> getSiegesReservesBySeance(
+    _i1.TestSessionBuilder sessionBuilder,
+    int seanceId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'reservation',
+            method: 'getSiegesReservesBySeance',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'reservation',
+          methodName: 'getSiegesReservesBySeance',
+          parameters: _i1.testObjectToJson({'seanceId': seanceId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<int>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<int>> getSiegesReservesByEvenement(
+    _i1.TestSessionBuilder sessionBuilder,
+    int evenementId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'reservation',
+            method: 'getSiegesReservesByEvenement',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'reservation',
+          methodName: 'getSiegesReservesByEvenement',
+          parameters: _i1.testObjectToJson({'evenementId': evenementId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<int>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

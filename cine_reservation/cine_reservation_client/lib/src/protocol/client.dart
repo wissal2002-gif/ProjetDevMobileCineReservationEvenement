@@ -697,8 +697,8 @@ class EndpointAdmin extends _i2.EndpointRef {
         {'id': id},
       );
 
-  _i3.Future<Map<String, dynamic>> getGlobalPromoSummary() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i3.Future<String> getGlobalPromoSummary() =>
+      caller.callServerEndpoint<String>(
         'admin',
         'getGlobalPromoSummary',
         {},
@@ -1130,6 +1130,8 @@ class EndpointReservation extends _i2.EndpointRef {
     String? typeReservation,
     required double montantTotal,
     int? codePromoId,
+    required List<int> siegeIds,
+    List<int>? optionsIds,
   }) => caller.callServerEndpoint<_i5.Reservation?>(
     'reservation',
     'creerReservation',
@@ -1139,8 +1141,24 @@ class EndpointReservation extends _i2.EndpointRef {
       'typeReservation': typeReservation,
       'montantTotal': montantTotal,
       'codePromoId': codePromoId,
+      'siegeIds': siegeIds,
+      'optionsIds': optionsIds,
     },
   );
+
+  _i3.Future<List<int>> getSiegesReservesBySeance(int seanceId) =>
+      caller.callServerEndpoint<List<int>>(
+        'reservation',
+        'getSiegesReservesBySeance',
+        {'seanceId': seanceId},
+      );
+
+  _i3.Future<List<int>> getSiegesReservesByEvenement(int evenementId) =>
+      caller.callServerEndpoint<List<int>>(
+        'reservation',
+        'getSiegesReservesByEvenement',
+        {'evenementId': evenementId},
+      );
 
   _i3.Future<List<_i5.Reservation>> getMesReservations() =>
       caller.callServerEndpoint<List<_i5.Reservation>>(

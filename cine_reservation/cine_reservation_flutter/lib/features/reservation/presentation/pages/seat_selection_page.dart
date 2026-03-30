@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/reservation_provider.dart';
+import 'dart:async';
 
 class SeatSelectionPage extends ConsumerStatefulWidget {
   final Seance? seance;
@@ -24,16 +25,40 @@ class SeatSelectionPage extends ConsumerStatefulWidget {
 }
 
 class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
-  String _typeTarif = 'normal';
+  String _typeTarifSelectionne = 'normal';
+  final Map<int, String> _tarifParSiege = {};
+  Timer? _refreshTimer;          // ← AJOUTER
 
-  double get _prixUnitaire {
+// AJOUTER CE BLOC ENTIER
+  @override
+  void initState() {
+    super.initState();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (!mounted) return;
+      if (widget.seance != null) {
+        ref.invalidate(siegesOccupesSeanceProvider(widget.seance!.id!));
+      } else if (widget.evenement != null) {
+        ref.invalidate(siegesOccupesEvenementProvider(widget.evenement!.id!));
+      }
+    });
+  }
+  // AJOUTER CE BLOC ENTIER
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+  double getPrixUnitaire(String typeTarif, Siege siege) {
     final s = widget.seance;
     if (s == null) return widget.evenement?.prix ?? 0;
-    switch (_typeTarif) {
+    if (siege.type == 'vip') {
+      return s.prixVip ?? s.prixNormal;
+    }
+    switch (typeTarif) {
       case 'reduit': return s.prixReduit ?? s.prixNormal;
       case 'enfant': return s.prixEnfant ?? s.prixNormal;
       case 'senior': return s.prixSenior ?? s.prixNormal;
-      case 'vip':    return s.prixVip    ?? s.prixNormal;
+      case 'vip':    return s.prixVip ?? s.prixNormal;
       default:       return s.prixNormal;
     }
   }
@@ -79,7 +104,6 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
       ),
       body: Column(
         children: [
-          // ── Écran ───────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(60, 16, 60, 8),
             child: Column(children: [
@@ -96,8 +120,6 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
                       color: Colors.white38, fontSize: 10, letterSpacing: 4)),
             ]),
           ),
-
-          // ── Légende ─────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -110,8 +132,6 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
               _legendItem(Colors.amber.withOpacity(0.4), 'VIP'),
             ]),
           ),
-
-          // ── Grille sièges ────────────────────────────────────────────────
           Expanded(
             child: siegesAsync.when(
               data: (sieges) => occupesAsync.when(
@@ -128,19 +148,14 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
               ),
             ),
           ),
-
-          // ── Tarifs ───────────────────────────────────────────────────────
           if (widget.seance != null) _buildTarifs(),
-
-          // ── Barre bas ───────────────────────────────────────────────────
           _buildBottomBar(context, panier),
         ],
       ),
     );
   }
 
-  Widget _buildGrid(
-      List<Siege> sieges, List<int> occupes, PanierState panier) {
+  Widget _buildGrid(List<Siege> sieges, List<int> occupes, PanierState panier) {
     if (sieges.isEmpty) {
       return const Center(
         child: Text('Aucun siège pour cette salle',
@@ -158,8 +173,7 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
       builder: (context, constraints) {
         const labelWidth = 20.0;
         const spacing = 5.0;
-        final availableWidth =
-            constraints.maxWidth - 32 - (labelWidth * 2) - 16;
+        final availableWidth = constraints.maxWidth - 32 - (labelWidth * 2) - 16;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -189,7 +203,8 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
                           final occupe = occupes.contains(siege.id);
                           final selectionne = panier.sieges
                               .any((s) => s.siege.id == siege.id);
-                          return _buildSiege(siege, occupe, selectionne);
+                          final tarifSiege = _tarifParSiege[siege.id!] ?? _typeTarifSelectionne;
+                          return _buildSiege(siege, occupe, selectionne, tarifSiege);
                         }).toList(),
                       ),
                     ),
@@ -210,12 +225,18 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
     );
   }
 
-  Widget _buildSiege(Siege siege, bool occupe, bool selectionne) {
+  Widget _buildSiege(Siege siege, bool occupe, bool selectionne, String tarifSiege) {
     Color couleur;
     if (occupe) {
       couleur = Colors.red.withOpacity(0.5);
     } else if (selectionne) {
-      couleur = AppColors.accent;
+      switch (tarifSiege) {
+        case 'vip': couleur = Colors.purple.withOpacity(0.7); break;
+        case 'enfant': couleur = Colors.green.withOpacity(0.7); break;
+        case 'senior': couleur = Colors.orange.withOpacity(0.7); break;
+        case 'reduit': couleur = Colors.blue.withOpacity(0.7); break;
+        default: couleur = AppColors.accent;
+      }
     } else if (siege.type == 'vip') {
       couleur = Colors.amber.withOpacity(0.3);
     } else {
@@ -228,18 +249,22 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
           : () {
         if (selectionne) {
           ref.read(panierProvider.notifier).retirerSiege(siege.id!);
+          setState(() {
+            _tarifParSiege.remove(siege.id);
+          });
         } else {
-          // Prix selon le type de tarif sélectionné
-          final prix = siege.type == 'vip'
-              ? (widget.seance?.prixVip ?? _prixUnitaire)
-              : _prixUnitaire;
+          final tarifChoisi = _typeTarifSelectionne;
+          final prix = getPrixUnitaire(tarifChoisi, siege);
           ref.read(panierProvider.notifier).ajouterSiege(
             SiegeSelectionne(
               siege: siege,
-              typeBillet: _typeTarif,
+              typeBillet: tarifChoisi,
               prix: prix,
             ),
           );
+          setState(() {
+            _tarifParSiege[siege.id!] = tarifChoisi;
+          });
         }
       },
       child: Container(
@@ -250,7 +275,9 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
           color: couleur,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: selectionne ? AppColors.accent : Colors.white12,
+            color: selectionne
+                ? (tarifSiege == 'vip' ? Colors.purple : AppColors.accent)
+                : Colors.white12,
             width: selectionne ? 2 : 1,
           ),
         ),
@@ -281,12 +308,14 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
                   color: AppColors.textLight,
                   fontSize: 10,
                   letterSpacing: 1.5)),
+          const Text('Choisissez le tarif pour le prochain siège',
+              style: TextStyle(color: AppColors.textLight, fontSize: 9)),
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: _tarifsDisponibles.map((t) {
-                final sel = _typeTarif == t.key;
+                final sel = _typeTarifSelectionne == t.key;
                 Color chipColor;
                 switch (t.key) {
                   case 'vip':    chipColor = Colors.purple; break;
@@ -297,9 +326,7 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
                 }
                 return GestureDetector(
                   onTap: () => setState(() {
-                    _typeTarif = t.key;
-                    // Vider la sélection si on change de tarif
-                    ref.read(panierProvider.notifier).vider();
+                    _typeTarifSelectionne = t.key;
                   }),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
@@ -340,55 +367,132 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
               }).toList(),
             ),
           ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildTarifChip('Normal', AppColors.accent),
+                if (_tarifsDisponibles.any((t) => t.key == 'reduit'))
+                  _buildTarifChip('Réduit', Colors.blue),
+                if (_tarifsDisponibles.any((t) => t.key == 'enfant'))
+                  _buildTarifChip('Enfant', Colors.green),
+                if (_tarifsDisponibles.any((t) => t.key == 'senior'))
+                  _buildTarifChip('Senior', Colors.orange),
+                if (_tarifsDisponibles.any((t) => t.key == 'vip'))
+                  _buildTarifChip('VIP', Colors.purple),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
+  Widget _buildTarifChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color, width: 0.5),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+
   Widget _buildBottomBar(BuildContext context, PanierState panier) {
+    final Map<String, int> siegeParTarif = {};
+    for (final s in panier.sieges) {
+      siegeParTarif[s.typeBillet] = (siegeParTarif[s.typeBillet] ?? 0) + 1;
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.cardBg,
         border: Border(top: BorderSide(color: AppColors.divider)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('${panier.nombreSieges} siège(s)',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 12)),
-                Text(
-                  '${panier.sousTotalSieges.toStringAsFixed(2)} MAD',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            width: 140,
-            child: ElevatedButton(
-              onPressed: panier.nombreSieges == 0
-                  ? null
-                  : () => context.push('/panier'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+          if (siegeParTarif.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: siegeParTarif.entries.map((entry) {
+                  String label;
+                  Color color;
+                  switch (entry.key) {
+                    case 'vip': label = 'VIP'; color = Colors.purple; break;
+                    case 'enfant': label = 'Enfant'; color = Colors.green; break;
+                    case 'senior': label = 'Senior'; color = Colors.orange; break;
+                    case 'reduit': label = 'Réduit'; color = Colors.blue; break;
+                    default: label = 'Normal'; color = AppColors.accent;
+                  }
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${entry.value} x $label',
+                      style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  );
+                }).toList(),
               ),
-              child: const Text('CONTINUER',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${panier.nombreSieges} siège(s)',
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 12)),
+                    Text(
+                      '${panier.sousTotalSieges.toStringAsFixed(2)} MAD',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: 140,
+                child: ElevatedButton(
+                  onPressed: panier.nombreSieges == 0
+                      ? null
+                      : () => context.push('/panier'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('CONTINUER',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
           ),
         ],
       ),
