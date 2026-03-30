@@ -5,27 +5,41 @@ class BilletEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
 
-  Future<List<Billet>> getMesBillets(Session session) async {
+  Future<Utilisateur?> _getUser(Session session) async {
     final authInfo = session.authenticated;
-    if (authInfo == null) return [];
-    final utilisateurId = int.tryParse(authInfo.userIdentifier) ?? 0;
+    if (authInfo == null) return null;
+    return await Utilisateur.db.findFirstRow(
+      session,
+      where: (t) => t.authUserId.equals(authInfo.userIdentifier),
+    );
+  }
+
+  Future<List<Billet>> getMesBillets(Session session) async {
+    final user = await _getUser(session);
+    if (user == null || user.id == null) return [];
+
     final reservations = await Reservation.db.find(
       session,
-      where: (r) => r.utilisateurId.equals(utilisateurId),
+      where: (r) => r.utilisateurId.equals(user.id!),
     );
     if (reservations.isEmpty) return [];
-    final ids = reservations.map((r) => r.id!).toSet();
+
+    final reservationIds = reservations.map((r) => r.id!).toSet();
     return await Billet.db.find(
       session,
-      where: (b) => b.reservationId.inSet(ids),
+      where: (b) => b.reservationId.inSet(reservationIds),
       orderBy: (b) => b.dateEmission,
       orderDescending: true,
     );
   }
 
   Future<List<Billet>> getBilletsByReservation(Session session, int reservationId) async {
-    final authInfo = session.authenticated;
-    if (authInfo == null) return [];
+    final user = await _getUser(session);
+    if (user == null) return [];
+
+    final reservation = await Reservation.db.findById(session, reservationId);
+    if (reservation == null || reservation.utilisateurId != user.id) return [];
+
     return await Billet.db.find(
       session,
       where: (b) => b.reservationId.equals(reservationId),
