@@ -162,11 +162,7 @@ class _ManageCinemasPageState extends ConsumerState<ManageCinemasPage> {
                           title: Text(opt.nom, style: const TextStyle(color: Colors.white70, fontSize: 13)),
                           subtitle: Text("${opt.prix} DH", style: const TextStyle(color: Colors.white38, fontSize: 11)),
                         )),
-                        TextButton.icon(
-                          icon: const Icon(Icons.settings, size: 16, color: AppColors.accent),
-                          label: const Text("Gérer les snacks", style: TextStyle(color: AppColors.accent, fontSize: 12)),
-                          onPressed: () => context.push('/admin/options'),
-                        ),
+
                       ],
                     );
                   },

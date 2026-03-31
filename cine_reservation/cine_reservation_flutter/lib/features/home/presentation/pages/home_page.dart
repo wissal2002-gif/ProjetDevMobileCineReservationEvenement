@@ -9,12 +9,26 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cine_reservation_client/cine_reservation_client.dart';
+import '../../../../main.dart';
 
 // ── Provider isolé pour la HomePage uniquement ──────────────────────────────
-// Absorbe silencieusement les erreurs 401 (visiteur non connecté).
 final _homeReservationsProvider = FutureProvider<List<Reservation>>((ref) async {
   try {
     return await ref.read(reservationDatasourceProvider).getMesReservations();
+  } catch (_) {
+    return [];
+  }
+});
+
+// ── Provider pour les codes promo actifs ─────────────────────────────────────
+final _activePromosProvider = FutureProvider<List<CodePromo>>((ref) async {
+  try {
+    final allPromos = await client.admin.getAllCodesPromo();
+    final now = DateTime.now();
+    return allPromos.where((p) =>
+    p.actif == true &&
+        (p.dateExpiration == null || p.dateExpiration!.isAfter(now))
+    ).toList();
   } catch (_) {
     return [];
   }
@@ -33,9 +47,16 @@ class _HomePageState extends ConsumerState<HomePage> {
   bool _notifVisible = true;
   int _notifIndex = 0;
 
-  // ═══════════════════════════════════════════════════════
-  // HELPERS NIVEAU FIDÉLITÉ
-  // ═══════════════════════════════════════════════════════
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = ref.read(authProvider);
+      if (authState.isAuthenticated) {
+        ref.read(profilProvider.notifier).loadProfil();
+      }
+    });
+  }
 
   String _getNiveau(int points) {
     if (points >= 500) return 'or';
@@ -43,79 +64,44 @@ class _HomePageState extends ConsumerState<HomePage> {
     return 'bronze';
   }
 
-  // ═══════════════════════════════════════════════════════
-  // NOTIFICATIONS PERSONNALISÉES
-  // ═══════════════════════════════════════════════════════
+  Color _getNiveauColor(String niveau) {
+    switch (niveau) {
+      case 'or': return const Color(0xFFFFD700);
+      case 'argent': return const Color(0xFFC0C0C0);
+      default: return const Color(0xFFCD7F32);
+    }
+  }
 
-  List<Map<String, dynamic>> _buildNotifications(
+  List<Map<String, dynamic>> _buildBadgeNotifications(
       String prenom, String niveau, int points) {
     final List<Map<String, dynamic>> notifs = [];
 
     if (prenom.isNotEmpty) {
-      if (niveau == 'or') {
-        notifs.add({
-          'icon': Icons.emoji_events,
-          'color': const Color(0xFFFFD700),
-          'titre': '👑 Membre Or — Bonjour $prenom !',
-          'message':
-          'Vous avez $points pts. Profitez de votre code -15% exclusif ce mois-ci.',
-        });
-      } else if (niveau == 'argent') {
-        notifs.add({
-          'icon': Icons.military_tech,
-          'color': const Color(0xFFC0C0C0),
-          'titre': '🥈 Membre Argent — Bonjour $prenom !',
-          'message':
-          'Encore ${500 - points} pts pour atteindre le niveau Or !',
-        });
-      } else {
-        notifs.add({
-          'icon': Icons.workspace_premium,
-          'color': const Color(0xFFCD7F32),
-          'titre': 'Bonjour $prenom !',
-          'message':
-          'Vous avez $points pts fidélité. Réservez pour en gagner plus !',
-        });
+      final niveauColor = _getNiveauColor(niveau);
+      String message;
+      switch (niveau) {
+        case 'or':
+          message = '🎉 Membre Or ! Profitez de votre code OR15 pour -15% sur toutes vos réservations.';
+          break;
+        case 'argent':
+          message = '⭐ Membre Argent ! Encore ${500 - points} pts pour atteindre le niveau Or.';
+          break;
+        default:
+          message = '🌟 Membre Bronze ! $points pts fidélité. Réservez pour passer au niveau Argent !';
       }
+      notifs.add({
+        'icon': Icons.workspace_premium,
+        'color': niveauColor,
+        'titre': 'Niveau $niveau',
+        'message': message,
+        'id': null,
+      });
     }
-
-    notifs.addAll([
-      {
-        'icon': Icons.local_offer,
-        'color': Colors.orange,
-        'titre': 'Offre spéciale !',
-        'message':
-        'Utilisez CINE20 pour -20% sur votre prochaine réservation.',
-      },
-      {
-        'icon': Icons.new_releases,
-        'color': Colors.blue,
-        'titre': 'Nouveauté',
-        'message': "De nouveaux films viennent d'être ajoutés au catalogue !",
-      },
-      {
-        'icon': Icons.stars,
-        'color': Colors.amber,
-        'titre': 'Programme fidélité',
-        'message':
-        'Accumulez des points et obtenez des réductions exclusives.',
-      },
-      {
-        'icon': Icons.event,
-        'color': Colors.pink,
-        'titre': 'Événements à venir',
-        'message': 'Découvrez les événements culturels près de chez vous.',
-      },
-    ]);
 
     return notifs;
   }
 
-  // ═══════════════════════════════════════════════════════
-  // GENRE PRÉFÉRÉ
-  // ═══════════════════════════════════════════════════════
-
-  String? _calculerGenrePrefereDe(List<Seance> seances, List<Film> films) {
+  String? _calculerGenrePrefere(List<Seance> seances, List<Film> films) {
     final genreCount = <String, int>{};
     for (final seance in seances) {
       final film = films.where((f) => f.id == seance.filmId).firstOrNull;
@@ -126,16 +112,36 @@ class _HomePageState extends ConsumerState<HomePage> {
     return genreCount.entries.reduce((a, b) => a.value > b.value ? a : b).key;
   }
 
-  // ═══════════════════════════════════════════════════════
-  // BUILD
-  // ═══════════════════════════════════════════════════════
+  List<Film> _getRecommandations(List<Film> films, String? genrePrefere, int limit) {
+    if (genrePrefere == null) return films.take(limit).toList();
+    final recommandations = films.where((f) => f.genre == genrePrefere).toList();
+    if (recommandations.length >= limit) return recommandations.take(limit).toList();
+    return [...recommandations, ...films.where((f) => f.genre != genrePrefere).take(limit - recommandations.length)];
+  }
 
   @override
   Widget build(BuildContext context) {
     final filmsAsync = ref.watch(filmsProvider);
     final eventsAsync = ref.watch(evenementsProvider);
-
     final reservationsAsync = ref.watch(_homeReservationsProvider);
+    final promosAsync = ref.watch(_activePromosProvider);
+    final authState = ref.watch(authProvider);
+    final profilState = ref.watch(profilProvider);
+
+    final user = authState.isAuthenticated ? profilState.utilisateur : null;
+    final isLoading = profilState.isLoading && authState.isAuthenticated;
+
+    final prenom = user?.nom.split(' ').first ?? '';
+    final points = user?.pointsFidelite ?? 0;
+    final niveau = _getNiveau(points);
+    final isAuthenticated = authState.isAuthenticated;
+
+    if (isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: CircularProgressIndicator(color: AppColors.accent)),
+      );
+    }
 
     final seanceIds = (reservationsAsync.value ?? [])
         .where((r) => r.seanceId != null)
@@ -146,15 +152,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         ? ref.watch(seancesByIdsProvider(seanceIds))
         : const AsyncValue<List<Seance>>.data([]);
 
-    // ── Profil ────────────────────────────────────────────
-    final profilState = ref.watch(profilProvider);
-    final user = profilState.utilisateur;
-    final prenom = user?.nom.split(' ').first ?? '';
-    final points = user?.pointsFidelite ?? 0;
-    final niveau = _getNiveau(points);
-
-    final notifications = _buildNotifications(prenom, niveau, points);
-    final notifIdx = _notifIndex % notifications.length;
+    final notifications = _buildBadgeNotifications(prenom, niveau, points);
+    final notifIdx = _notifIndex % (notifications.isEmpty ? 1 : notifications.length);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -163,78 +162,68 @@ class _HomePageState extends ConsumerState<HomePage> {
         backgroundColor: AppColors.accent,
         onPressed: () => context.push('/support'),
         icon: const Icon(Icons.help_outline, color: Colors.white),
-        label: const Text('Aide',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: const Text('Aide', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ─── HERO ────────────────────────────────────────
           SliverToBoxAdapter(
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.only(
-                  top: 80, bottom: 60, left: 20, right: 20),
+              padding: const EdgeInsets.only(top: 80, bottom: 60, left: 20, right: 20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFF2C1810).withOpacity(0.8),
-                    AppColors.background,
-                  ],
+                  colors: [const Color(0xFF2C1810).withOpacity(0.8), AppColors.background],
                 ),
               ),
               child: Column(children: [
                 if (user != null) ...[
-                  Text(
-                    'Bonjour, $prenom 👋',
-                    style: const TextStyle(
-                        color: AppColors.accent,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Bonjour, $prenom 👋', style: const TextStyle(color: AppColors.accent, fontSize: 16, fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getNiveauColor(niveau).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: _getNiveauColor(niveau)),
+                        ),
+                        child: Text(
+                          niveau.toUpperCase(),
+                          style: TextStyle(color: _getNiveauColor(niveau), fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                 ],
                 const Text(
                   'Réservez vos billets de cinéma en ligne',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 42,
-                      fontWeight: FontWeight.w900,
-                      height: 1.1),
+                  style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.w900, height: 1.1),
                 ),
                 const SizedBox(height: 40),
                 _buildSearchBar(),
                 const SizedBox(height: 16),
-                // Lien FAQ — ajouté depuis la version Imane
                 TextButton.icon(
                   onPressed: () => context.push('/faq'),
-                  icon: const Icon(Icons.help_center_outlined,
-                      color: AppColors.accent),
-                  label: const Text(
-                    "Une question ? Consultez notre FAQ",
-                    style: TextStyle(
-                        color: Colors.white70,
-                        decoration: TextDecoration.underline),
-                  ),
+                  icon: const Icon(Icons.help_center_outlined, color: AppColors.accent),
+                  label: const Text("Une question ? Consultez notre FAQ", style: TextStyle(color: Colors.white70, decoration: TextDecoration.underline)),
                 ),
               ]),
             ),
           ),
 
-          // ─── NOTIFICATION BANNER ─────────────────────────
-          if (_notifVisible)
+          if (_notifVisible && notifications.isNotEmpty)
             SliverToBoxAdapter(
               child: _buildNotifBanner(notifications, notifIdx),
             ),
 
-          // ─── FILMS À L'AFFICHE ────────────────────────────
-          SliverToBoxAdapter(
-            child: _sectionHeader(
-                "Films à l'affiche", () => widget.onNavigate?.call(1)),
-          ),
+          SliverToBoxAdapter(child: _sectionHeader("Films à l'affiche", () => widget.onNavigate?.call(1))),
           SliverToBoxAdapter(
             child: SizedBox(
               height: 280,
@@ -249,62 +238,45 @@ class _HomePageState extends ConsumerState<HomePage> {
                     itemBuilder: (ctx, i) => _filmCard(ctx, filtered[i]),
                   );
                 },
-                loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.accent)),
-                error: (_, __) => const Center(child: Text('Erreur')),
+                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
+                error: (_, __) => const Center(child: Text('Erreur de chargement des films')),
               ),
             ),
           ),
 
-          // ─── RECOMMANDATIONS ─────────────────────────────
-          SliverToBoxAdapter(child: const SizedBox(height: 24)),
-          SliverToBoxAdapter(
-            child: filmsAsync.when(
-              data: (films) {
-                final seances = seancesAsync.value ?? [];
-                final genrePreference =
-                _calculerGenrePrefereDe(seances, films);
+          if (isAuthenticated)
+            SliverToBoxAdapter(
+              child: filmsAsync.when(
+                data: (films) {
+                  final seances = seancesAsync.value ?? [];
+                  final genrePrefere = _calculerGenrePrefere(seances, films);
+                  final recommandations = _getRecommandations(films, genrePrefere, 6);
+                  if (recommandations.isEmpty) return const SizedBox();
+                  return _buildRecommandationsSection(recommandations, genrePrefere);
+                },
+                loading: () => const SizedBox(),
+                error: (_, __) => const SizedBox(),
+              ),
+            ),
 
-                if (genrePreference != null) {
-                  final recommandes = films
-                      .where((f) => f.genre == genrePreference)
-                      .take(6)
-                      .toList();
-                  if (recommandes.isNotEmpty) {
-                    return _buildListeRecommandations(
-                      titre: '🎯 Pour vous — $genrePreference',
-                      films: recommandes,
-                      genre: genrePreference,
-                      personnalise: true,
-                    );
-                  }
-                }
-                return _buildRecommandationsGlobales(films);
-              },
-              loading: () => const SizedBox(),
+          SliverToBoxAdapter(child: const SizedBox(height: 24)),
+          SliverToBoxAdapter(child: _sectionHeader('🎁 Offres spéciales', () {})),
+          SliverToBoxAdapter(
+            child: promosAsync.when(
+              data: (promos) => promos.isEmpty ? const SizedBox() : _buildRealOffres(promos),
+              loading: () => const SizedBox(height: 130, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
               error: (_, __) => const SizedBox(),
             ),
           ),
 
-          // ─── OFFRES SPÉCIALES ─────────────────────────────
           SliverToBoxAdapter(child: const SizedBox(height: 24)),
-          SliverToBoxAdapter(
-              child: _sectionHeader('🎁 Offres spéciales', () {})),
-          SliverToBoxAdapter(child: _buildOffres()),
-
-          // ─── ÉVÉNEMENTS ───────────────────────────────────
-          SliverToBoxAdapter(child: const SizedBox(height: 24)),
-          SliverToBoxAdapter(
-            child: _sectionHeader("Événements à l'affiche",
-                    () => widget.onNavigate?.call(2)),
-          ),
+          SliverToBoxAdapter(child: _sectionHeader("Événements à l'affiche", () => widget.onNavigate?.call(2))),
           SliverToBoxAdapter(
             child: SizedBox(
               height: 200,
               child: eventsAsync.when(
                 data: (events) {
-                  final cinemas =
-                      ref.watch(allCinemasProvider).value ?? [];
+                  final cinemas = ref.watch(allCinemasProvider).value ?? [];
                   final filtered = _filtrerEvenements(events, cinemas);
                   if (filtered.isEmpty) return _noResult();
                   return ListView.builder(
@@ -314,26 +286,18 @@ class _HomePageState extends ConsumerState<HomePage> {
                     itemBuilder: (ctx, i) => _eventCard(ctx, filtered[i]),
                   );
                 },
-                loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.accent)),
-                error: (_, __) =>
-                const Center(child: Text('Erreur de chargement')),
+                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
+                error: (_, __) => const Center(child: Text('Erreur de chargement des événements')),
               ),
             ),
           ),
-
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════
-  // WIDGETS
-  // ═══════════════════════════════════════════════════════
-
-  Widget _buildNotifBanner(
-      List<Map<String, dynamic>> notifications, int idx) {
+  Widget _buildNotifBanner(List<Map<String, dynamic>> notifications, int idx) {
     final n = notifications[idx];
     final color = n['color'] as Color;
 
@@ -349,8 +313,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(
-              color: color.withOpacity(0.2), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: color.withOpacity(0.2), shape: BoxShape.circle),
           child: Icon(n['icon'] as IconData, color: color, size: 18),
         ),
         const SizedBox(width: 12),
@@ -358,29 +321,19 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(n['titre'] as String,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13)),
-              Text(n['message'] as String,
-                  style: const TextStyle(
-                      color: AppColors.textLight, fontSize: 11),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis),
+              Text(n['titre'] as String, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(n['message'] as String, style: const TextStyle(color: AppColors.textLight, fontSize: 11), maxLines: 2, overflow: TextOverflow.ellipsis),
             ],
           ),
         ),
         Column(mainAxisSize: MainAxisSize.min, children: [
           GestureDetector(
             onTap: () => setState(() => _notifVisible = false),
-            child:
-            const Icon(Icons.close, color: Colors.white38, size: 16),
+            child: const Icon(Icons.close, color: Colors.white38, size: 16),
           ),
           const SizedBox(height: 6),
           GestureDetector(
-            onTap: () => setState(() =>
-            _notifIndex = (_notifIndex + 1) % notifications.length),
+            onTap: () => setState(() => _notifIndex = (_notifIndex + 1) % notifications.length),
             child: Icon(Icons.arrow_forward_ios, color: color, size: 14),
           ),
         ]),
@@ -388,12 +341,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildListeRecommandations({
-    required String titre,
-    required List<Film> films,
-    required String genre,
-    bool personnalise = false,
-  }) {
+  Widget _buildRecommandationsSection(List<Film> films, String? genrePrefere) {
+    final titre = genrePrefere != null ? '🎯 Pour vous — $genrePrefere' : '⭐ Recommandés pour vous';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -404,37 +353,14 @@ class _HomePageState extends ConsumerState<HomePage> {
             padding: const EdgeInsets.only(left: 20),
             scrollDirection: Axis.horizontal,
             itemCount: films.length,
-            itemBuilder: (ctx, i) => _recommandationCard(ctx, films[i], genre,
-                personnalise: personnalise),
+            itemBuilder: (ctx, i) => _recommandationCard(ctx, films[i], genrePrefere ?? 'Recommandé'),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildRecommandationsGlobales(List<Film> films) {
-    if (films.isEmpty) return const SizedBox();
-    final genreCount = <String, int>{};
-    for (final f in films) {
-      if (f.genre != null) {
-        genreCount[f.genre!] = (genreCount[f.genre!] ?? 0) + 1;
-      }
-    }
-    if (genreCount.isEmpty) return const SizedBox();
-    final topGenre =
-        genreCount.entries.reduce((a, b) => a.value > b.value ? a : b).key;
-    final recommandes =
-    films.where((f) => f.genre == topGenre).take(6).toList();
-    if (recommandes.isEmpty) return const SizedBox();
-    return _buildListeRecommandations(
-      titre: '⭐ Recommandés — $topGenre',
-      films: recommandes,
-      genre: topGenre,
-    );
-  }
-
-  Widget _recommandationCard(BuildContext context, Film film, String genre,
-      {bool personnalise = false}) {
+  Widget _recommandationCard(BuildContext context, Film film, String genre) {
     return GestureDetector(
       onTap: () => context.push('/film-detail', extra: film.id),
       child: Container(
@@ -452,11 +378,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   child: CachedNetworkImage(
                     imageUrl: film.affiche ?? '',
                     fit: BoxFit.cover,
-                    errorWidget: (c, u, e) => Container(
-                      color: AppColors.cardBg,
-                      child: const Icon(Icons.movie,
-                          color: Colors.white24, size: 40),
-                    ),
+                    errorWidget: (c, u, e) => Container(color: AppColors.cardBg, child: const Icon(Icons.movie, color: Colors.white24, size: 40)),
                   ),
                 ),
               ),
@@ -464,42 +386,20 @@ class _HomePageState extends ConsumerState<HomePage> {
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    personnalise ? '🎯 $genre' : genre,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.9), borderRadius: BorderRadius.circular(6)),
+                  child: Text(genre, style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
                 ),
               ),
-              const Positioned(
-                top: 8,
-                right: 8,
-                child: Icon(Icons.star, color: Colors.amber, size: 18),
-              ),
+              const Positioned(top: 8, right: 8, child: Icon(Icons.star, color: Colors.amber, size: 18)),
             ]),
             const SizedBox(height: 6),
-            Text(film.titre,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
+            Text(film.titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
             if ((film.noteMoyenne ?? 0) > 0)
               Row(children: [
                 const Icon(Icons.star, color: Colors.amber, size: 11),
                 const SizedBox(width: 3),
-                Text(film.noteMoyenne!.toStringAsFixed(1),
-                    style: const TextStyle(
-                        color: AppColors.textLight, fontSize: 11)),
+                Text(film.noteMoyenne!.toStringAsFixed(1), style: const TextStyle(color: AppColors.textLight, fontSize: 11)),
               ]),
           ],
         ),
@@ -507,58 +407,23 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildOffres() {
-    final offres = [
-      {
-        'code': 'CINE10',
-        'desc': '10% de réduction',
-        'color': Colors.blue,
-        'icon': Icons.percent,
-        'min': '50 MAD min.'
-      },
-      {
-        'code': 'CINE20',
-        'desc': '20% de réduction',
-        'color': Colors.purple,
-        'icon': Icons.percent,
-        'min': '100 MAD min.'
-      },
-      {
-        'code': 'REDUC50',
-        'desc': '-50 MAD',
-        'color': Colors.green,
-        'icon': Icons.discount,
-        'min': '100 MAD min.'
-      },
-      {
-        'code': 'WELCOME',
-        'desc': '15% bienvenue',
-        'color': Colors.orange,
-        'icon': Icons.celebration,
-        'min': 'Sans minimum'
-      },
-    ];
-
+  Widget _buildRealOffres(List<CodePromo> promos) {
     return SizedBox(
       height: 130,
       child: ListView.builder(
         padding: const EdgeInsets.only(left: 20),
         scrollDirection: Axis.horizontal,
-        itemCount: offres.length,
+        itemCount: promos.length,
         itemBuilder: (ctx, i) {
-          final o = offres[i];
-          final color = o['color'] as Color;
+          final promo = promos[i];
+          final reduction = promo.typeReduction == 'pourcentage' ? '${promo.reduction.toStringAsFixed(0)}%' : '${promo.reduction.toStringAsFixed(0)} MAD';
+          final minText = promo.montantMinimum != null && promo.montantMinimum! > 0 ? '${promo.montantMinimum!.toStringAsFixed(0)} MAD min.' : 'Sans minimum';
           return GestureDetector(
             onTap: () {
               ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                content: Text(
-                    'Code "${o['code']}" ! Utilisez-le dans votre panier.'),
-                backgroundColor: color,
+                content: Text('Code "${promo.code}" ! $reduction de réduction.'),
+                backgroundColor: Colors.orange,
                 duration: const Duration(seconds: 2),
-                action: SnackBarAction(
-                    label: 'OK',
-                    textColor: Colors.white,
-                    onPressed: () {}),
               ));
             },
             child: Container(
@@ -566,50 +431,27 @@ class _HomePageState extends ConsumerState<HomePage> {
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [color.withOpacity(0.3), color.withOpacity(0.1)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: LinearGradient(colors: [Colors.orange.withOpacity(0.3), Colors.orange.withOpacity(0.1)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: color.withOpacity(0.4)),
+                border: Border.all(color: Colors.orange.withOpacity(0.4)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(children: [
-                    Icon(o['icon'] as IconData, color: color, size: 18),
+                    const Icon(Icons.local_offer, color: Colors.orange, size: 18),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text('PROMO',
-                          style: TextStyle(
-                              color: color,
-                              fontSize: 8,
-                              fontWeight: FontWeight.bold)),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
+                      child: Text('PROMO', style: TextStyle(color: Colors.orange, fontSize: 8, fontWeight: FontWeight.bold)),
                     ),
                   ]),
                   const SizedBox(height: 8),
-                  Text(o['code'] as String,
-                      style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          letterSpacing: 1)),
-                  Text(o['desc'] as String,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13)),
+                  Text(promo.code, style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1)),
+                  Text('$reduction de réduction', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 4),
-                  Text(o['min'] as String,
-                      style: const TextStyle(
-                          color: AppColors.textLight, fontSize: 10)),
+                  Text(minText, style: const TextStyle(color: AppColors.textLight, fontSize: 10)),
                 ],
               ),
             ),
@@ -622,29 +464,20 @@ class _HomePageState extends ConsumerState<HomePage> {
   List<Film> _filtrerFilms(List<Film> films) {
     final q = _searchQuery.toLowerCase();
     if (q.isEmpty) return films;
-    return films
-        .where((f) =>
-    f.titre.toLowerCase().contains(q) ||
-        (f.genre?.toLowerCase().contains(q) ?? false))
-        .toList();
+    return films.where((f) => f.titre.toLowerCase().contains(q) || (f.genre?.toLowerCase().contains(q) ?? false)).toList();
   }
 
-  List<Evenement> _filtrerEvenements(
-      List<Evenement> events, List<Cinema> cinemas) {
+  List<Evenement> _filtrerEvenements(List<Evenement> events, List<Cinema> cinemas) {
     final q = _searchQuery.toLowerCase();
     if (q.isEmpty) return events;
     return events.where((e) {
       final matchesTitle = e.titre.toLowerCase().contains(q);
       final matchesLieu = (e.ville?.toLowerCase().contains(q) ?? false);
-      final dateStr =
-          '${e.dateDebut.day}/${e.dateDebut.month}/${e.dateDebut.year}';
+      final dateStr = '${e.dateDebut.day}/${e.dateDebut.month}/${e.dateDebut.year}';
       final matchesDate = dateStr.contains(q);
       bool matchesCinema = false;
       if (e.cinemaId != null) {
-        final cinema = cinemas.firstWhere(
-              (c) => c.id == e.cinemaId,
-          orElse: () => Cinema(nom: '', ville: '', adresse: ''),
-        );
+        final cinema = cinemas.firstWhere((c) => c.id == e.cinemaId, orElse: () => Cinema(nom: '', ville: '', adresse: ''));
         matchesCinema = cinema.nom.toLowerCase().contains(q);
       }
       return matchesTitle || matchesLieu || matchesDate || matchesCinema;
@@ -654,10 +487,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.white)),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white)),
       child: Row(children: [
         const SizedBox(width: 15),
         const Icon(Icons.search, color: Colors.grey),
@@ -666,20 +496,14 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: TextField(
             onChanged: (v) => setState(() => _searchQuery = v),
             style: const TextStyle(color: Colors.black87),
-            decoration: const InputDecoration(
-              hintText: 'Rechercher par nom ou lieu...',
-              hintStyle: TextStyle(color: Colors.grey),
-              border: InputBorder.none,
-            ),
+            decoration: const InputDecoration(hintText: 'Rechercher par nom ou lieu...', hintStyle: TextStyle(color: Colors.grey), border: InputBorder.none),
           ),
         ),
       ]),
     );
   }
 
-  Widget _noResult() => const Center(
-      child:
-      Text('Aucun résultat', style: TextStyle(color: Colors.white54)));
+  Widget _noResult() => const Center(child: Text('Aucun résultat', style: TextStyle(color: Colors.white54)));
 
   Widget _sectionHeader(String title, VoidCallback onSeeAll) {
     return Padding(
@@ -687,16 +511,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)),
-          TextButton(
-            onPressed: onSeeAll,
-            child: const Text('Voir tout',
-                style: TextStyle(color: Colors.white54)),
-          ),
+          Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          TextButton(onPressed: onSeeAll, child: const Text('Voir tout', style: TextStyle(color: Colors.white54))),
         ],
       ),
     );
@@ -714,16 +530,11 @@ class _HomePageState extends ConsumerState<HomePage> {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15),
-                child: CachedNetworkImage(
-                    imageUrl: film.affiche ?? '', fit: BoxFit.cover),
+                child: CachedNetworkImage(imageUrl: film.affiche ?? '', fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 8),
-            Text(film.titre,
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
+            Text(film.titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ),
       ),
@@ -739,22 +550,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(15),
           child: Stack(children: [
-            CachedNetworkImage(
-              imageUrl: event.affiche ?? '',
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            CachedNetworkImage(imageUrl: event.affiche ?? '', width: double.infinity, height: double.infinity, fit: BoxFit.cover),
             Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.8),
-                  ],
-                ),
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black.withOpacity(0.8)]),
               ),
             ),
             Padding(
@@ -763,18 +562,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(event.titre,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                  Text('${event.ville} • ${event.prix} MAD',
-                      style: const TextStyle(
-                          color: AppColors.accent,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold)),
+                  Text(event.titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text('${event.ville} • ${event.prix} MAD', style: const TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),

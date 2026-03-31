@@ -457,6 +457,8 @@ class _ManageSeancesLocalPageState
             onPressed: () async {
               await client.admin.supprimerSeance(id);
               ref.invalidate(allSeancesProvider);
+              ref.invalidate(prog.filmsProvider);        // ✅ AJOUTER
+              ref.invalidate(allFilmsProvider);
               if (context.mounted) Navigator.pop(context);
             },
             child: const Text("OUI, SUPPRIMER",

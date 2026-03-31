@@ -127,7 +127,7 @@ class _ManageSallesLocalPageState
                             ),
                           ),
                         )
-                            : _buildSiegeEditor(sieges),
+                            : _buildSiegeEditor(sieges, isMobile),
                         loading: () => const Center(
                             child: CircularProgressIndicator(
                                 color: Colors.amber)),
@@ -148,7 +148,7 @@ class _ManageSallesLocalPageState
 
   // ── ÉDITEUR DE SIÈGES ────────────────────────────────────────────────────
 
-  Widget _buildSiegeEditor(List<Siege> sieges) {
+  Widget _buildSiegeEditor(List<Siege> sieges, bool isMobile) {
     final hasSelection = _selectedSiegeIds.isNotEmpty;
 
     return Column(
@@ -274,8 +274,8 @@ class _ManageSallesLocalPageState
         Expanded(
           child: GridView.builder(
             gridDelegate:
-            const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 15,
+    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: isMobile ? 8 : 15,
               mainAxisSpacing: 6,
               crossAxisSpacing: 6,
             ),

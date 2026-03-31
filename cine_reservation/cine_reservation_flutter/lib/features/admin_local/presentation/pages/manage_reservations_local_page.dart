@@ -224,7 +224,7 @@ class ManageReservationsLocalPage extends ConsumerWidget {
         ),
         subtitle: Text(
           seance != null
-              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(res.dateReservation)}"
+              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(res.dateReservation.toLocal())}"
 
               : "Réservation #${res.id}",
           style: const TextStyle(color: Colors.white54, fontSize: 12),
@@ -378,7 +378,7 @@ class _ResCard extends ConsumerWidget {
                 color: Colors.white, fontWeight: FontWeight.bold)),
         subtitle: Text(
           seance != null
-              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(res.dateReservation)}"
+              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(res.dateReservation.toLocal())}"
               : "Réservation #${res.id}",
           style: const TextStyle(color: Colors.white54, fontSize: 12),
         ),
