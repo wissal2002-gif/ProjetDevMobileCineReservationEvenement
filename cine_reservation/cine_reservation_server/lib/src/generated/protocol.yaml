@@ -29,6 +29,8 @@ admin:
   - getSiegesBySalle:
   - genererSiegesPourSalle:
   - genererSiegesAutomatique:
+  - updateSiegesType:
+  - getSiegesByReservation:
   - getAllSeances:
   - ajouterSeance:
   - modifierSeance:
@@ -45,14 +47,13 @@ admin:
   - supprimerEvenement:
   - getAllUtilisateurs:
   - getManagedUsers:
+  - getAllClients:
   - activerUtilisateur:
   - suspendreUtilisateur:
   - supprimerUtilisateur:
   - getHistoriqueUtilisateur:
   - modifierUtilisateurRole:
-  - traiterRemboursement:
-  - getSiegesByReservation:
-  - getTauxRemplissageSeance:
+  - modifierUtilisateur:
   - getAllDemandesSupport:
   - repondreDemande:
   - getAdminFaqs:
@@ -63,6 +64,7 @@ admin:
   - ajouterOption:
   - modifierOption:
   - supprimerOption:
+  - uploadOptionImage:
   - getAllCodesPromo:
   - ajouterCodePromo:
   - modifierCodePromo:
@@ -73,10 +75,8 @@ admin:
   - ajouterStaff:
   - getMonProfil:
   - getReservationsDetailed:
-  - getAllClients:
-  - modifierUtilisateur:
-  - updateSiegesType:
-  - uploadOptionImage:
+  - traiterRemboursement:
+  - getTauxRemplissageSeance:
   - getStatsFavoris:
   - getAvisFilmsCinema:
   - getStatistiquesDetaillees:

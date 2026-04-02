@@ -416,6 +416,25 @@ class EndpointAdmin extends _i2.EndpointRef {
     },
   );
 
+  _i3.Future<void> updateSiegesType(
+    List<int> siegeIds,
+    String type,
+  ) => caller.callServerEndpoint<void>(
+    'admin',
+    'updateSiegesType',
+    {
+      'siegeIds': siegeIds,
+      'type': type,
+    },
+  );
+
+  _i3.Future<List<_i8.Siege>> getSiegesByReservation(int resId) =>
+      caller.callServerEndpoint<List<_i8.Siege>>(
+        'admin',
+        'getSiegesByReservation',
+        {'resId': resId},
+      );
+
   _i3.Future<List<_i9.Seance>> getAllSeances() =>
       caller.callServerEndpoint<List<_i9.Seance>>(
         'admin',
@@ -526,6 +545,13 @@ class EndpointAdmin extends _i2.EndpointRef {
         {},
       );
 
+  _i3.Future<List<_i12.Utilisateur>> getAllClients() =>
+      caller.callServerEndpoint<List<_i12.Utilisateur>>(
+        'admin',
+        'getAllClients',
+        {},
+      );
+
   _i3.Future<void> activerUtilisateur(int id) =>
       caller.callServerEndpoint<void>(
         'admin',
@@ -557,34 +583,22 @@ class EndpointAdmin extends _i2.EndpointRef {
   _i3.Future<void> modifierUtilisateurRole(
     int userId,
     String newRole,
+    int? cinemaId,
   ) => caller.callServerEndpoint<void>(
     'admin',
     'modifierUtilisateurRole',
     {
       'userId': userId,
       'newRole': newRole,
+      'cinemaId': cinemaId,
     },
   );
 
-  _i3.Future<void> traiterRemboursement(int resId) =>
+  _i3.Future<void> modifierUtilisateur(_i12.Utilisateur utilisateur) =>
       caller.callServerEndpoint<void>(
         'admin',
-        'traiterRemboursement',
-        {'resId': resId},
-      );
-
-  _i3.Future<List<_i8.Siege>> getSiegesByReservation(int resId) =>
-      caller.callServerEndpoint<List<_i8.Siege>>(
-        'admin',
-        'getSiegesByReservation',
-        {'resId': resId},
-      );
-
-  _i3.Future<double> getTauxRemplissageSeance(int sId) =>
-      caller.callServerEndpoint<double>(
-        'admin',
-        'getTauxRemplissageSeance',
-        {'sId': sId},
+        'modifierUtilisateur',
+        {'utilisateur': utilisateur},
       );
 
   _i3.Future<List<_i13.DemandeSupport>> getAllDemandesSupport() =>
@@ -662,6 +676,18 @@ class EndpointAdmin extends _i2.EndpointRef {
     {'id': id},
   );
 
+  _i3.Future<String> uploadOptionImage(
+    List<int> bytes,
+    String fileName,
+  ) => caller.callServerEndpoint<String>(
+    'admin',
+    'uploadOptionImage',
+    {
+      'bytes': bytes,
+      'fileName': fileName,
+    },
+  );
+
   _i3.Future<List<_i16.CodePromo>> getAllCodesPromo() =>
       caller.callServerEndpoint<List<_i16.CodePromo>>(
         'admin',
@@ -737,43 +763,19 @@ class EndpointAdmin extends _i2.EndpointRef {
         {},
       );
 
-  _i3.Future<List<_i12.Utilisateur>> getAllClients() =>
-      caller.callServerEndpoint<List<_i12.Utilisateur>>(
-        'admin',
-        'getAllClients',
-        {},
-      );
-
-  _i3.Future<void> modifierUtilisateur(_i12.Utilisateur utilisateur) =>
+  _i3.Future<void> traiterRemboursement(int resId) =>
       caller.callServerEndpoint<void>(
         'admin',
-        'modifierUtilisateur',
-        {'utilisateur': utilisateur},
+        'traiterRemboursement',
+        {'resId': resId},
       );
 
-  _i3.Future<void> updateSiegesType(
-    List<int> siegeIds,
-    String type,
-  ) => caller.callServerEndpoint<void>(
-    'admin',
-    'updateSiegesType',
-    {
-      'siegeIds': siegeIds,
-      'type': type,
-    },
-  );
-
-  _i3.Future<String> uploadOptionImage(
-    List<int> bytes,
-    String fileName,
-  ) => caller.callServerEndpoint<String>(
-    'admin',
-    'uploadOptionImage',
-    {
-      'bytes': bytes,
-      'fileName': fileName,
-    },
-  );
+  _i3.Future<double> getTauxRemplissageSeance(int sId) =>
+      caller.callServerEndpoint<double>(
+        'admin',
+        'getTauxRemplissageSeance',
+        {'sId': sId},
+      );
 
   _i3.Future<String> getStatsFavoris() => caller.callServerEndpoint<String>(
     'admin',

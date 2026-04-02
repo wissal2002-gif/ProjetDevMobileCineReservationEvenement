@@ -27,6 +27,10 @@ abstract class Evenement
     this.affiche,
     this.bandeAnnonce,
     double? prix,
+    double? prixVip,
+    double? prixReduit,
+    double? prixSenior,
+    double? prixEnfant,
     int? placesDisponibles,
     int? placesTotales,
     this.organisateur,
@@ -38,6 +42,10 @@ abstract class Evenement
     double? fraisAnnulation,
   }) : type = type ?? 'concert',
        prix = prix ?? 0.0,
+       prixVip = prixVip ?? 0.0,
+       prixReduit = prixReduit ?? 0.0,
+       prixSenior = prixSenior ?? 0.0,
+       prixEnfant = prixEnfant ?? 0.0,
        placesDisponibles = placesDisponibles ?? 0,
        placesTotales = placesTotales ?? 0,
        noteMoyenne = noteMoyenne ?? 0.0,
@@ -60,6 +68,10 @@ abstract class Evenement
     String? affiche,
     String? bandeAnnonce,
     double? prix,
+    double? prixVip,
+    double? prixReduit,
+    double? prixSenior,
+    double? prixEnfant,
     int? placesDisponibles,
     int? placesTotales,
     String? organisateur,
@@ -89,6 +101,10 @@ abstract class Evenement
       affiche: jsonSerialization['affiche'] as String?,
       bandeAnnonce: jsonSerialization['bandeAnnonce'] as String?,
       prix: (jsonSerialization['prix'] as num?)?.toDouble(),
+      prixVip: (jsonSerialization['prixVip'] as num?)?.toDouble(),
+      prixReduit: (jsonSerialization['prixReduit'] as num?)?.toDouble(),
+      prixSenior: (jsonSerialization['prixSenior'] as num?)?.toDouble(),
+      prixEnfant: (jsonSerialization['prixEnfant'] as num?)?.toDouble(),
       placesDisponibles: jsonSerialization['placesDisponibles'] as int?,
       placesTotales: jsonSerialization['placesTotales'] as int?,
       organisateur: jsonSerialization['organisateur'] as String?,
@@ -131,6 +147,14 @@ abstract class Evenement
 
   double? prix;
 
+  double? prixVip;
+
+  double? prixReduit;
+
+  double? prixSenior;
+
+  double? prixEnfant;
+
   int? placesDisponibles;
 
   int? placesTotales;
@@ -168,6 +192,10 @@ abstract class Evenement
     String? affiche,
     String? bandeAnnonce,
     double? prix,
+    double? prixVip,
+    double? prixReduit,
+    double? prixSenior,
+    double? prixEnfant,
     int? placesDisponibles,
     int? placesTotales,
     String? organisateur,
@@ -194,6 +222,10 @@ abstract class Evenement
       if (affiche != null) 'affiche': affiche,
       if (bandeAnnonce != null) 'bandeAnnonce': bandeAnnonce,
       if (prix != null) 'prix': prix,
+      if (prixVip != null) 'prixVip': prixVip,
+      if (prixReduit != null) 'prixReduit': prixReduit,
+      if (prixSenior != null) 'prixSenior': prixSenior,
+      if (prixEnfant != null) 'prixEnfant': prixEnfant,
       if (placesDisponibles != null) 'placesDisponibles': placesDisponibles,
       if (placesTotales != null) 'placesTotales': placesTotales,
       if (organisateur != null) 'organisateur': organisateur,
@@ -222,6 +254,10 @@ abstract class Evenement
       if (affiche != null) 'affiche': affiche,
       if (bandeAnnonce != null) 'bandeAnnonce': bandeAnnonce,
       if (prix != null) 'prix': prix,
+      if (prixVip != null) 'prixVip': prixVip,
+      if (prixReduit != null) 'prixReduit': prixReduit,
+      if (prixSenior != null) 'prixSenior': prixSenior,
+      if (prixEnfant != null) 'prixEnfant': prixEnfant,
       if (placesDisponibles != null) 'placesDisponibles': placesDisponibles,
       if (placesTotales != null) 'placesTotales': placesTotales,
       if (organisateur != null) 'organisateur': organisateur,
@@ -280,6 +316,10 @@ class _EvenementImpl extends Evenement {
     String? affiche,
     String? bandeAnnonce,
     double? prix,
+    double? prixVip,
+    double? prixReduit,
+    double? prixSenior,
+    double? prixEnfant,
     int? placesDisponibles,
     int? placesTotales,
     String? organisateur,
@@ -302,6 +342,10 @@ class _EvenementImpl extends Evenement {
          affiche: affiche,
          bandeAnnonce: bandeAnnonce,
          prix: prix,
+         prixVip: prixVip,
+         prixReduit: prixReduit,
+         prixSenior: prixSenior,
+         prixEnfant: prixEnfant,
          placesDisponibles: placesDisponibles,
          placesTotales: placesTotales,
          organisateur: organisateur,
@@ -330,6 +374,10 @@ class _EvenementImpl extends Evenement {
     Object? affiche = _Undefined,
     Object? bandeAnnonce = _Undefined,
     Object? prix = _Undefined,
+    Object? prixVip = _Undefined,
+    Object? prixReduit = _Undefined,
+    Object? prixSenior = _Undefined,
+    Object? prixEnfant = _Undefined,
     Object? placesDisponibles = _Undefined,
     Object? placesTotales = _Undefined,
     Object? organisateur = _Undefined,
@@ -353,6 +401,10 @@ class _EvenementImpl extends Evenement {
       affiche: affiche is String? ? affiche : this.affiche,
       bandeAnnonce: bandeAnnonce is String? ? bandeAnnonce : this.bandeAnnonce,
       prix: prix is double? ? prix : this.prix,
+      prixVip: prixVip is double? ? prixVip : this.prixVip,
+      prixReduit: prixReduit is double? ? prixReduit : this.prixReduit,
+      prixSenior: prixSenior is double? ? prixSenior : this.prixSenior,
+      prixEnfant: prixEnfant is double? ? prixEnfant : this.prixEnfant,
       placesDisponibles: placesDisponibles is int?
           ? placesDisponibles
           : this.placesDisponibles,
@@ -432,6 +484,26 @@ class EvenementUpdateTable extends _i1.UpdateTable<EvenementTable> {
 
   _i1.ColumnValue<double, double> prix(double? value) => _i1.ColumnValue(
     table.prix,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> prixVip(double? value) => _i1.ColumnValue(
+    table.prixVip,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> prixReduit(double? value) => _i1.ColumnValue(
+    table.prixReduit,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> prixSenior(double? value) => _i1.ColumnValue(
+    table.prixSenior,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> prixEnfant(double? value) => _i1.ColumnValue(
+    table.prixEnfant,
     value,
   );
 
@@ -533,6 +605,26 @@ class EvenementTable extends _i1.Table<int?> {
       this,
       hasDefault: true,
     );
+    prixVip = _i1.ColumnDouble(
+      'prixVip',
+      this,
+      hasDefault: true,
+    );
+    prixReduit = _i1.ColumnDouble(
+      'prixReduit',
+      this,
+      hasDefault: true,
+    );
+    prixSenior = _i1.ColumnDouble(
+      'prixSenior',
+      this,
+      hasDefault: true,
+    );
+    prixEnfant = _i1.ColumnDouble(
+      'prixEnfant',
+      this,
+      hasDefault: true,
+    );
     placesDisponibles = _i1.ColumnInt(
       'placesDisponibles',
       this,
@@ -603,6 +695,14 @@ class EvenementTable extends _i1.Table<int?> {
 
   late final _i1.ColumnDouble prix;
 
+  late final _i1.ColumnDouble prixVip;
+
+  late final _i1.ColumnDouble prixReduit;
+
+  late final _i1.ColumnDouble prixSenior;
+
+  late final _i1.ColumnDouble prixEnfant;
+
   late final _i1.ColumnInt placesDisponibles;
 
   late final _i1.ColumnInt placesTotales;
@@ -635,6 +735,10 @@ class EvenementTable extends _i1.Table<int?> {
     affiche,
     bandeAnnonce,
     prix,
+    prixVip,
+    prixReduit,
+    prixSenior,
+    prixEnfant,
     placesDisponibles,
     placesTotales,
     organisateur,

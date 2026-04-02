@@ -21,17 +21,29 @@ class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
     final eventsAsync = ref.watch(allEvenementsProvider);
     final resAsync    = ref.watch(allReservationsProvider);
     final isMobile    = MediaQuery.of(context).size.width < 768;
+    final admin = ref.watch(adminProfileProvider).value;
 
     final billetsVendus = resAsync.when(
-      data: (res) => res
-          .where((r) =>
-      r.typeReservation == 'evenement' && r.statut != 'annule')
-          .length
-          .toString(),
+      data: (res) {
+        var filtered = res.where((r) =>
+        r.typeReservation == 'evenement' && r.statut != 'annule').toList();
+
+        // ✅ Filtrer par cinéma du resp_evenements
+        if (admin?.role == 'resp_evenements' && admin?.cinemaId != null) {
+          final mesEventIds = (eventsAsync.value ?? [])
+              .where((e) => e.cinemaId == admin!.cinemaId)
+              .map((e) => e.id)
+              .toSet();
+          filtered = filtered
+              .where((r) => mesEventIds.contains(r.evenementId))
+              .toList();
+        }
+
+        return filtered.length.toString();
+      },
       loading: () => "...",
       error: (_, __) => "0",
     );
-
     final mainContent = SingleChildScrollView(
       padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
       child: Column(

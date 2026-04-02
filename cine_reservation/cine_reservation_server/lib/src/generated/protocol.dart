@@ -643,6 +643,34 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: '0.0',
         ),
         _i2.ColumnDefinition(
+          name: 'prixVip',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+          columnDefault: '0.0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prixReduit',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+          columnDefault: '0.0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prixSenior',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+          columnDefault: '0.0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prixEnfant',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+          columnDefault: '0.0',
+        ),
+        _i2.ColumnDefinition(
           name: 'placesDisponibles',
           columnType: _i2.ColumnType.bigint,
           isNullable: true,
@@ -2374,6 +2402,9 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data as List).map((e) => deserialize<_i29.Siege>(e)).toList()
           as T;
     }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
     if (t == List<_i30.Seance>) {
       return (data as List).map((e) => deserialize<_i30.Seance>(e)).toList()
           as T;
@@ -2415,9 +2446,6 @@ class Protocol extends _i1.SerializationManagerServer {
               .map((e) => deserialize<Map<String, dynamic>>(e))
               .toList()
           as T;
-    }
-    if (t == List<int>) {
-      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     if (t == List<_i38.Billet>) {
       return (data as List).map((e) => deserialize<_i38.Billet>(e)).toList()

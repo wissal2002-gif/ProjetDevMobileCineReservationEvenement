@@ -273,9 +273,9 @@ class _ManageSallesLocalPageState
         // ── GRILLE ───────────────────────────────────────────────────
         Expanded(
           child: GridView.builder(
-            gridDelegate:
-    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: isMobile ? 8 : 15,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+
+            crossAxisCount: isMobile ? 8 : 15,
               mainAxisSpacing: 6,
               crossAxisSpacing: 6,
             ),
