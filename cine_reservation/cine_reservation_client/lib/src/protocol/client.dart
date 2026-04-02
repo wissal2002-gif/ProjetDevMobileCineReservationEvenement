@@ -906,6 +906,13 @@ class EndpointEvenements extends _i2.EndpointRef {
         'searchEvenements',
         {'query': query},
       );
+
+  _i3.Future<List<_i11.Evenement>> getEvenementsByCinema(int cinemaId) =>
+      caller.callServerEndpoint<List<_i11.Evenement>>(
+        'evenements',
+        'getEvenementsByCinema',
+        {'cinemaId': cinemaId},
+      );
 }
 
 /// {@category Endpoint}

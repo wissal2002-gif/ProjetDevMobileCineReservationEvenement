@@ -1749,6 +1749,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['query'],
                   ),
         ),
+        'getEvenementsByCinema': _i1.MethodConnector(
+          name: 'getEvenementsByCinema',
+          params: {
+            'cinemaId': _i1.ParameterDescription(
+              name: 'cinemaId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['evenements'] as _i8.EvenementsEndpoint)
+                  .getEvenementsByCinema(
+                    session,
+                    params['cinemaId'],
+                  ),
+        ),
       },
     );
     connectors['faq'] = _i1.EndpointConnector(

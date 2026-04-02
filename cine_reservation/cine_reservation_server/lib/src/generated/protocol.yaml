@@ -95,6 +95,7 @@ evenements:
   - getEvenements:
   - getEvenementById:
   - searchEvenements:
+  - getEvenementsByCinema:
 faq:
   - getAllFaqs:
 favori:
