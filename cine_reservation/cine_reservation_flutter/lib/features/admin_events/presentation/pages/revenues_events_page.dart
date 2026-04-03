@@ -51,6 +51,16 @@ class _RevenuesEventsPageState extends ConsumerState<RevenuesEventsPage> {
 
   Widget _buildContent(BuildContext context, bool isMobile, List<Reservation> allRes, List<Evenement> allEvents, List<Utilisateur> allUsers) {
     List<Reservation> eventRes = allRes.where((r) => r.evenementId != null).toList();
+    final admin = ref.read(adminProfileProvider).value;
+    if (admin?.role == 'resp_evenements' && admin?.cinemaId != null) {
+      final cinemaEvents = allEvents
+          .where((e) => e.cinemaId == admin!.cinemaId)
+          .map((e) => e.id)
+          .toSet();
+      eventRes = eventRes
+          .where((r) => cinemaEvents.contains(r.evenementId))
+          .toList();
+    }
 
     final cities = ["Toutes", ...allEvents.map((e) => e.ville ?? "Inconnue").toSet()];
 

@@ -6,11 +6,23 @@ import '../../../admin/presentation/providers/admin_provider.dart';
 import '../widgets/local_admin_sidebar.dart';
 import 'package:intl/intl.dart';
 
-class ManageReservationsLocalPage extends ConsumerWidget {
+// ✅ FIX 1 : ConsumerStatefulWidget
+class ManageReservationsLocalPage extends ConsumerStatefulWidget {
   const ManageReservationsLocalPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ManageReservationsLocalPage> createState() =>
+      _ManageReservationsLocalPageState();
+}
+
+class _ManageReservationsLocalPageState
+    extends ConsumerState<ManageReservationsLocalPage> {
+
+  // ✅ FIX 2 : variable dans le State (pas dans le Widget)
+  String _filtreStatut = "Tous";
+
+  @override
+  Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 768;
 
     final adminAsync   = ref.watch(adminProfileProvider);
@@ -33,10 +45,12 @@ class ManageReservationsLocalPage extends ConsumerWidget {
         sallesAsync.hasError;
 
     return adminAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text("Erreur: $e"))),
+      loading: () => const Scaffold(
+          body: Center(child: CircularProgressIndicator())),
+      error: (e, _) =>
+          Scaffold(body: Center(child: Text("Erreur: $e"))),
       data: (admin) {
-        final cinemaId  = admin?.cinemaId;
+        final cinemaId   = admin?.cinemaId;
         final cinemaName = admin?.nomCinema ?? "Cinéma";
 
         return Scaffold(
@@ -50,7 +64,8 @@ class ManageReservationsLocalPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Header ──────────────────────────────────────────
+
+                      // ── Header ──────────────────────────────────
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -75,7 +90,8 @@ class ManageReservationsLocalPage extends ConsumerWidget {
                             ],
                           ),
                           IconButton(
-                            icon: const Icon(Icons.refresh, color: Colors.amber, size: 28),
+                            icon: const Icon(Icons.refresh,
+                                color: Colors.amber, size: 28),
                             tooltip: "Actualiser les données",
                             onPressed: () {
                               ref.invalidate(allReservationsProvider);
@@ -87,22 +103,72 @@ class ManageReservationsLocalPage extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 30),
 
-                      // ── Content ─────────────────────────────────────────
+                      const SizedBox(height: 16),
+
+                      // ── FILTRE STATUT ────────────────────────────
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            const Text("Statut :",
+                                style: TextStyle(
+                                    color: Colors.white38, fontSize: 12)),
+                            const SizedBox(width: 8),
+                            ...["Tous", "Confirmé", "Annulé", "Remboursé"]
+                                .map((f) {
+                              final selected = _filtreStatut == f;
+                              Color color;
+                              switch (f) {
+                                case "Confirmé":
+                                  color = Colors.green;
+                                  break;
+                                case "Annulé":
+                                  color = Colors.orange;
+                                  break;
+                                case "Remboursé":
+                                  color = Colors.blue;
+                                  break;
+                                default:
+                                  color = Colors.amber;
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: ChoiceChip(
+                                  label: Text(f,
+                                      style: TextStyle(
+                                          color: selected
+                                              ? Colors.white
+                                              : Colors.white70,
+                                          fontSize: 11)),
+                                  selected: selected,
+                                  // ✅ FIX 3 : setState accessible ici
+                                  onSelected: (_) =>
+                                      setState(() => _filtreStatut = f),
+                                  selectedColor: color,
+                                  backgroundColor: Colors.white10,
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // ── Content ──────────────────────────────────
                       Expanded(
                         child: isLoading
-                            ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+                            ? const Center(
+                            child: CircularProgressIndicator(
+                                color: Colors.amber))
                             : hasError
                             ? const Center(
-                          child: Text(
-                            "Erreur de chargement",
-                            style: TextStyle(color: Colors.redAccent),
-                          ),
-                        )
+                            child: Text("Erreur de chargement",
+                                style: TextStyle(
+                                    color: Colors.redAccent)))
                             : _buildFilteredList(
                           context,
-                          ref,
                           cinemaId,
                           resAsync.value ?? [],
                           usersAsync.value ?? [],
@@ -122,10 +188,8 @@ class ManageReservationsLocalPage extends ConsumerWidget {
     );
   }
 
-  // ── Filtre : cinemaId direct sur Reservation (champ r.cinemaId) ────────────
   Widget _buildFilteredList(
       BuildContext context,
-      WidgetRef ref,
       int? cinemaId,
       List<Reservation> reservations,
       List<Utilisateur> users,
@@ -135,19 +199,41 @@ class ManageReservationsLocalPage extends ConsumerWidget {
       ) {
     if (cinemaId == null) {
       return const Center(
-        child: Text(
-          "Aucun cinéma associé à ce compte.",
-          style: TextStyle(color: Colors.white24),
-        ),
+        child: Text("Aucun cinéma associé à ce compte.",
+            style: TextStyle(color: Colors.white24)),
       );
     }
 
-    // Filtre principal : cinemaId direct + exclure événements (typeReservation)
-    final localReservations = reservations.where((r) {
+    // Filtre principal : cinemaId + exclure événements
+    List<Reservation> localReservations = reservations.where((r) {
       if (r.cinemaId == null) return false;
-      if (r.typeReservation == 'evenement') return false; // exclure événements
+      if (r.typeReservation == 'evenement') return false;
       return r.cinemaId == cinemaId;
     }).toList();
+
+    // ✅ FIX 4 : filtre statut avec toutes les variantes
+    if (_filtreStatut != "Tous") {
+      localReservations = localReservations.where((r) {
+        final statut = (r.statut ?? '').toLowerCase().trim();
+        switch (_filtreStatut) {
+          case "Confirmé":
+            return statut == 'confirmee' ||
+                statut == 'confirme' ||
+                statut == 'confirmed' ||
+                statut == 'actif';
+          case "Annulé":
+            return statut == 'annule' ||
+                statut == 'annulé' ||
+                statut == 'cancelled';
+          case "Remboursé":
+            return statut == 'rembourse' ||
+                statut == 'remboursé' ||
+                statut == 'refunded';
+          default:
+            return true;
+        }
+      }).toList();
+    }
 
     if (localReservations.isEmpty) {
       return Center(
@@ -165,98 +251,37 @@ class ManageReservationsLocalPage extends ConsumerWidget {
 
         final user = users.firstWhere(
               (u) => u.id == res.utilisateurId,
-          orElse: () => Utilisateur(nom: "Client #${res.utilisateurId}", email: "N/A"),
+          orElse: () =>
+              Utilisateur(nom: "Client #${res.utilisateurId}", email: "N/A"),
         );
 
-        // Seance / Film / Salle peuvent être null si seanceId est null
         Seance? seance;
         Film?   film;
         Salle?  salle;
 
         if (res.seanceId != null) {
-          try { seance = seances.firstWhere((s) => s.id == res.seanceId); } catch (_) {}
+          try {
+            seance = seances.firstWhere((s) => s.id == res.seanceId);
+          } catch (_) {}
           if (seance != null) {
-            try { film  = films.firstWhere((f) => f.id == seance!.filmId); }  catch (_) {}
-            try { salle = salles.firstWhere((s) => s.id == seance!.salleId); } catch (_) {}
+            try {
+              film = films.firstWhere((f) => f.id == seance!.filmId);
+            } catch (_) {}
+            try {
+              salle = salles.firstWhere((s) => s.id == seance!.salleId);
+            } catch (_) {}
           }
         }
+
         return _ResCard(
           res: res,
           user: user,
           film: film,
           salle: salle,
           seance: seance,
-          onRefund: () => _handleRefund(context, ref, res),
+          onRefund: () => _handleRefund(context, res),
         );
       },
-    );
-  }
-
-  // ── Card (même design que Tanger) ─────────────────────────────────────────
-  Widget _buildResCard(
-      BuildContext context,
-      WidgetRef ref,
-      Reservation res,
-      Utilisateur user,
-      Film? film,
-      Salle? salle,
-      Seance? seance,
-      ) {
-    final bool isCancelled = res.statut == 'annule';
-    final bool isRefunded  = res.statut == 'rembourse';
-
-    return Card(
-      color: Colors.white.withOpacity(0.04),
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: ExpansionTile(
-        leading: Icon(
-          Icons.movie,
-          color: isCancelled
-              ? Colors.orange
-              : isRefunded
-              ? Colors.blue
-              : Colors.green,
-        ),
-        title: Text(
-          user.nom,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          seance != null
-              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(res.dateReservation)}"
-
-              : "Réservation #${res.id}",
-          style: const TextStyle(color: Colors.white54, fontSize: 12),
-        ),
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _infoRow("Email:",     user.email),
-                _infoRow("Téléphone:", user.telephone ?? "Non renseigné"),
-                if (salle != null) _infoRow("Salle:", salle.codeSalle),
-                _infoRow("Montant:",  "${res.montantTotal} DH"),
-                _infoRow("Statut:",   (res.statut ?? "N/A").toUpperCase()),
-                if (isCancelled) ...[
-                  const SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.currency_exchange),
-                    label: const Text("PROCÉDER AU REMBOURSEMENT"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade700,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () => _handleRefund(context, ref, res),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -266,22 +291,31 @@ class ManageReservationsLocalPage extends ConsumerWidget {
       children: [
         SizedBox(
           width: 100,
-          child: Text(label, style: const TextStyle(color: Colors.white38, fontSize: 13)),
+          child: Text(label,
+              style: const TextStyle(
+                  color: Colors.white38, fontSize: 13)),
         ),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 13)),
+        Expanded(
+          child: Text(value,
+              style: const TextStyle(
+                  color: Colors.white, fontSize: 13)),
+        ),
       ],
     ),
   );
 
-  void _handleRefund(BuildContext context, WidgetRef ref, Reservation res) async {
-    final ctrlPrice  = TextEditingController(text: res.montantTotal.toString());
-    final ctrlReason = TextEditingController(text: "Annulation de séance");
+  void _handleRefund(BuildContext context, Reservation res) async {
+    final ctrlPrice =
+    TextEditingController(text: res.montantTotal.toString());
+    final ctrlReason =
+    TextEditingController(text: "Annulation de séance");
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text("Confirmer le remboursement", style: TextStyle(color: Colors.white)),
+        title: const Text("Confirmer le remboursement",
+            style: TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -293,37 +327,47 @@ class ManageReservationsLocalPage extends ConsumerWidget {
             TextField(
               controller: ctrlPrice,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: "Montant à rembourser (DH)"),
+              decoration: const InputDecoration(
+                  labelText: "Montant à rembourser (DH)"),
               style: const TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: ctrlReason,
-              decoration: const InputDecoration(labelText: "Raison du remboursement"),
+              decoration: const InputDecoration(
+                  labelText: "Raison du remboursement"),
               style: const TextStyle(color: Colors.white),
             ),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("ANNULER"),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text("ANNULER")),
           ElevatedButton(
             onPressed: () async {
-              await client.admin.rembourserReservation(
-                res.id!,
-                double.parse(ctrlPrice.text),
-                ctrlReason.text,
-              );
-              ref.invalidate(allReservationsProvider);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Remboursement effectué et e-mail envoyé !"),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              try {
+                await client.admin.rembourserReservation(
+                  res.id!,
+                  double.parse(ctrlPrice.text),
+                  ctrlReason.text,
+                );
+                ref.invalidate(allReservationsProvider);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content:
+                    Text("Remboursement effectué et e-mail envoyé !"),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text("Erreur: $e"),
+                      backgroundColor: Colors.redAccent),
+                );
+              }
             },
             child: const Text("VALIDER"),
           ),
@@ -332,13 +376,14 @@ class ManageReservationsLocalPage extends ConsumerWidget {
     );
   }
 }
-// ── Ajoute ce widget à la fin du fichier ──────────────────────────────────
+
+// ── Widget Card réservation ───────────────────────────────────────────────────
 class _ResCard extends ConsumerWidget {
   final Reservation res;
   final Utilisateur user;
-  final Film? film;
-  final Salle? salle;
-  final Seance? seance;
+  final Film?       film;
+  final Salle?      salle;
+  final Seance?     seance;
   final VoidCallback onRefund;
 
   const _ResCard({
@@ -356,13 +401,18 @@ class _ResCard extends ConsumerWidget {
         ? ref.watch(reservationSiegesProvider(res.id!))
         : const AsyncValue<List<Siege>>.data([]);
 
-    final bool isCancelled = res.statut == 'annule';
-    final bool isRefunded  = res.statut == 'rembourse';
+    final bool isCancelled = (res.statut ?? '').toLowerCase() == 'annule';
+    final bool isRefunded  = (res.statut ?? '').toLowerCase() == 'rembourse';
 
     Color statusColor = Colors.orange;
-    if (res.statut == 'confirme')  statusColor = Colors.green;
-    if (res.statut == 'rembourse') statusColor = Colors.blue;
-    if (res.statut == 'annule')    statusColor = Colors.redAccent;
+    final statut = (res.statut ?? '').toLowerCase();
+    if (statut == 'confirmee' || statut == 'confirme') {
+      statusColor = Colors.green;
+    } else if (statut == 'rembourse') {
+      statusColor = Colors.blue;
+    } else if (statut == 'annule') {
+      statusColor = Colors.redAccent;
+    }
 
     return Card(
       color: Colors.white.withOpacity(0.04),
@@ -373,12 +423,12 @@ class _ResCard extends ConsumerWidget {
       ),
       child: ExpansionTile(
         leading: Icon(Icons.movie_rounded, color: statusColor),
-        title: Text(user.nom,
+        title: Text(user.nom ?? "Client",
             style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.bold)),
         subtitle: Text(
           seance != null
-              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(res.dateReservation)}"
+              ? "${film?.titre ?? 'Film inconnu'} • ${DateFormat('dd/MM HH:mm').format(res.dateReservation.toLocal())}"
               : "Réservation #${res.id}",
           style: const TextStyle(color: Colors.white54, fontSize: 12),
         ),
@@ -396,7 +446,7 @@ class _ResCard extends ConsumerWidget {
 
                 const Divider(color: Colors.white10, height: 20),
 
-                // ── SIÈGES ───────────────────────────────────────
+                // ── SIÈGES ─────────────────────────────────────────
                 const Text("SIÈGES RÉSERVÉS",
                     style: TextStyle(
                         color: Colors.amber,
@@ -446,12 +496,16 @@ class _ResCard extends ConsumerWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.event_seat_rounded,
-                                  color: isVip ? Colors.amber : Colors.white54,
+                                  color: isVip
+                                      ? Colors.amber
+                                      : Colors.white54,
                                   size: 14),
                               const SizedBox(width: 5),
                               Text(s.numero,
                                   style: TextStyle(
-                                      color: isVip ? Colors.amber : Colors.white,
+                                      color: isVip
+                                          ? Colors.amber
+                                          : Colors.white,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12)),
                               if (isVip) ...[
@@ -480,7 +534,8 @@ class _ResCard extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.shade700,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding:
+                        const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                       ),

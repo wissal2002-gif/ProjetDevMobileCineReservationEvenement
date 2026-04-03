@@ -72,7 +72,7 @@ class ManageUsersPage extends ConsumerWidget {
                   setState(() {
                     selectedRole = v!;
                     // Si on change de rôle et que ce n'est plus admin_local, on reset le cinemaId
-                    if (selectedRole != 'admin_local') {
+                    if (selectedRole != 'admin_local' && selectedRole != 'resp_evenements') {
                       selectedCinemaId = null;
                     }
                   });
@@ -87,7 +87,7 @@ class ManageUsersPage extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // --- Choix du Cinéma (uniquement si admin_local) ---
-              if (selectedRole == 'admin_local')
+              if (selectedRole == 'admin_local' || selectedRole == 'resp_evenements')
                 cinemasAsync.when(
                   data: (list) => DropdownButtonFormField<int>(
                     value: selectedCinemaId,
@@ -119,8 +119,9 @@ class ManageUsersPage extends ConsumerWidget {
               onPressed: () async {
                 // Mise à jour de l'objet utilisateur avant envoi au serveur
                 user.role = selectedRole;
-                user.cinemaId = (selectedRole == 'admin_local') ? selectedCinemaId : null;
-
+                user.cinemaId = (selectedRole == 'admin_local' || selectedRole == 'resp_evenements')
+                    ? selectedCinemaId
+                    : null;
                 try {
                   await client.admin.modifierUtilisateur(user);
                   ref.invalidate(allUtilisateursProvider);

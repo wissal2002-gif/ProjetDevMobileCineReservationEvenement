@@ -11,7 +11,7 @@ import '../../../../main.dart';
 
 // ─── Providers ──────────────────────────────────────────────────────────────
 final filmsByCinemaProvider =
-FutureProvider.family<List<Film>, int>((ref, cinemaId) async {
+FutureProvider.autoDispose.family<List<Film>, int>((ref, cinemaId) async {
   return await client.films.getFilmsByCinema(cinemaId);
 });
 

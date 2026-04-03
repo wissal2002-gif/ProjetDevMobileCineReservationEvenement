@@ -14,6 +14,10 @@ fields:
   affiche: String?
   bandeAnnonce: String?
   prix: double?, default=0.0
+  prixVip: double?, default=0.0        # ← AJOUTER
+  prixReduit: double?, default=0.0     # ← AJOUTER
+  prixSenior: double?, default=0.0     # ← AJOUTER
+  prixEnfant: double?, default=0.0
   placesDisponibles: int?, default=0
   placesTotales: int?, default=0
   organisateur: String?

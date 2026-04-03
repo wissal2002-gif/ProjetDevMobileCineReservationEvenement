@@ -71,6 +71,8 @@ import '../../features/admin_events/presentation/pages/events_dashboard_page.dar
 import '../../features/admin_events/presentation/pages/manage_events_events_page.dart';
 import '../../features/admin_events/presentation/pages/manage_reservations_events_page.dart';
 import '../../features/admin_events/presentation/pages/revenues_events_page.dart';
+import '../../features/admin_events/presentation/pages/stats_events_page.dart';
+
 
 // Admin Local
 import '../../features/admin_local/presentation/pages/manage_options_page.dart' as local_options;
@@ -350,6 +352,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/events/edit',
         builder: (context, state) => AddEventFormPage(event: state.extra as Evenement?),
+      ),
+      GoRoute(
+        path: '/admin/events/stats',
+        builder: (context, state) => const StatsEventsPage(),
       ),
 
       // ─── ADMIN LOCAL ──────────────────────────────────

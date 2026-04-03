@@ -84,8 +84,23 @@ class ManageEventsEventsPage extends ConsumerWidget {
           : Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text("GESTION DES ÉVÉNEMENTS",
-              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+          Consumer(
+            builder: (context, ref, _) {
+              final admin = ref.watch(adminProfileProvider).value;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("GESTION DES ÉVÉNEMENTS",
+                      style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                  if (admin?.nomCinema != null)
+                    Text(
+                      "${admin!.nomCinema} — Événements de votre ville",
+                      style: const TextStyle(color: Colors.white38, fontSize: 13),
+                    ),
+                ],
+              );
+            },
+          ),
           _addButton(context, ref, isMobile),
         ],
       ),
