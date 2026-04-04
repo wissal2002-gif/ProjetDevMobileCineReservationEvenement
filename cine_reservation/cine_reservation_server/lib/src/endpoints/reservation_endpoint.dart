@@ -13,6 +13,8 @@ class ReservationEndpoint extends Endpoint {
         double montantTotal = 0.0,
         int? codePromoId,
         required List<int> siegeIds,
+        List<String>? siegeTarifs,
+        List<double>? siegePrix,
         List<int>? optionsIds,
       }) async {
     final authInfo = session.authenticated;
@@ -27,7 +29,7 @@ class ReservationEndpoint extends Endpoint {
     final isEvenement = evenementId != null && seanceId == null;
     final validSiegeIds = siegeIds.where((id) => id > 0).toList();
 
-    // ✅ FIX 4 : Gestion intelligente des sièges bloqués
+    // Gestion des sièges déjà réservés
     if (!isEvenement && validSiegeIds.isNotEmpty) {
       final siegeIdsSet = validSiegeIds.toSet();
 
@@ -63,11 +65,12 @@ class ReservationEndpoint extends Endpoint {
           }
         }
 
-        // Réservation confirmée d'un autre utilisateur → erreur
+        // ✅ FIX : siège déjà confirmé → retourner null proprement
+        // sans throw Exception (évite le 500 côté client)
         if (reservationExistante.statut != 'annule' &&
             reservationExistante.statut != 'rembourse' &&
             reservationExistante.statut != 'en_attente') {
-          throw Exception('Le siège ${rs.siegeId} est déjà réservé');
+          return null;
         }
       }
     }
@@ -82,7 +85,7 @@ class ReservationEndpoint extends Endpoint {
       }
     }
 
-    // ✅ FIX 3 : Valider le code promo et calculer réduction
+    // Valider le code promo et calculer réduction
     double montantApresReduction = montantTotal;
     if (codePromoId != null) {
       final promo = await CodePromo.db.findById(session, codePromoId);
@@ -115,20 +118,43 @@ class ReservationEndpoint extends Endpoint {
     final newReservation =
     await Reservation.db.insertRow(session, reservation);
 
-    // Ajouter les sièges
+    // Ajouter les sièges AVEC typeTarif et prix
     if (!isEvenement && validSiegeIds.isNotEmpty) {
-      for (var siegeId in validSiegeIds) {
+      for (int i = 0; i < validSiegeIds.length; i++) {
+        final siegeId = validSiegeIds[i];
+
+        final typeTarif = (siegeTarifs != null && i < siegeTarifs.length)
+            ? siegeTarifs[i]
+            : 'normal';
+
+        double? prix;
+        if (siegePrix != null && i < siegePrix.length) {
+          prix = siegePrix[i];
+        } else if (seanceId != null) {
+          final seance = await Seance.db.findById(session, seanceId);
+          if (seance != null) {
+            switch (typeTarif) {
+              case 'reduit': prix = seance.prixReduit ?? seance.prixNormal; break;
+              case 'enfant': prix = seance.prixEnfant ?? seance.prixNormal; break;
+              case 'senior': prix = seance.prixSenior ?? seance.prixNormal; break;
+              case 'vip':    prix = seance.prixVip ?? seance.prixNormal; break;
+              default:       prix = seance.prixNormal;
+            }
+          }
+        }
+
         final reservationSiege = ReservationSiege(
           reservationId: newReservation.id!,
           siegeId: siegeId,
+          typeTarif: typeTarif,
+          prix: prix,
         );
         await ReservationSiege.db.insertRow(session, reservationSiege);
       }
     }
 
-    // ✅ FIX 1 : Enregistrer les options avec prix unitaire
+    // Enregistrer les options avec prix unitaire
     if (optionsIds != null && optionsIds.isNotEmpty) {
-      // Grouper les optionsIds par id pour calculer les quantités
       final Map<int, int> quantites = {};
       for (var optionId in optionsIds) {
         quantites[optionId] = (quantites[optionId] ?? 0) + 1;
@@ -148,7 +174,7 @@ class ReservationEndpoint extends Endpoint {
       }
     }
 
-    // ✅ FIX 3 : Incrémenter utilisationsActuelles du code promo
+    // Incrémenter utilisationsActuelles du code promo
     if (codePromoId != null) {
       final promo = await CodePromo.db.findById(session, codePromoId);
       if (promo != null) {
@@ -174,7 +200,6 @@ class ReservationEndpoint extends Endpoint {
 
     if (reservations.isEmpty) return [];
 
-    // Exclure les "en_attente" expirées (+15 min)
     final now = DateTime.now().toUtc();
     final reservationsFiltrees = reservations.where((r) {
       if (r.statut == 'en_attente') {
@@ -253,8 +278,9 @@ class ReservationEndpoint extends Endpoint {
 
     final reservation =
     await Reservation.db.findById(session, reservationId);
-    if (reservation == null || reservation.utilisateurId != user.id)
+    if (reservation == null || reservation.utilisateurId != user.id) {
       return false;
+    }
 
     reservation.statut = 'annule';
     await Reservation.db.updateRow(session, reservation);
@@ -271,19 +297,16 @@ class ReservationEndpoint extends Endpoint {
     if (promos.isEmpty) return null;
     final promo = promos.first;
 
-    // Vérifier expiration
     if (promo.dateExpiration != null &&
         promo.dateExpiration!.isBefore(DateTime.now().toUtc())) {
       return null;
     }
 
-    // ✅ Vérifier si le nombre max d'utilisations est atteint
     if (promo.utilisationsMax != null &&
         (promo.utilisationsActuelles ?? 0) >= promo.utilisationsMax!) {
       return null;
     }
 
-    // ✅ Vérifier si le promo est actif
     if (promo.actif != true) return null;
 
     return promo;

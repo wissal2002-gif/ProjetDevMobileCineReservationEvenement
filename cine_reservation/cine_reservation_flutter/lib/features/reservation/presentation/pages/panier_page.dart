@@ -10,12 +10,14 @@ class PanierPage extends ConsumerStatefulWidget {
   final Seance? seance;
   final Evenement? evenement;
   final String filmTitre;
+  final int? cinemaId; // NOUVEAU : pour filtrer les options par cinéma
 
   const PanierPage({
     super.key,
     this.seance,
     this.evenement,
     required this.filmTitre,
+    this.cinemaId, // NOUVEAU
   });
 
   @override
@@ -85,14 +87,12 @@ class _PanierPageState extends ConsumerState<PanierPage> {
       if (promo.typeReduction == 'pourcentage') {
         taux = promo.reduction / 100;
       } else {
-        // Réduction montant fixe → convertir en taux
         final sousTotal = panier.sousTotalSieges + panier.sousTotalOptions;
         taux = sousTotal > 0
             ? (promo.reduction / sousTotal).clamp(0.0, 1.0)
             : 0;
       }
 
-      // ✅ FIX 3 : passer l'ID réel du promo
       ref.read(panierProvider.notifier).appliquerCodePromo(
         code,
         taux,
@@ -167,8 +167,13 @@ class _PanierPageState extends ConsumerState<PanierPage> {
   Widget build(BuildContext context) {
     final panier = ref.watch(panierProvider);
     final notifier = ref.read(panierProvider.notifier);
-    final optionsAsync = ref.watch(optionsSupplementairesProvider);
     final total = _montantApresReduction(panier);
+
+    // CORRIGÉ : utiliser optionsByCinemaProvider si cinemaId est disponible,
+    // sinon fallback sur toutes les options
+    final optionsAsync = widget.cinemaId != null
+        ? ref.watch(optionsByCinemaProvider(widget.cinemaId!))
+        : ref.watch(optionsSupplementairesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -222,8 +227,7 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                             color: AppColors.textLight));
                   }
                   final Map<String,
-                      List<OptionSupplementaire>> parCat =
-                  {};
+                      List<OptionSupplementaire>> parCat = {};
                   for (final o in options) {
                     if (o.disponible != true) continue;
                     parCat
@@ -488,7 +492,6 @@ class _PanierPageState extends ConsumerState<PanierPage> {
     );
   }
 
-  // ✅ FIX 1 & 2 : id dans OptionPanier + image affichée
   Widget _optionRow(
       PanierNotifier notifier,
       OptionSupplementaire opt,
@@ -510,7 +513,6 @@ class _PanierPageState extends ConsumerState<PanierPage> {
             color: qte > 0 ? AppColors.accent : AppColors.divider),
       ),
       child: Row(children: [
-        // ✅ FIX 2 : Affichage image option
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: opt.image != null && opt.image!.isNotEmpty
@@ -572,12 +574,10 @@ class _PanierPageState extends ConsumerState<PanierPage> {
             ),
           ],
           GestureDetector(
-            // ✅ FIX 1 : passer opt.id!
-            onTap: () => notifier.ajouterOption(
-                OptionPanier(
-                    id: opt.id!,
-                    nom: opt.nom,
-                    prix: opt.prix)),
+            onTap: () => notifier.ajouterOption(OptionPanier(
+                id: opt.id!,
+                nom: opt.nom,
+                prix: opt.prix)),
             child: Container(
               width: 30,
               height: 30,

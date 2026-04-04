@@ -114,6 +114,7 @@ films:
   - getFilmsByCinema:
 options:
   - getOptions:
+  - getOptionsByCinema:
 paiement:
   - effectuerPaiement:
   - demanderRemboursement:

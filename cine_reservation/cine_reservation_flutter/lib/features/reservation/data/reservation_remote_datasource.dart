@@ -12,31 +12,34 @@ class ReservationRemoteDatasource {
   }
 
   Future<List<int>> getSiegesReservesByEvenement(int evenementId) async {
-    return await client.sieges
-        .getSiegesReservesByEvenement(evenementId);
+    return await client.sieges.getSiegesReservesByEvenement(evenementId);
   }
 
   // ─── RESERVATIONS ─────────────────────────────────────
-  Future<Reservation> creerReservation({
+
+  // ✅ FIX : retourne Reservation? (nullable) au lieu de throw quand null
+  // Cela permet à paiement_page.dart de détecter un siège occupé
+  // et d'afficher un message propre au lieu d'un crash 500
+  Future<Reservation?> creerReservation({
     int? seanceId,
     int? evenementId,
     required double montantTotal,
     required List<int> siegeIds,
+    List<String>? siegeTarifs,
+    List<double>? siegePrix,
     List<int>? optionsIds,
     int? codePromoId,
   }) async {
-    final result = await client.reservation.creerReservation(
+    return await client.reservation.creerReservation(
       seanceId: seanceId,
       evenementId: evenementId,
       montantTotal: montantTotal,
       siegeIds: siegeIds,
-      optionsIds: optionsIds,     // ✅ FIX 1
-      codePromoId: codePromoId,   // ✅ FIX 3
+      siegeTarifs: siegeTarifs,
+      siegePrix: siegePrix,
+      optionsIds: optionsIds,
+      codePromoId: codePromoId,
     );
-    if (result == null) {
-      throw Exception('Erreur lors de la création de la réservation');
-    }
-    return result;
   }
 
   Future<List<Reservation>> getMesReservations() async {
@@ -69,10 +72,8 @@ class ReservationRemoteDatasource {
     return await client.billet.getMesBillets();
   }
 
-  Future<List<Billet>> getBilletsByReservation(
-      int reservationId) async {
-    return await client.billet
-        .getBilletsByReservation(reservationId);
+  Future<List<Billet>> getBilletsByReservation(int reservationId) async {
+    return await client.billet.getBilletsByReservation(reservationId);
   }
 
   Future<bool> validerBillet(String qrCode) async {
@@ -82,5 +83,9 @@ class ReservationRemoteDatasource {
   // ─── OPTIONS ──────────────────────────────────────────
   Future<List<OptionSupplementaire>> getOptions() async {
     return await client.options.getOptions();
+  }
+
+  Future<List<OptionSupplementaire>> getOptionsByCinema(int cinemaId) async {
+    return await client.options.getOptionsByCinema(cinemaId);
   }
 }

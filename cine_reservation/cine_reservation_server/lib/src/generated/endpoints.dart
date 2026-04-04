@@ -2017,6 +2017,25 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['options'] as _i12.OptionsEndpoint)
                   .getOptions(session),
         ),
+        'getOptionsByCinema': _i1.MethodConnector(
+          name: 'getOptionsByCinema',
+          params: {
+            'cinemaId': _i1.ParameterDescription(
+              name: 'cinemaId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['options'] as _i12.OptionsEndpoint)
+                  .getOptionsByCinema(
+                    session,
+                    params['cinemaId'],
+                  ),
+        ),
       },
     );
     connectors['paiement'] = _i1.EndpointConnector(
@@ -2205,6 +2224,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<List<int>>(),
               nullable: false,
             ),
+            'siegeTarifs': _i1.ParameterDescription(
+              name: 'siegeTarifs',
+              type: _i1.getType<List<String>?>(),
+              nullable: true,
+            ),
+            'siegePrix': _i1.ParameterDescription(
+              name: 'siegePrix',
+              type: _i1.getType<List<double>?>(),
+              nullable: true,
+            ),
             'optionsIds': _i1.ParameterDescription(
               name: 'optionsIds',
               type: _i1.getType<List<int>?>(),
@@ -2224,6 +2253,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     montantTotal: params['montantTotal'],
                     codePromoId: params['codePromoId'],
                     siegeIds: params['siegeIds'],
+                    siegeTarifs: params['siegeTarifs'],
+                    siegePrix: params['siegePrix'],
                     optionsIds: params['optionsIds'],
                   ),
         ),

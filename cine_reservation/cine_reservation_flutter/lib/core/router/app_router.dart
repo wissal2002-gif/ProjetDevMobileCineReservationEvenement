@@ -44,6 +44,7 @@ import '../../features/reservation/presentation/pages/paiement_page.dart';
 import '../../features/reservation/presentation/pages/confirmation_page.dart';
 import '../../features/reservation/presentation/pages/mes_reservations_page.dart';
 import 'package:cine_reservation_flutter/features/reservation/presentation/providers/reservation_provider.dart';
+
 // Billets
 import '../../features/billets/presentation/pages/billets_page.dart';
 import '../../features/billets/presentation/pages/billet_detail_page.dart';
@@ -73,7 +74,6 @@ import '../../features/admin_events/presentation/pages/manage_reservations_event
 import '../../features/admin_events/presentation/pages/revenues_events_page.dart';
 import '../../features/admin_events/presentation/pages/stats_events_page.dart';
 
-
 // Admin Local
 import '../../features/admin_local/presentation/pages/manage_options_page.dart' as local_options;
 import '../../features/admin/presentation/providers/admin_provider.dart';
@@ -84,7 +84,6 @@ import '../../features/admin_local/presentation/pages/manage_support_local_page.
 
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // ✅ Rend le router réactif au chargement du profil
   final notifier = ValueNotifier<void>(null);
   ref.listen(adminProfileProvider, (_, __) {
     notifier.value = null;
@@ -93,7 +92,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/home',
     debugLogDiagnostics: true,
-    refreshListenable: notifier, // ✅ Re-évalue le redirect quand profil charge
+    refreshListenable: notifier,
 
     redirect: (context, state) {
       final profile = ref.read(adminProfileProvider).valueOrNull;
@@ -101,7 +100,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       if (profile == null) return null;
 
-      // ✅ Redirige tout admin_local vers /admin/local
       if (profile.role == 'admin_local') {
         if (location == '/admin' ||
             location == '/admin/tanger' ||
@@ -110,7 +108,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      // ✅ Redirection après login
       if (location == AppConstants.routeLogin) {
         if (profile.role == 'super_admin')     return '/admin';
         if (profile.role == 'admin_local')     return '/admin/local';
@@ -184,7 +181,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/seat-selection',
         builder: (context, state) {
           final nav = ref.read(navigationProvider);
-          return AuthGuard(  // ← AJOUTER LE GUARD
+          return AuthGuard(
             child: SeatSelectionPage(
               seance: nav.seance,
               evenement: nav.evenement,
@@ -198,16 +195,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/panier',
         builder: (context, state) {
           final nav = ref.read(navigationProvider);
-          return AuthGuard(  // ← AJOUTER LE GUARD
+          return AuthGuard(
             child: PanierPage(
               seance: nav.seance,
               evenement: nav.evenement,
               filmTitre: nav.filmTitre,
+              cinemaId: nav.cinemaId, // NOUVEAU : passer le cinemaId pour filtrer les options
             ),
           );
         },
       ),
-      // Dans app_router.dart, modifiez la route /paiement
       GoRoute(
         path: '/paiement',
         builder: (context, state) {
@@ -217,7 +214,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               seance: nav.seance,
               evenement: nav.evenement,
               filmTitre: nav.filmTitre,
-              // ✅ selectedOptions supprimé — les options viennent du panierProvider
             ),
           );
         },
@@ -227,7 +223,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'confirmation',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
-          return AuthGuard(  // ← AJOUTER LE GUARD
+          return AuthGuard(
             child: ConfirmationPage(
               reservation: extra['reservation'] as Reservation,
               paiement: extra['paiement'] as Paiement,
@@ -242,7 +238,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/mes-reservations',
-        builder: (context, state) => AuthGuard(  // ← AJOUTER LE GUARD
+        builder: (context, state) => AuthGuard(
           child: const MesReservationsPage(),
         ),
       ),
@@ -250,22 +246,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ─── BILLETS ──────────────────────────────────────
       GoRoute(
         path: '/mes-billets',
-        builder: (context, state) => AuthGuard(  // ← AJOUTER LE GUARD
+        builder: (context, state) => AuthGuard(
           child: const BilletsPage(),
         ),
       ),
       GoRoute(
         path: '/billet-detail',
-        builder: (context, state) => AuthGuard(  // ← AJOUTER LE GUARD
+        builder: (context, state) => AuthGuard(
           child: BilletDetailPage(billet: state.extra as Billet),
         ),
       ),
       GoRoute(
         path: '/favoris',
-        builder: (context, state) => AuthGuard(  // ← AJOUTER LE GUARD
+        builder: (context, state) => AuthGuard(
           child: const FavorisPage(),
         ),
       ),
+
       // ─── ADMIN GLOBAL ─────────────────────────────────
       GoRoute(
         path: '/admin',

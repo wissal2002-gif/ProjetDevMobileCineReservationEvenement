@@ -21,33 +21,56 @@ class SeatSelectionPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<SeatSelectionPage> createState() => _SeatSelectionPageState();
+  ConsumerState<SeatSelectionPage> createState() =>
+      _SeatSelectionPageState();
 }
 
-class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
+class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
+    with WidgetsBindingObserver {
   String _typeTarifSelectionne = 'normal';
   final Map<int, String> _tarifParSiege = {};
-  Timer? _refreshTimer;          // ← AJOUTER
+  Timer? _refreshTimer;
 
-// AJOUTER CE BLOC ENTIER
   @override
   void initState() {
     super.initState();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
-      if (!mounted) return;
-      if (widget.seance != null) {
-        ref.invalidate(siegesOccupesSeanceProvider(widget.seance!.id!));
-      } else if (widget.evenement != null) {
-        ref.invalidate(siegesOccupesEvenementProvider(widget.evenement!.id!));
-      }
+    WidgetsBinding.instance.addObserver(this);
+
+    // ✅ FIX 1 : rafraîchir immédiatement au chargement
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _rafraichirSieges();
+    });
+
+    // ✅ FIX 2 : rafraîchir toutes les 5 secondes (au lieu de 15)
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted) _rafraichirSieges();
     });
   }
-  // AJOUTER CE BLOC ENTIER
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // ✅ FIX 3 : rafraîchir quand l'utilisateur revient sur l'app
+    if (state == AppLifecycleState.resumed) {
+      _rafraichirSieges();
+    }
+  }
+
+  void _rafraichirSieges() {
+    if (widget.seance != null) {
+      ref.invalidate(siegesOccupesSeanceProvider(widget.seance!.id!));
+    } else if (widget.evenement != null) {
+      ref.invalidate(
+          siegesOccupesEvenementProvider(widget.evenement!.id!));
+    }
+  }
+
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+
   double getPrixUnitaire(String typeTarif, Siege siege) {
     final s = widget.seance;
     if (s == null) return widget.evenement?.prix ?? 0;
@@ -65,22 +88,30 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
 
   List<_Tarif> get _tarifsDisponibles {
     final s = widget.seance;
-    if (s == null) return [_Tarif('normal', 'Normal', widget.evenement?.prix ?? 0)];
+    if (s == null) {
+      return [_Tarif('normal', 'Normal', widget.evenement?.prix ?? 0)];
+    }
     final list = <_Tarif>[_Tarif('normal', 'Normal', s.prixNormal)];
-    if ((s.prixReduit ?? 0) > 0) list.add(_Tarif('reduit', 'Réduit', s.prixReduit!));
-    if ((s.prixEnfant ?? 0) > 0) list.add(_Tarif('enfant', 'Enfant', s.prixEnfant!));
-    if ((s.prixSenior ?? 0) > 0) list.add(_Tarif('senior', 'Senior', s.prixSenior!));
-    if ((s.prixVip    ?? 0) > 0) list.add(_Tarif('vip',    'VIP',    s.prixVip!));
+    if ((s.prixReduit ?? 0) > 0)
+      list.add(_Tarif('reduit', 'Réduit', s.prixReduit!));
+    if ((s.prixEnfant ?? 0) > 0)
+      list.add(_Tarif('enfant', 'Enfant', s.prixEnfant!));
+    if ((s.prixSenior ?? 0) > 0)
+      list.add(_Tarif('senior', 'Senior', s.prixSenior!));
+    if ((s.prixVip ?? 0) > 0)
+      list.add(_Tarif('vip', 'VIP', s.prixVip!));
     return list;
   }
 
   @override
   Widget build(BuildContext context) {
-    final siegesAsync = ref.watch(siegesBySalleProvider(widget.salleId));
+    final siegesAsync =
+    ref.watch(siegesBySalleProvider(widget.salleId));
     final occupesAsync = widget.seance != null
         ? ref.watch(siegesOccupesSeanceProvider(widget.seance!.id!))
         : widget.evenement != null
-        ? ref.watch(siegesOccupesEvenementProvider(widget.evenement!.id!))
+        ? ref.watch(
+        siegesOccupesEvenementProvider(widget.evenement!.id!))
         : const AsyncValue.data(<int>[]);
     final panier = ref.watch(panierProvider);
 
@@ -92,15 +123,31 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.filmTitre,
-                style: const TextStyle(color: Colors.white, fontSize: 16)),
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 16)),
             const Text('Sélectionnez vos sièges',
-                style: TextStyle(color: AppColors.accent, fontSize: 11)),
+                style: TextStyle(
+                    color: AppColors.accent, fontSize: 11)),
           ],
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
         ),
+        // ✅ FIX 4 : bouton rafraîchir manuel
+        actions: [
+          IconButton(
+            icon: occupesAsync.isLoading
+                ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2))
+                : const Icon(Icons.refresh, color: Colors.white70),
+            onPressed: _rafraichirSieges,
+            tooltip: 'Actualiser les sièges',
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -117,34 +164,63 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
               const SizedBox(height: 4),
               const Text('ÉCRAN',
                   style: TextStyle(
-                      color: Colors.white38, fontSize: 10, letterSpacing: 4)),
+                      color: Colors.white38,
+                      fontSize: 10,
+                      letterSpacing: 4)),
             ]),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              _legendItem(Colors.white12, 'Libre'),
-              const SizedBox(width: 20),
-              _legendItem(AppColors.accent, 'Sélectionné'),
-              const SizedBox(width: 20),
-              _legendItem(Colors.red.withOpacity(0.6), 'Occupé'),
-              const SizedBox(width: 20),
-              _legendItem(Colors.amber.withOpacity(0.4), 'VIP'),
-            ]),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _legendItem(Colors.white12, 'Libre'),
+                  const SizedBox(width: 20),
+                  _legendItem(AppColors.accent, 'Sélectionné'),
+                  const SizedBox(width: 20),
+                  _legendItem(
+                      Colors.red.withOpacity(0.6), 'Occupé'),
+                  const SizedBox(width: 20),
+                  _legendItem(
+                      Colors.amber.withOpacity(0.4), 'VIP'),
+                ]),
+          ),
+          // ✅ FIX 5 : indicateur de dernière mise à jour
+          occupesAsync.when(
+            data: (_) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                'Mis à jour à ${TimeOfDay.now().format(context)}',
+                style: const TextStyle(
+                    color: Colors.white24, fontSize: 10),
+              ),
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.only(bottom: 4),
+              child: Text('Actualisation...',
+                  style: TextStyle(
+                      color: AppColors.accent, fontSize: 10)),
+            ),
+            error: (_, __) => const SizedBox(),
           ),
           Expanded(
             child: siegesAsync.when(
               data: (sieges) => occupesAsync.when(
-                data: (occupes) => _buildGrid(sieges, occupes, panier),
+                data: (occupes) =>
+                    _buildGrid(sieges, occupes, panier),
                 loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.accent)),
-                error: (e, _) => _buildGrid(sieges, [], panier),
+                    child: CircularProgressIndicator(
+                        color: AppColors.accent)),
+                error: (e, _) =>
+                    _buildGrid(sieges, [], panier),
               ),
               loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.accent)),
+                  child: CircularProgressIndicator(
+                      color: AppColors.accent)),
               error: (e, _) => Center(
                 child: Text('Erreur: $e',
-                    style: const TextStyle(color: AppColors.textLight)),
+                    style: const TextStyle(
+                        color: AppColors.textLight)),
               ),
             ),
           ),
@@ -155,11 +231,13 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
     );
   }
 
-  Widget _buildGrid(List<Siege> sieges, List<int> occupes, PanierState panier) {
+  Widget _buildGrid(
+      List<Siege> sieges, List<int> occupes, PanierState panier) {
     if (sieges.isEmpty) {
       return const Center(
         child: Text('Aucun siège pour cette salle',
-            style: TextStyle(color: AppColors.textLight, fontSize: 16)),
+            style: TextStyle(
+                color: AppColors.textLight, fontSize: 16)),
       );
     }
 
@@ -173,7 +251,8 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
       builder: (context, constraints) {
         const labelWidth = 20.0;
         const spacing = 5.0;
-        final availableWidth = constraints.maxWidth - 32 - (labelWidth * 2) - 16;
+        final availableWidth =
+            constraints.maxWidth - 32 - (labelWidth * 2) - 16;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -200,11 +279,30 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
                         runSpacing: spacing,
                         alignment: WrapAlignment.center,
                         children: liste.map((siege) {
-                          final occupe = occupes.contains(siege.id);
+                          final occupe =
+                          occupes.contains(siege.id);
                           final selectionne = panier.sieges
                               .any((s) => s.siege.id == siege.id);
-                          final tarifSiege = _tarifParSiege[siege.id!] ?? _typeTarifSelectionne;
-                          return _buildSiege(siege, occupe, selectionne, tarifSiege);
+
+                          // ✅ FIX 6 : si le siège est dans le panier
+                          // mais vient d'être occupé → le retirer automatiquement
+                          if (occupe && selectionne) {
+                            WidgetsBinding.instance
+                                .addPostFrameCallback((_) {
+                              ref
+                                  .read(panierProvider.notifier)
+                                  .retirerSiege(siege.id!);
+                              setState(() {
+                                _tarifParSiege.remove(siege.id);
+                              });
+                            });
+                          }
+
+                          final tarifSiege =
+                              _tarifParSiege[siege.id!] ??
+                                  _typeTarifSelectionne;
+                          return _buildSiege(
+                              siege, occupe, selectionne && !occupe, tarifSiege);
                         }).toList(),
                       ),
                     ),
@@ -225,17 +323,18 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
     );
   }
 
-  Widget _buildSiege(Siege siege, bool occupe, bool selectionne, String tarifSiege) {
+  Widget _buildSiege(
+      Siege siege, bool occupe, bool selectionne, String tarifSiege) {
     Color couleur;
     if (occupe) {
       couleur = Colors.red.withOpacity(0.5);
     } else if (selectionne) {
       switch (tarifSiege) {
-        case 'vip': couleur = Colors.purple.withOpacity(0.7); break;
+        case 'vip':    couleur = Colors.purple.withOpacity(0.7); break;
         case 'enfant': couleur = Colors.green.withOpacity(0.7); break;
         case 'senior': couleur = Colors.orange.withOpacity(0.7); break;
         case 'reduit': couleur = Colors.blue.withOpacity(0.7); break;
-        default: couleur = AppColors.accent;
+        default:       couleur = AppColors.accent;
       }
     } else if (siege.type == 'vip') {
       couleur = Colors.amber.withOpacity(0.3);
@@ -248,7 +347,9 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
           ? null
           : () {
         if (selectionne) {
-          ref.read(panierProvider.notifier).retirerSiege(siege.id!);
+          ref
+              .read(panierProvider.notifier)
+              .retirerSiege(siege.id!);
           setState(() {
             _tarifParSiege.remove(siege.id);
           });
@@ -275,8 +376,12 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
           color: couleur,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: selectionne
-                ? (tarifSiege == 'vip' ? Colors.purple : AppColors.accent)
+            color: occupe
+                ? Colors.red.withOpacity(0.3)
+                : selectionne
+                ? (tarifSiege == 'vip'
+                ? Colors.purple
+                : AppColors.accent)
                 : Colors.white12,
             width: selectionne ? 2 : 1,
           ),
@@ -287,7 +392,9 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
             style: TextStyle(
               color: occupe ? Colors.white24 : Colors.white70,
               fontSize: 9,
-              fontWeight: selectionne ? FontWeight.bold : FontWeight.normal,
+              fontWeight: selectionne
+                  ? FontWeight.bold
+                  : FontWeight.normal,
             ),
           ),
         ),
@@ -309,7 +416,8 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
                   fontSize: 10,
                   letterSpacing: 1.5)),
           const Text('Choisissez le tarif pour le prochain siège',
-              style: TextStyle(color: AppColors.textLight, fontSize: 9)),
+              style:
+              TextStyle(color: AppColors.textLight, fontSize: 9)),
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -348,15 +456,20 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
                       children: [
                         Text(t.label,
                             style: TextStyle(
-                              color: sel ? chipColor : AppColors.textLight,
+                              color: sel
+                                  ? chipColor
+                                  : AppColors.textLight,
                               fontSize: 11,
                               fontWeight: sel
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                             )),
-                        Text('${t.prix.toStringAsFixed(0)} MAD',
+                        Text(
+                            '${t.prix.toStringAsFixed(0)} MAD',
                             style: TextStyle(
-                              color: sel ? chipColor : AppColors.white,
+                              color: sel
+                                  ? chipColor
+                                  : AppColors.white,
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                             )),
@@ -367,44 +480,7 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
               }).toList(),
             ),
           ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildTarifChip('Normal', AppColors.accent),
-                if (_tarifsDisponibles.any((t) => t.key == 'reduit'))
-                  _buildTarifChip('Réduit', Colors.blue),
-                if (_tarifsDisponibles.any((t) => t.key == 'enfant'))
-                  _buildTarifChip('Enfant', Colors.green),
-                if (_tarifsDisponibles.any((t) => t.key == 'senior'))
-                  _buildTarifChip('Senior', Colors.orange),
-                if (_tarifsDisponibles.any((t) => t.key == 'vip'))
-                  _buildTarifChip('VIP', Colors.purple),
-              ],
-            ),
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTarifChip(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color, width: 0.5),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w500),
       ),
     );
   }
@@ -412,7 +488,8 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
   Widget _buildBottomBar(BuildContext context, PanierState panier) {
     final Map<String, int> siegeParTarif = {};
     for (final s in panier.sieges) {
-      siegeParTarif[s.typeBillet] = (siegeParTarif[s.typeBillet] ?? 0) + 1;
+      siegeParTarif[s.typeBillet] =
+          (siegeParTarif[s.typeBillet] ?? 0) + 1;
     }
 
     return Container(
@@ -434,21 +511,25 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
                   String label;
                   Color color;
                   switch (entry.key) {
-                    case 'vip': label = 'VIP'; color = Colors.purple; break;
+                    case 'vip':    label = 'VIP';    color = Colors.purple; break;
                     case 'enfant': label = 'Enfant'; color = Colors.green; break;
                     case 'senior': label = 'Senior'; color = Colors.orange; break;
                     case 'reduit': label = 'Réduit'; color = Colors.blue; break;
-                    default: label = 'Normal'; color = AppColors.accent;
+                    default:       label = 'Normal'; color = AppColors.accent;
                   }
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       '${entry.value} x $label',
-                      style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                          color: color,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500),
                     ),
                   );
                 }).toList(),
@@ -489,7 +570,8 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('CONTINUER',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                      style:
+                      TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -506,11 +588,12 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage> {
           width: 14,
           height: 14,
           decoration: BoxDecoration(
-              color: c, borderRadius: BorderRadius.circular(3))),
+              color: c,
+              borderRadius: BorderRadius.circular(3))),
       const SizedBox(width: 4),
       Text(label,
-          style:
-          const TextStyle(color: Colors.white54, fontSize: 11)),
+          style: const TextStyle(
+              color: Colors.white54, fontSize: 11)),
     ],
   );
 }

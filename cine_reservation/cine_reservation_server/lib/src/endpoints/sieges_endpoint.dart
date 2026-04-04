@@ -2,7 +2,8 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 
 class SiegesEndpoint extends Endpoint {
-  Future<List<Siege>> getSiegesBySalle(Session session, int salleId) async {
+  Future<List<Siege>> getSiegesBySalle(
+      Session session, int salleId) async {
     return await Siege.db.find(
       session,
       where: (t) => t.salleId.equals(salleId),
@@ -10,9 +11,10 @@ class SiegesEndpoint extends Endpoint {
     );
   }
 
-  // Récupérer les sièges occupés pour une séance (inclut les réservations en attente)
-  Future<List<int>> getSiegesReservesBySeance(Session session, int seanceId) async {
-    // 1. Récupérer les réservations pour cette séance (non annulées)
+  // Récupérer les sièges occupés pour une séance
+  Future<List<int>> getSiegesReservesBySeance(
+      Session session, int seanceId) async {
+    // 1. Récupérer toutes les réservations non annulées pour cette séance
     final reservations = await Reservation.db.find(
       session,
       where: (r) =>
@@ -23,9 +25,23 @@ class SiegesEndpoint extends Endpoint {
 
     if (reservations.isEmpty) return [];
 
-    final reservationIds = reservations.map((r) => r.id!).toSet();
+    // 2. ✅ FIX : filtrer les "en_attente" expirées (+15 min)
+    // Les "confirmee" passent toujours → siège bien rouge
+    final now = DateTime.now().toUtc();
+    final reservationsValides = reservations.where((r) {
+      if (r.statut == 'en_attente') {
+        final diff = now.difference(r.dateReservation);
+        return diff.inMinutes < 15; // garder seulement les récentes
+      }
+      return true; // confirmee, remboursement_demande → toujours occupé
+    }).toList();
 
-    // 2. Récupérer les sièges directement depuis reservation_sieges
+    if (reservationsValides.isEmpty) return [];
+
+    final reservationIds =
+    reservationsValides.map((r) => r.id!).toSet();
+
+    // 3. Récupérer les sièges liés à ces réservations
     final siegeRelations = await ReservationSiege.db.find(
       session,
       where: (rs) => rs.reservationId.inSet(reservationIds),
@@ -35,7 +51,8 @@ class SiegesEndpoint extends Endpoint {
   }
 
   // Récupérer les sièges occupés pour un événement
-  Future<List<int>> getSiegesReservesByEvenement(Session session, int evenementId) async {
+  Future<List<int>> getSiegesReservesByEvenement(
+      Session session, int evenementId) async {
     final reservations = await Reservation.db.find(
       session,
       where: (r) =>

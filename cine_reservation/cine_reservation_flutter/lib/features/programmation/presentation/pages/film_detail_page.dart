@@ -10,7 +10,9 @@ import '../../../../core/router/navigation_state_provider.dart';
 import '../providers/programmation_provider.dart';
 import '../providers/avis_provider.dart';
 import '../../../reservation/presentation/pages/seat_selection_page.dart';
+import '../../../reservation/presentation/providers/reservation_provider.dart';
 import '../../../profil/presentation/widgets/bouton_favori.dart';
+
 class FilmDetailPage extends ConsumerWidget {
   final int filmId;
   const FilmDetailPage({super.key, required this.filmId});
@@ -19,7 +21,6 @@ class FilmDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filmAsync = ref.watch(filmDetailProvider(filmId));
     final seancesAsync = ref.watch(seancesFilmProvider(filmId));
-    final optionsAsync = ref.watch(optionsProvider);
     final cinemasAsync = ref.watch(allCinemasProvider);
     final sallesAsync = ref.watch(allSallesProvider);
 
@@ -30,7 +31,7 @@ class FilmDetailPage extends ConsumerWidget {
             ? const Center(
             child: Text('Film non trouve',
                 style: TextStyle(color: Colors.white)))
-            : _buildBody(context, ref, film, seancesAsync, optionsAsync,
+            : _buildBody(context, ref, film, seancesAsync,
             cinemasAsync, sallesAsync),
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.accent)),
@@ -46,7 +47,6 @@ class FilmDetailPage extends ConsumerWidget {
       WidgetRef ref,
       Film film,
       AsyncValue<List<Seance>> seancesAsync,
-      AsyncValue<List<OptionSupplementaire>> optionsAsync,
       AsyncValue<List<Cinema>> cinemasAsync,
       AsyncValue<List<Salle>> sallesAsync,
       ) {
@@ -101,7 +101,6 @@ class FilmDetailPage extends ConsumerWidget {
               ],
             ),
           ),
-
         ),
 
         SliverToBoxAdapter(
@@ -147,8 +146,8 @@ class FilmDetailPage extends ConsumerWidget {
                 _sectionTitle('SYNOPSIS'),
                 const SizedBox(height: 10),
                 Text(film.synopsis ?? '',
-                    style:
-                    const TextStyle(color: Colors.white70, height: 1.5)),
+                    style: const TextStyle(
+                        color: Colors.white70, height: 1.5)),
                 const SizedBox(height: 30),
 
                 // ─── Réalisateur & casting ───────────────
@@ -175,8 +174,7 @@ class FilmDetailPage extends ConsumerWidget {
                   },
                   loading: () => const CircularProgressIndicator(
                       strokeWidth: 2, color: AppColors.accent),
-                  error: (_, __) =>
-                  const Text('N/A',
+                  error: (_, __) => const Text('N/A',
                       style: TextStyle(color: Colors.white70)),
                 ),
                 const SizedBox(height: 40),
@@ -205,21 +203,6 @@ class FilmDetailPage extends ConsumerWidget {
                     ))
                         .toList(),
                   ),
-                  loading: () => const CircularProgressIndicator(
-                      color: AppColors.accent),
-                  error: (e, s) => const SizedBox(),
-                ),
-                const SizedBox(height: 40),
-
-                // ─── Options ────────────────────────────
-                const Text('OPTIONS SUPPLEMENTAIRES',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white)),
-                const SizedBox(height: 15),
-                optionsAsync.when(
-                  data: (list) => _buildOptions(list),
                   loading: () => const CircularProgressIndicator(
                       color: AppColors.accent),
                   error: (e, s) => const SizedBox(),
@@ -324,7 +307,7 @@ class FilmDetailPage extends ConsumerWidget {
   }
 
   // ═══════════════════════════════════════════════════════
-  // SÉANCE ITEM
+  // SÉANCE ITEM — cinemaId passé au navigationProvider
   // ═══════════════════════════════════════════════════════
 
   Widget _buildSeanceItem(
@@ -337,6 +320,9 @@ class FilmDetailPage extends ConsumerWidget {
       AsyncValue<List<Salle>> sallesAsync,
       ) {
     final int salleId = seance.salleId;
+
+    // ✅ FIX : résoudre cinemaId depuis la salle
+    int? cinemaId;
     String cinemaName = 'CINEMA';
     String salleName = '';
     String cinemaLieu = '';
@@ -344,8 +330,8 @@ class FilmDetailPage extends ConsumerWidget {
     sallesAsync.whenData((salles) {
       try {
         final salle = salles.firstWhere((s) => s.id == seance.salleId);
-        // Nom de salle ajouté depuis la version Imane
         salleName = ' — ${salle.codeSalle}';
+        cinemaId = salle.cinemaId; // ✅ récupérer cinemaId
         cinemasAsync.whenData((cinemas) {
           try {
             final cinema =
@@ -419,12 +405,16 @@ class FilmDetailPage extends ConsumerWidget {
             onPressed: seance.placesDisponibles <= 0
                 ? null
                 : () {
+              // ✅ FIX : passer cinemaId dans setContext
               ref.read(navigationProvider.notifier).setContext(
                 seance: seance,
                 evenement: null,
                 filmTitre: filmTitre,
                 salleId: salleId,
+                cinemaId: cinemaId, // ✅ NOUVEAU
               );
+              // ✅ FIX : vider le panier avant de choisir les sièges
+              ref.read(panierProvider.notifier).vider();
               Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
                   builder: (_) => SeatSelectionPage(
@@ -467,41 +457,12 @@ class FilmDetailPage extends ConsumerWidget {
   );
 
   Widget _p(String l, double p) => Column(children: [
-    Text(l, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+    Text(l,
+        style: const TextStyle(color: Colors.white38, fontSize: 10)),
     Text('${p.toStringAsFixed(0)} MAD',
         style: const TextStyle(
             color: Colors.white, fontWeight: FontWeight.bold)),
   ]);
-
-  Widget _buildOptions(List<OptionSupplementaire> list) {
-    if (list.isEmpty) {
-      return const Text('Aucune option disponible',
-          style: TextStyle(color: AppColors.textLight));
-    }
-    return SizedBox(
-      height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: list.length,
-        itemBuilder: (context, index) {
-          final opt = list[index];
-          return Container(
-            width: 140,
-            margin: const EdgeInsets.only(right: 15),
-            decoration: BoxDecoration(
-                color: AppColors.cardBg,
-                borderRadius: BorderRadius.circular(12)),
-            child: Center(
-              child: Text('${opt.nom}\n${opt.prix} MAD',
-                  textAlign: TextAlign.center,
-                  style:
-                  const TextStyle(color: Colors.white, fontSize: 12)),
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _sectionTitle(String t) => Text(t,
       style: const TextStyle(
@@ -511,19 +472,24 @@ class FilmDetailPage extends ConsumerWidget {
           letterSpacing: 1.2));
 
   Widget _badge(String t, Color c) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    padding:
+    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
     decoration: BoxDecoration(
         border: Border.all(color: c),
         borderRadius: BorderRadius.circular(5)),
     child: Text(t,
         style: TextStyle(
-            color: c, fontSize: 10, fontWeight: FontWeight.bold)),
+            color: c,
+            fontSize: 10,
+            fontWeight: FontWeight.bold)),
   );
 
   Widget _info(IconData i, String t) => Row(children: [
     Icon(i, color: AppColors.accent, size: 16),
     const SizedBox(width: 5),
-    Text(t, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+    Text(t,
+        style:
+        const TextStyle(color: Colors.white70, fontSize: 12)),
   ]);
 }
 
@@ -637,12 +603,18 @@ class _StarRatingWidgetState extends ConsumerState<_StarRatingWidget> {
 
   String _labelNote(int note) {
     switch (note) {
-      case 1: return '⭐ Très mauvais';
-      case 2: return '⭐⭐ Mauvais';
-      case 3: return '⭐⭐⭐ Moyen';
-      case 4: return '⭐⭐⭐⭐ Bon';
-      case 5: return '⭐⭐⭐⭐⭐ Excellent !';
-      default: return '';
+      case 1:
+        return '⭐ Très mauvais';
+      case 2:
+        return '⭐⭐ Mauvais';
+      case 3:
+        return '⭐⭐⭐ Moyen';
+      case 4:
+        return '⭐⭐⭐⭐ Bon';
+      case 5:
+        return '⭐⭐⭐⭐⭐ Excellent !';
+      default:
+        return '';
     }
   }
 }

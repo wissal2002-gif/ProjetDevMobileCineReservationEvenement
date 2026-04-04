@@ -159,8 +159,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                     Icon(Icons.lock, color: Colors.white38, size: 14),
                     SizedBox(width: 4),
                     Text('Paiement sécurisé SSL',
-                        style:
-                        TextStyle(color: Colors.white38, fontSize: 12)),
+                        style: TextStyle(
+                            color: Colors.white38, fontSize: 12)),
                   ]),
                 ),
                 const SizedBox(height: 20),
@@ -196,7 +196,6 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
             const SizedBox(height: 8),
             Text('${panier.nombreSieges} siège(s)',
                 style: const TextStyle(color: Colors.white70)),
-            // ✅ Afficher les options sélectionnées dans le récap
             if (panier.options.isNotEmpty) ...[
               const SizedBox(height: 4),
               ...panier.options.map((o) => Padding(
@@ -224,8 +223,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                 panier.codePromo!.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text('Code promo : ${panier.codePromo}',
-                  style:
-                  const TextStyle(color: Colors.green, fontSize: 12)),
+                  style: const TextStyle(
+                      color: Colors.green, fontSize: 12)),
             ],
             const Divider(color: Colors.white12, height: 20),
             Row(
@@ -233,7 +232,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                 children: [
                   const Text('TOTAL',
                       style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
                   Text('${panier.total.toStringAsFixed(2)} MAD',
                       style: const TextStyle(
                           color: AppColors.accent,
@@ -252,8 +252,9 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color:
-          sel ? AppColors.accent.withOpacity(0.15) : AppColors.cardBg,
+          color: sel
+              ? AppColors.accent.withOpacity(0.15)
+              : AppColors.cardBg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
               color: sel ? AppColors.accent : AppColors.divider,
@@ -261,7 +262,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         ),
         child: Row(children: [
           Icon(m['icon'] as IconData,
-              color: sel ? AppColors.accent : Colors.white54, size: 24),
+              color: sel ? AppColors.accent : Colors.white54,
+              size: 24),
           const SizedBox(width: 14),
           Text(m['label'] as String,
               style: TextStyle(
@@ -283,97 +285,102 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
       decoration: BoxDecoration(
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.accent.withOpacity(0.4)),
+        border:
+        Border.all(color: AppColors.accent.withOpacity(0.4)),
       ),
-      child:
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Icon(Icons.credit_card,
-              color: AppColors.accent, size: 20),
-          const SizedBox(width: 8),
-          const Text('Informations de carte',
-              style: TextStyle(
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13)),
-          const Spacer(),
-          Row(children: [
-            _cardLogo('VISA'),
-            const SizedBox(width: 6),
-            _cardLogo('MC'),
-          ]),
-        ]),
-        const SizedBox(height: 20),
-        _buildField(
-          controller: _carteCtrl,
-          label: 'Numéro de carte',
-          hint: '0000 0000 0000 0000',
-          icon: Icons.credit_card,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            _CardNumberFormatter(),
-          ],
-          maxLength: 19,
-          validator: (v) {
-            if (v == null || v.replaceAll(' ', '').length < 16)
-              return 'Numéro de carte invalide';
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        _buildField(
-          controller: _nomCtrl,
-          label: 'Nom sur la carte',
-          hint: 'PRÉNOM NOM',
-          icon: Icons.person_outline,
-          textCapitalization: TextCapitalization.characters,
-          validator: (v) {
-            if (v == null || v.trim().length < 3) return 'Nom requis';
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        Row(children: [
-          Expanded(
-            child: _buildField(
-              controller: _expiryCtrl,
-              label: 'Date d\'expiration',
-              hint: 'MM/AA',
-              icon: Icons.calendar_today_outlined,
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Icon(Icons.credit_card,
+                  color: AppColors.accent, size: 20),
+              const SizedBox(width: 8),
+              const Text('Informations de carte',
+                  style: TextStyle(
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13)),
+              const Spacer(),
+              Row(children: [
+                _cardLogo('VISA'),
+                const SizedBox(width: 6),
+                _cardLogo('MC'),
+              ]),
+            ]),
+            const SizedBox(height: 20),
+            _buildField(
+              controller: _carteCtrl,
+              label: 'Numéro de carte',
+              hint: '0000 0000 0000 0000',
+              icon: Icons.credit_card,
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
-                _ExpiryFormatter(),
+                _CardNumberFormatter(),
               ],
-              maxLength: 5,
+              maxLength: 19,
               validator: (v) {
-                if (v == null || v.length < 5) return 'Date invalide';
+                if (v == null || v.replaceAll(' ', '').length < 16)
+                  return 'Numéro de carte invalide';
                 return null;
               },
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildField(
-              controller: _cvvCtrl,
-              label: 'CVV',
-              hint: '•••',
-              icon: Icons.lock_outline,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly
-              ],
-              maxLength: 3,
-              obscureText: true,
+            const SizedBox(height: 16),
+            _buildField(
+              controller: _nomCtrl,
+              label: 'Nom sur la carte',
+              hint: 'PRÉNOM NOM',
+              icon: Icons.person_outline,
+              textCapitalization: TextCapitalization.characters,
               validator: (v) {
-                if (v == null || v.length < 3) return 'CVV invalide';
+                if (v == null || v.trim().length < 3)
+                  return 'Nom requis';
                 return null;
               },
             ),
-          ),
-        ]),
-      ]),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(
+                child: _buildField(
+                  controller: _expiryCtrl,
+                  label: 'Date d\'expiration',
+                  hint: 'MM/AA',
+                  icon: Icons.calendar_today_outlined,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    _ExpiryFormatter(),
+                  ],
+                  maxLength: 5,
+                  validator: (v) {
+                    if (v == null || v.length < 5)
+                      return 'Date invalide';
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildField(
+                  controller: _cvvCtrl,
+                  label: 'CVV',
+                  hint: '•••',
+                  icon: Icons.lock_outline,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  maxLength: 3,
+                  obscureText: true,
+                  validator: (v) {
+                    if (v == null || v.length < 3)
+                      return 'CVV invalide';
+                    return null;
+                  },
+                ),
+              ),
+            ]),
+          ]),
     );
   }
 
@@ -386,61 +393,62 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         border: Border.all(
             color: const Color(0xFF0070BA).withOpacity(0.5)),
       ),
-      child:
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(
-            padding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0070BA),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Text('PayPal',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14)),
-          ),
-          const SizedBox(width: 12),
-          const Text('Connexion à votre compte',
-              style:
-              TextStyle(color: AppColors.textLight, fontSize: 13)),
-        ]),
-        const SizedBox(height: 20),
-        _buildField(
-          controller: _emailCtrl,
-          label: 'Email PayPal',
-          hint: 'exemple@email.com',
-          icon: Icons.email_outlined,
-          keyboardType: TextInputType.emailAddress,
-          validator: (v) {
-            if (v == null || !v.contains('@'))
-              return 'Email invalide';
-            return null;
-          },
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0070BA).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Row(children: [
-            Icon(Icons.info_outline,
-                color: Color(0xFF0070BA), size: 16),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Vous serez redirigé vers PayPal pour confirmer le paiement.',
-                style:
-                TextStyle(color: Colors.white70, fontSize: 12),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0070BA),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('PayPal',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14)),
               ),
+              const SizedBox(width: 12),
+              const Text('Connexion à votre compte',
+                  style: TextStyle(
+                      color: AppColors.textLight, fontSize: 13)),
+            ]),
+            const SizedBox(height: 20),
+            _buildField(
+              controller: _emailCtrl,
+              label: 'Email PayPal',
+              hint: 'exemple@email.com',
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+              validator: (v) {
+                if (v == null || !v.contains('@'))
+                  return 'Email invalide';
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0070BA).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(children: [
+                Icon(Icons.info_outline,
+                    color: Color(0xFF0070BA), size: 16),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Vous serez redirigé vers PayPal pour confirmer le paiement.',
+                    style: TextStyle(
+                        color: Colors.white70, fontSize: 12),
+                  ),
+                ),
+              ]),
             ),
           ]),
-        ),
-      ]),
     );
   }
 
@@ -450,7 +458,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
       decoration: BoxDecoration(
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.green.withOpacity(0.4)),
+        border:
+        Border.all(color: Colors.green.withOpacity(0.4)),
       ),
       child: Column(children: [
         const Icon(Icons.store, color: Colors.green, size: 40),
@@ -465,12 +474,14 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           'Votre réservation sera confirmée. Présentez-vous à la caisse 30 minutes avant la séance pour régler.',
           textAlign: TextAlign.center,
           style: TextStyle(
-              color: AppColors.textLight, fontSize: 13, height: 1.5),
+              color: AppColors.textLight,
+              fontSize: 13,
+              height: 1.5),
         ),
         const SizedBox(height: 12),
         Container(
-          padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(
+              horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.green.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
@@ -479,7 +490,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           ),
           child: const Text(
               'Réservation gratuite — paiement sur place',
-              style: TextStyle(color: Colors.green, fontSize: 12)),
+              style:
+              TextStyle(color: Colors.green, fontSize: 12)),
         ),
       ]),
     );
@@ -521,8 +533,8 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-          const BorderSide(color: AppColors.accent, width: 1.5),
+          borderSide: const BorderSide(
+              color: AppColors.accent, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -530,16 +542,16 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-          const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: const BorderSide(
+              color: AppColors.error, width: 1.5),
         ),
       ),
     );
   }
 
   Widget _cardLogo(String label) => Container(
-    padding:
-    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    padding: const EdgeInsets.symmetric(
+        horizontal: 8, vertical: 3),
     decoration: BoxDecoration(
       color: Colors.white10,
       borderRadius: BorderRadius.circular(4),
@@ -565,28 +577,62 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
       final nav = ref.read(navigationProvider);
       final isEvenement = nav.evenement != null;
 
-      // ✅ FIX 1 : Lire options depuis panierProvider
-      // Répéter chaque id selon sa quantité
+      // Options : répéter chaque id selon sa quantité
       final optionsIds = panier.options
           .expand((o) => List.filled(o.quantite, o.id))
           .toList();
 
-      print('💰 Sièges: ${panier.sieges.map((s) => s.siege.id).toList()}');
-      print('💰 Options IDs: $optionsIds');
-      print('💰 CodePromo ID: ${panier.codePromoId}');
-      print('💰 Total: ${panier.total}');
+      // Envoyer le tarif et prix de chaque siège
+      final siegeTarifs =
+      panier.sieges.map((s) => s.typeBillet).toList();
+      final siegePrix = panier.sieges.map((s) => s.prix).toList();
 
       final reservation = await ds.creerReservation(
         seanceId: isEvenement ? null : nav.seance?.id,
         evenementId: isEvenement ? nav.evenement!.id : null,
         montantTotal: panier.total,
         siegeIds: panier.sieges.map((s) => s.siege.id!).toList(),
-        optionsIds: optionsIds.isEmpty ? null : optionsIds, // ✅ FIX 1
-        codePromoId: panier.codePromoId, // ✅ FIX 3
+        siegeTarifs: siegeTarifs,
+        siegePrix: siegePrix,
+        optionsIds: optionsIds.isEmpty ? null : optionsIds,
+        codePromoId: panier.codePromoId,
       );
 
+      // ✅ FIX : message clair si un siège est déjà occupé
       if (reservation == null) {
-        throw Exception('Erreur lors de la création de la réservation');
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppColors.cardBg,
+              title: const Row(children: [
+                Icon(Icons.event_seat, color: Colors.red, size: 24),
+                SizedBox(width: 10),
+                Text('Siège indisponible',
+                    style: TextStyle(color: Colors.white)),
+              ]),
+              content: const Text(
+                'Un ou plusieurs sièges que vous avez sélectionnés viennent d\'être réservés par quelqu\'un d\'autre.\n\nVeuillez retourner et choisir d\'autres sièges.',
+                style: TextStyle(color: Colors.white70, height: 1.5),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    // Vider le panier et retourner à la sélection des sièges
+                    ref.read(panierProvider.notifier).vider();
+                    context.pop(); // quitte paiement
+                    context.pop(); // quitte panier
+                  },
+                  child: const Text('CHOISIR D\'AUTRES SIÈGES',
+                      style: TextStyle(color: AppColors.accent)),
+                ),
+              ],
+            ),
+          );
+        }
+        setState(() => _chargement = false);
+        return;
       }
 
       await Future.delayed(const Duration(milliseconds: 800));
@@ -617,7 +663,6 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         });
       }
     } catch (e) {
-      print('❌ Erreur paiement: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Erreur: $e'),
