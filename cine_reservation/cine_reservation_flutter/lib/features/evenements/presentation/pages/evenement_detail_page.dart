@@ -19,13 +19,50 @@ class EvenementDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final eventAsync = ref.watch(evenementsProvider);
     final cinemasAsync = ref.watch(allCinemasProvider);
+    final sallesAsync = ref.watch(allSallesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: eventAsync.when(
         data: (events) {
           final event = events.firstWhere((e) => e.id == evenementId);
-          return _buildContent(context, ref, event, cinemasAsync);
+
+          // ✅ FIX : utiliser .value directement pour avoir les données
+          // même si le provider est déjà chargé (évite le problème de whenData)
+          final salles = sallesAsync.value ?? [];
+          final cinemas = cinemasAsync.value ?? [];
+
+          // Récupérer le vrai salleId depuis la liste des salles
+          int salleId = 0;
+          String cinemaInfo = event.lieu ?? "Lieu non spécifié";
+
+          if (event.cinemaId != null && salles.isNotEmpty) {
+            try {
+              final salle =
+              salles.firstWhere((s) => s.cinemaId == event.cinemaId);
+              salleId = salle.id ?? 0;
+            } catch (_) {}
+          }
+
+          if (event.cinemaId != null && cinemas.isNotEmpty) {
+            try {
+              final cinema =
+              cinemas.firstWhere((c) => c.id == event.cinemaId);
+              cinemaInfo = "${cinema.nom} (${cinema.ville})";
+            } catch (_) {}
+          }
+
+          // Si salles pas encore chargées, afficher un loader
+          if (event.cinemaId != null &&
+              salleId == 0 &&
+              sallesAsync.isLoading) {
+            return const Center(
+                child:
+                CircularProgressIndicator(color: AppColors.accent));
+          }
+
+          return _buildContent(
+              context, ref, event, cinemaInfo, salleId);
         },
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.accent)),
@@ -36,20 +73,15 @@ class EvenementDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, Evenement event,
-      AsyncValue<List<Cinema>> cinemasAsync) {
+  Widget _buildContent(
+      BuildContext context,
+      WidgetRef ref,
+      Evenement event,
+      String cinemaInfo,
+      int salleId,
+      ) {
     final dateFormat = DateFormat('EEEE d MMMM yyyy', 'fr_FR');
     final timeFormat = DateFormat('HH:mm');
-
-    String cinemaInfo = event.lieu ?? "Lieu non spécifié";
-
-    cinemasAsync.whenData((cinemas) {
-      if (event.cinemaId != null) {
-        final cinema = cinemas.firstWhere((c) => c.id == event.cinemaId,
-            orElse: () => cinemas.first);
-        cinemaInfo = "${cinema.nom} (${cinema.ville})";
-      }
-    });
 
     return CustomScrollView(
       slivers: [
@@ -123,14 +155,6 @@ class EvenementDetailPage extends ConsumerWidget {
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: Colors.white)),
-                const SizedBox(height: 10),
-                Row(children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 20),
-                  const SizedBox(width: 5),
-                  Text(
-                      "${event.noteMoyenne ?? 0.0} (${event.nombreAvis ?? 0} avis)",
-                      style: const TextStyle(color: AppColors.textLight)),
-                ]),
                 const SizedBox(height: 30),
                 _buildInfoSection(
                     Icons.calendar_today,
@@ -151,13 +175,15 @@ class EvenementDetailPage extends ConsumerWidget {
                         color: AppColors.accent,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
-                Text(event.description ?? "Pas de description disponible.",
+                Text(
+                    event.description ??
+                        "Pas de description disponible.",
                     style: const TextStyle(
                         color: Colors.white70, height: 1.6)),
                 const SizedBox(height: 30),
                 _buildStatusSection(event),
                 const SizedBox(height: 40),
-                _buildPriceAndBooking(context, ref, event),
+                _buildPriceAndBooking(context, ref, event, salleId),
                 const SizedBox(height: 30),
               ],
             ),
@@ -168,58 +194,106 @@ class EvenementDetailPage extends ConsumerWidget {
   }
 
   Widget _buildPriceAndBooking(
-      BuildContext context, WidgetRef ref, Evenement event) {
+      BuildContext context,
+      WidgetRef ref,
+      Evenement event,
+      int salleId,
+      ) {
     final bool isFull = (event.placesDisponibles ?? 0) <= 0;
+    final bool hasPrixVip = (event.prixVip ?? 0) > 0;
+    final bool hasPrixReduit = (event.prixReduit ?? 0) > 0;
+    final bool hasPrixSenior = (event.prixSenior ?? 0) > 0;
+    final bool hasPrixEnfant = (event.prixEnfant ?? 0) > 0;
+    final bool hasMultiplePrix =
+        hasPrixVip || hasPrixReduit || hasPrixSenior || hasPrixEnfant;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-            colors: [
-              AppColors.accent.withOpacity(0.2),
-              AppColors.background
-            ]),
+        gradient: LinearGradient(colors: [
+          AppColors.accent.withOpacity(0.2),
+          AppColors.background
+        ]),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("PRIX PAR PLACE",
-                        style: TextStyle(
-                            color: AppColors.textLight, fontSize: 10)),
-                    Text("${event.prix ?? 0.0} MAD",
-                        style: const TextStyle(
-                            color: AppColors.accent,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold)),
-                  ]),
-              if (!isFull)
-                Text(
-                  "${event.placesDisponibles ?? 0} places restantes",
-                  style: TextStyle(
-                    color: (event.placesDisponibles ?? 0) < 10
-                        ? Colors.orange
-                        : Colors.green,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+          if (hasMultiplePrix) ...[
+            const Text("PRIX PAR TYPE",
+                style: TextStyle(
+                    color: AppColors.textLight,
+                    fontSize: 10,
+                    letterSpacing: 1.5)),
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _prixChip('Normal', event.prix ?? 0, AppColors.accent),
+                  if (hasPrixVip)
+                    _prixChip('VIP', event.prixVip!, Colors.purple),
+                  if (hasPrixReduit)
+                    _prixChip('Réduit', event.prixReduit!, Colors.blue),
+                  if (hasPrixSenior)
+                    _prixChip('Senior', event.prixSenior!, Colors.orange),
+                  if (hasPrixEnfant)
+                    _prixChip('Enfant', event.prixEnfant!, Colors.green),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (!isFull)
+              Text(
+                "${event.placesDisponibles ?? 0} places restantes",
+                style: TextStyle(
+                  color: (event.placesDisponibles ?? 0) < 10
+                      ? Colors.orange
+                      : Colors.green,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
                 ),
-            ],
-          ),
-          const SizedBox(height: 20),
+              ),
+            const SizedBox(height: 16),
+          ] else ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("PRIX PAR PLACE",
+                          style: TextStyle(
+                              color: AppColors.textLight, fontSize: 10)),
+                      Text("${event.prix ?? 0.0} MAD",
+                          style: const TextStyle(
+                              color: AppColors.accent,
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold)),
+                    ]),
+                if (!isFull)
+                  Text(
+                    "${event.placesDisponibles ?? 0} places restantes",
+                    style: TextStyle(
+                      color: (event.placesDisponibles ?? 0) < 10
+                          ? Colors.orange
+                          : Colors.green,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: isFull
                   ? null
-                  : () => _showReservationDialog(context, ref, event),
+                  : () => _showReservationDialog(
+                  context, ref, event, salleId),
               icon: const Icon(Icons.confirmation_number_outlined),
               label: Text(
                 isFull ? "COMPLET" : "RÉSERVER",
@@ -240,17 +314,79 @@ class EvenementDetailPage extends ConsumerWidget {
     );
   }
 
+  Widget _prixChip(String label, double prix, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Column(
+        children: [
+          Text(label,
+              style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold)),
+          const SizedBox(height: 2),
+          Text('${prix.toStringAsFixed(0)} MAD',
+              style: TextStyle(
+                  color: color,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
   void _showReservationDialog(
-      BuildContext context, WidgetRef ref, Evenement event) {
+      BuildContext context,
+      WidgetRef ref,
+      Evenement event,
+      int salleId,
+      ) {
+    // ✅ FIX : événement cinéma → seat_selection avec le bon salleId
+    final isCinemaEvent = event.cinemaId != null && salleId > 0;
+
+    if (isCinemaEvent) {
+      ref.read(navigationProvider.notifier).setContext(
+        seance: null,
+        evenement: event,
+        filmTitre: event.titre,
+        salleId: salleId, // ✅ vrai salleId
+        cinemaId: event.cinemaId,
+      );
+      ref.read(panierProvider.notifier).vider();
+      context.push('/seat-selection');
+      return;
+    }
+
+    // Événement externe → dialog
     int nbPlaces = 1;
     final maxPlaces = event.placesDisponibles ?? 1;
-    final prix = event.prix ?? 0.0;
+
+    final tarifs = <_TarifOption>[
+      _TarifOption('normal', 'Normal', event.prix ?? 0, AppColors.accent),
+      if ((event.prixVip ?? 0) > 0)
+        _TarifOption('vip', 'VIP', event.prixVip!, Colors.purple),
+      if ((event.prixReduit ?? 0) > 0)
+        _TarifOption('reduit', 'Réduit', event.prixReduit!, Colors.blue),
+      if ((event.prixSenior ?? 0) > 0)
+        _TarifOption('senior', 'Senior', event.prixSenior!, Colors.orange),
+      if ((event.prixEnfant ?? 0) > 0)
+        _TarifOption('enfant', 'Enfant', event.prixEnfant!, Colors.green),
+    ];
+
+    String tarifSelectionne = 'normal';
+    double prixSelectionne = event.prix ?? 0;
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
-          final total = nbPlaces * prix;
+          final total = nbPlaces * prixSelectionne;
           return AlertDialog(
             backgroundColor: AppColors.cardBg,
             shape: RoundedRectangleBorder(
@@ -260,7 +396,8 @@ class EvenementDetailPage extends ConsumerWidget {
               children: [
                 const Text('Réserver',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold)),
                 Text(event.titre,
                     style: const TextStyle(
                         color: AppColors.accent, fontSize: 13),
@@ -268,81 +405,139 @@ class EvenementDetailPage extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis),
               ],
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Nombre de places :',
-                    style: TextStyle(color: AppColors.textLight)),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: nbPlaces > 1
-                          ? () => setDialogState(() => nbPlaces--)
-                          : null,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: nbPlaces > 1
-                              ? AppColors.accent
-                              : AppColors.divider,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.remove,
-                            color: Colors.white, size: 20),
-                      ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (tarifs.length > 1) ...[
+                    const Text('Type de tarif :',
+                        style: TextStyle(
+                            color: AppColors.textLight, fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: tarifs.map((t) {
+                        final sel = tarifSelectionne == t.key;
+                        return GestureDetector(
+                          onTap: () => setDialogState(() {
+                            tarifSelectionne = t.key;
+                            prixSelectionne = t.prix;
+                          }),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: sel
+                                  ? t.color.withOpacity(0.2)
+                                  : AppColors.background,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: sel ? t.color : AppColors.divider,
+                                width: sel ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(t.label,
+                                    style: TextStyle(
+                                        color: sel
+                                            ? t.color
+                                            : Colors.white70,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold)),
+                                Text(
+                                    '${t.prix.toStringAsFixed(0)} MAD',
+                                    style: TextStyle(
+                                        color: sel
+                                            ? t.color
+                                            : Colors.white54,
+                                        fontSize: 11)),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
-                    const SizedBox(width: 20),
-                    Text('$nbPlaces',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 20),
-                    GestureDetector(
-                      onTap: nbPlaces < maxPlaces
-                          ? () => setDialogState(() => nbPlaces++)
-                          : null,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: nbPlaces < maxPlaces
-                              ? AppColors.accent
-                              : AppColors.divider,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.add,
-                            color: Colors.white, size: 20),
-                      ),
-                    ),
+                    const SizedBox(height: 16),
                   ],
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.divider),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  const Text('Nombre de places :',
+                      style: TextStyle(color: AppColors.textLight)),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('$nbPlaces × ${prix.toStringAsFixed(0)} MAD',
+                      GestureDetector(
+                        onTap: nbPlaces > 1
+                            ? () => setDialogState(() => nbPlaces--)
+                            : null,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: nbPlaces > 1
+                                ? AppColors.accent
+                                : AppColors.divider,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.remove,
+                              color: Colors.white, size: 20),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Text('$nbPlaces',
                           style: const TextStyle(
-                              color: AppColors.textLight, fontSize: 13)),
-                      Text('${total.toStringAsFixed(2)} MAD',
-                          style: const TextStyle(
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16)),
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 20),
+                      GestureDetector(
+                        onTap: nbPlaces < maxPlaces
+                            ? () => setDialogState(() => nbPlaces++)
+                            : null,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: nbPlaces < maxPlaces
+                                ? AppColors.accent
+                                : AppColors.divider,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.add,
+                              color: Colors.white, size: 20),
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.divider),
+                    ),
+                    child: Row(
+                      mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                            '$nbPlaces × ${prixSelectionne.toStringAsFixed(0)} MAD',
+                            style: const TextStyle(
+                                color: AppColors.textLight,
+                                fontSize: 13)),
+                        Text('${total.toStringAsFixed(2)} MAD',
+                            style: const TextStyle(
+                                color: AppColors.accent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -353,8 +548,8 @@ class EvenementDetailPage extends ConsumerWidget {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  _naviguerVersPanier(
-                      context, ref, event, nbPlaces, prix);
+                  _naviguerVersPanierExterne(context, ref, event,
+                      nbPlaces, prixSelectionne, tarifSelectionne);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
@@ -372,29 +567,24 @@ class EvenementDetailPage extends ConsumerWidget {
     );
   }
 
-  void _naviguerVersPanier(BuildContext context, WidgetRef ref,
-      Evenement event, int nbPlaces, double prixUnitaire) {
-    // 1. D'abord, mettre à jour le navigation provider
+  void _naviguerVersPanierExterne(
+      BuildContext context,
+      WidgetRef ref,
+      Evenement event,
+      int nbPlaces,
+      double prixUnitaire,
+      String typeTarif,
+      ) {
     ref.read(navigationProvider.notifier).setContext(
       seance: null,
       evenement: event,
       filmTitre: event.titre,
-      salleId: event.cinemaId ?? 0,
+      salleId: 0,
+      cinemaId: null,
     );
 
-    // 2. Ensuite, vider le panier
     ref.read(panierProvider.notifier).vider();
 
-    // 3. Vérifier si c'est un événement dans un cinéma (avec salle)
-    final isCinemaEvent = event.cinemaId != null && (event.cinemaId ?? 0) > 0;
-
-    if (isCinemaEvent) {
-      // Pour événement cinéma, naviguer vers sélection des sièges
-      context.push('/seat-selection');
-      return;
-    }
-
-    // Pour événement externe, créer des sièges virtuels
     for (int i = 0; i < nbPlaces; i++) {
       ref.read(panierProvider.notifier).ajouterSiege(
         SiegeSelectionne(
@@ -405,18 +595,18 @@ class EvenementDetailPage extends ConsumerWidget {
             rangee: 'EXT',
             type: 'standard',
           ),
-          typeBillet: 'evenement',
+          typeBillet: typeTarif,
           prix: prixUnitaire,
         ),
       );
     }
 
-    // 4. Naviguer vers le panier
     context.push('/panier');
   }
 
   Widget _buildTypeBadge(String type) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    padding:
+    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     decoration: BoxDecoration(
         color: Colors.pink.withOpacity(0.2),
         borderRadius: BorderRadius.circular(20),
@@ -431,7 +621,8 @@ class EvenementDetailPage extends ConsumerWidget {
   Widget _buildCancelBadge(String text, {required bool isFree}) {
     final color = isFree ? Colors.green : Colors.orange;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding:
+      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
           color: color.withOpacity(0.2),
           borderRadius: BorderRadius.circular(20),
@@ -444,7 +635,8 @@ class EvenementDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoSection(IconData icon, String title, String value) =>
+  Widget _buildInfoSection(
+      IconData icon, String title, String value) =>
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(children: [
@@ -477,8 +669,8 @@ class EvenementDetailPage extends ConsumerWidget {
       children: [
         _buildStatItem(Icons.event_seat,
             "${event.placesDisponibles ?? 0}", "Places dispo"),
-        _buildStatItem(
-            Icons.groups, "${event.placesTotales ?? 0}", "Capacité"),
+        _buildStatItem(Icons.groups,
+            "${event.placesTotales ?? 0}", "Capacité"),
         _buildStatItem(
           Icons.money_off,
           event.annulationGratuite == true
@@ -490,7 +682,8 @@ class EvenementDetailPage extends ConsumerWidget {
     ),
   );
 
-  Widget _buildStatItem(IconData icon, String value, String label) =>
+  Widget _buildStatItem(
+      IconData icon, String value, String label) =>
       Column(
         children: [
           Icon(icon, color: AppColors.accent, size: 20),
@@ -503,4 +696,12 @@ class EvenementDetailPage extends ConsumerWidget {
                   color: AppColors.textLight, fontSize: 10)),
         ],
       );
+}
+
+class _TarifOption {
+  final String key;
+  final String label;
+  final double prix;
+  final Color color;
+  const _TarifOption(this.key, this.label, this.prix, this.color);
 }

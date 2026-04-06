@@ -29,8 +29,8 @@ class ReservationEndpoint extends Endpoint {
     final isEvenement = evenementId != null && seanceId == null;
     final validSiegeIds = siegeIds.where((id) => id > 0).toList();
 
-    // Gestion des sièges déjà réservés
-    if (!isEvenement && validSiegeIds.isNotEmpty) {
+    // ✅ FIX 1 : vérification conflits pour SÉANCES ET ÉVÉNEMENTS
+    if (validSiegeIds.isNotEmpty) {
       final siegeIdsSet = validSiegeIds.toSet();
 
       final reservationsExistantes = await ReservationSiege.db.find(
@@ -44,6 +44,13 @@ class ReservationEndpoint extends Endpoint {
           rs.reservationId,
         );
         if (reservationExistante == null) continue;
+
+        // Filtrer : vérifier que la réservation existante concerne
+        // le MÊME événement ou la MÊME séance
+        final memeContexte = isEvenement
+            ? reservationExistante.evenementId == evenementId
+            : reservationExistante.seanceId == seanceId;
+        if (!memeContexte) continue;
 
         // Réservation "en_attente" du MÊME utilisateur → annuler
         if (reservationExistante.statut == 'en_attente' &&
@@ -65,8 +72,7 @@ class ReservationEndpoint extends Endpoint {
           }
         }
 
-        // ✅ FIX : siège déjà confirmé → retourner null proprement
-        // sans throw Exception (évite le 500 côté client)
+        // ✅ Siège déjà confirmé → retourner null proprement
         if (reservationExistante.statut != 'annule' &&
             reservationExistante.statut != 'rembourse' &&
             reservationExistante.statut != 'en_attente') {
@@ -75,7 +81,7 @@ class ReservationEndpoint extends Endpoint {
       }
     }
 
-    // Récupérer le cinemaId si c'est une séance
+    // ✅ FIX 2 : récupérer le cinemaId pour séance ET événement
     int? cinemaId;
     if (seanceId != null) {
       final seance = await Seance.db.findById(session, seanceId);
@@ -83,6 +89,9 @@ class ReservationEndpoint extends Endpoint {
         final salle = await Salle.db.findById(session, seance.salleId);
         cinemaId = salle?.cinemaId;
       }
+    } else if (evenementId != null) {
+      final evenement = await Evenement.db.findById(session, evenementId);
+      cinemaId = evenement?.cinemaId;
     }
 
     // Valider le code promo et calculer réduction
@@ -118,8 +127,9 @@ class ReservationEndpoint extends Endpoint {
     final newReservation =
     await Reservation.db.insertRow(session, reservation);
 
-    // Ajouter les sièges AVEC typeTarif et prix
-    if (!isEvenement && validSiegeIds.isNotEmpty) {
+    // ✅ FIX 3 : insérer les sièges pour SÉANCES ET ÉVÉNEMENTS
+    // (suppression de !isEvenement qui bloquait les événements)
+    if (validSiegeIds.isNotEmpty) {
       for (int i = 0; i < validSiegeIds.length; i++) {
         final siegeId = validSiegeIds[i];
 
@@ -129,16 +139,48 @@ class ReservationEndpoint extends Endpoint {
 
         double? prix;
         if (siegePrix != null && i < siegePrix.length) {
+          // Prix fourni directement par le client (cas normal)
           prix = siegePrix[i];
         } else if (seanceId != null) {
+          // Fallback : calculer depuis la séance
           final seance = await Seance.db.findById(session, seanceId);
           if (seance != null) {
             switch (typeTarif) {
-              case 'reduit': prix = seance.prixReduit ?? seance.prixNormal; break;
-              case 'enfant': prix = seance.prixEnfant ?? seance.prixNormal; break;
-              case 'senior': prix = seance.prixSenior ?? seance.prixNormal; break;
-              case 'vip':    prix = seance.prixVip ?? seance.prixNormal; break;
-              default:       prix = seance.prixNormal;
+              case 'reduit':
+                prix = seance.prixReduit ?? seance.prixNormal;
+                break;
+              case 'enfant':
+                prix = seance.prixEnfant ?? seance.prixNormal;
+                break;
+              case 'senior':
+                prix = seance.prixSenior ?? seance.prixNormal;
+                break;
+              case 'vip':
+                prix = seance.prixVip ?? seance.prixNormal;
+                break;
+              default:
+                prix = seance.prixNormal;
+            }
+          }
+        } else if (evenementId != null) {
+          // ✅ FIX 4 : fallback prix depuis l'événement si non fourni
+          final evenement = await Evenement.db.findById(session, evenementId);
+          if (evenement != null) {
+            switch (typeTarif) {
+              case 'vip':
+                prix = evenement.prixVip ?? evenement.prix;
+                break;
+              case 'reduit':
+                prix = evenement.prixReduit ?? evenement.prix;
+                break;
+              case 'senior':
+                prix = evenement.prixSenior ?? evenement.prix;
+                break;
+              case 'enfant':
+                prix = evenement.prixEnfant ?? evenement.prix;
+                break;
+              default:
+                prix = evenement.prix;
             }
           }
         }
@@ -235,7 +277,20 @@ class ReservationEndpoint extends Endpoint {
 
     if (reservations.isEmpty) return [];
 
-    final reservationIdsSet = reservations.map((r) => r.id!).toSet();
+    // ✅ Filtrer les "en_attente" expirées (+15 min)
+    final now = DateTime.now().toUtc();
+    final reservationsValides = reservations.where((r) {
+      if (r.statut == 'en_attente') {
+        final diff = now.difference(r.dateReservation);
+        return diff.inMinutes < 15;
+      }
+      return true;
+    }).toList();
+
+    if (reservationsValides.isEmpty) return [];
+
+    final reservationIdsSet =
+    reservationsValides.map((r) => r.id!).toSet();
 
     final siegeRelations = await ReservationSiege.db.find(
       session,

@@ -11,10 +11,9 @@ class SiegesEndpoint extends Endpoint {
     );
   }
 
-  // Récupérer les sièges occupés pour une séance
+  // Sièges occupés pour une séance
   Future<List<int>> getSiegesReservesBySeance(
       Session session, int seanceId) async {
-    // 1. Récupérer toutes les réservations non annulées pour cette séance
     final reservations = await Reservation.db.find(
       session,
       where: (r) =>
@@ -25,15 +24,14 @@ class SiegesEndpoint extends Endpoint {
 
     if (reservations.isEmpty) return [];
 
-    // 2. ✅ FIX : filtrer les "en_attente" expirées (+15 min)
-    // Les "confirmee" passent toujours → siège bien rouge
+    // Filtrer les "en_attente" expirées (+15 min)
     final now = DateTime.now().toUtc();
     final reservationsValides = reservations.where((r) {
       if (r.statut == 'en_attente') {
         final diff = now.difference(r.dateReservation);
-        return diff.inMinutes < 15; // garder seulement les récentes
+        return diff.inMinutes < 15;
       }
-      return true; // confirmee, remboursement_demande → toujours occupé
+      return true;
     }).toList();
 
     if (reservationsValides.isEmpty) return [];
@@ -41,7 +39,6 @@ class SiegesEndpoint extends Endpoint {
     final reservationIds =
     reservationsValides.map((r) => r.id!).toSet();
 
-    // 3. Récupérer les sièges liés à ces réservations
     final siegeRelations = await ReservationSiege.db.find(
       session,
       where: (rs) => rs.reservationId.inSet(reservationIds),
@@ -50,7 +47,8 @@ class SiegesEndpoint extends Endpoint {
     return siegeRelations.map((rs) => rs.siegeId).toList();
   }
 
-  // Récupérer les sièges occupés pour un événement
+  // Sièges occupés pour un événement
+  // — filtre les en_attente expirées comme pour les séances
   Future<List<int>> getSiegesReservesByEvenement(
       Session session, int evenementId) async {
     final reservations = await Reservation.db.find(
@@ -63,7 +61,20 @@ class SiegesEndpoint extends Endpoint {
 
     if (reservations.isEmpty) return [];
 
-    final reservationIds = reservations.map((r) => r.id!).toSet();
+    // Filtrer les "en_attente" expirées (+15 min)
+    final now = DateTime.now().toUtc();
+    final reservationsValides = reservations.where((r) {
+      if (r.statut == 'en_attente') {
+        final diff = now.difference(r.dateReservation);
+        return diff.inMinutes < 15;
+      }
+      return true; // confirmee → toujours occupé
+    }).toList();
+
+    if (reservationsValides.isEmpty) return [];
+
+    final reservationIds =
+    reservationsValides.map((r) => r.id!).toSet();
 
     final siegeRelations = await ReservationSiege.db.find(
       session,

@@ -36,12 +36,10 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // ✅ FIX 1 : rafraîchir immédiatement au chargement
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _rafraichirSieges();
     });
 
-    // ✅ FIX 2 : rafraîchir toutes les 5 secondes (au lieu de 15)
     _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (mounted) _rafraichirSieges();
     });
@@ -49,7 +47,6 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // ✅ FIX 3 : rafraîchir quand l'utilisateur revient sur l'app
     if (state == AppLifecycleState.resumed) {
       _rafraichirSieges();
     }
@@ -71,37 +68,83 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
     super.dispose();
   }
 
+  // ✅ FIX : calculer le prix selon le type de tarif
+  // pour séance ET pour événement cinéma
   double getPrixUnitaire(String typeTarif, Siege siege) {
+    // Cas séance cinéma
     final s = widget.seance;
-    if (s == null) return widget.evenement?.prix ?? 0;
-    if (siege.type == 'vip') {
-      return s.prixVip ?? s.prixNormal;
+    if (s != null) {
+      if (siege.type == 'vip') return s.prixVip ?? s.prixNormal;
+      switch (typeTarif) {
+        case 'reduit': return s.prixReduit ?? s.prixNormal;
+        case 'enfant': return s.prixEnfant ?? s.prixNormal;
+        case 'senior': return s.prixSenior ?? s.prixNormal;
+        case 'vip':    return s.prixVip ?? s.prixNormal;
+        default:       return s.prixNormal;
+      }
     }
-    switch (typeTarif) {
-      case 'reduit': return s.prixReduit ?? s.prixNormal;
-      case 'enfant': return s.prixEnfant ?? s.prixNormal;
-      case 'senior': return s.prixSenior ?? s.prixNormal;
-      case 'vip':    return s.prixVip ?? s.prixNormal;
-      default:       return s.prixNormal;
+
+    // Cas événement cinéma avec plusieurs prix
+    final e = widget.evenement;
+    if (e != null) {
+      if (siege.type == 'vip' && (e.prixVip ?? 0) > 0) {
+        return e.prixVip!;
+      }
+      switch (typeTarif) {
+        case 'vip':
+          return (e.prixVip ?? 0) > 0 ? e.prixVip! : (e.prix ?? 0);
+        case 'reduit':
+          return (e.prixReduit ?? 0) > 0 ? e.prixReduit! : (e.prix ?? 0);
+        case 'senior':
+          return (e.prixSenior ?? 0) > 0 ? e.prixSenior! : (e.prix ?? 0);
+        case 'enfant':
+          return (e.prixEnfant ?? 0) > 0 ? e.prixEnfant! : (e.prix ?? 0);
+        default:
+          return e.prix ?? 0;
+      }
     }
+
+    return 0;
   }
 
+  // ✅ FIX : tarifs disponibles pour séance ET événement
   List<_Tarif> get _tarifsDisponibles {
+    // Cas séance
     final s = widget.seance;
-    if (s == null) {
-      return [_Tarif('normal', 'Normal', widget.evenement?.prix ?? 0)];
+    if (s != null) {
+      final list = <_Tarif>[_Tarif('normal', 'Normal', s.prixNormal)];
+      if ((s.prixReduit ?? 0) > 0)
+        list.add(_Tarif('reduit', 'Réduit', s.prixReduit!));
+      if ((s.prixEnfant ?? 0) > 0)
+        list.add(_Tarif('enfant', 'Enfant', s.prixEnfant!));
+      if ((s.prixSenior ?? 0) > 0)
+        list.add(_Tarif('senior', 'Senior', s.prixSenior!));
+      if ((s.prixVip ?? 0) > 0)
+        list.add(_Tarif('vip', 'VIP', s.prixVip!));
+      return list;
     }
-    final list = <_Tarif>[_Tarif('normal', 'Normal', s.prixNormal)];
-    if ((s.prixReduit ?? 0) > 0)
-      list.add(_Tarif('reduit', 'Réduit', s.prixReduit!));
-    if ((s.prixEnfant ?? 0) > 0)
-      list.add(_Tarif('enfant', 'Enfant', s.prixEnfant!));
-    if ((s.prixSenior ?? 0) > 0)
-      list.add(_Tarif('senior', 'Senior', s.prixSenior!));
-    if ((s.prixVip ?? 0) > 0)
-      list.add(_Tarif('vip', 'VIP', s.prixVip!));
-    return list;
+
+    // ✅ FIX : Cas événement cinéma
+    final e = widget.evenement;
+    if (e != null) {
+      final list = <_Tarif>[_Tarif('normal', 'Normal', e.prix ?? 0)];
+      if ((e.prixVip ?? 0) > 0)
+        list.add(_Tarif('vip', 'VIP', e.prixVip!));
+      if ((e.prixReduit ?? 0) > 0)
+        list.add(_Tarif('reduit', 'Réduit', e.prixReduit!));
+      if ((e.prixSenior ?? 0) > 0)
+        list.add(_Tarif('senior', 'Senior', e.prixSenior!));
+      if ((e.prixEnfant ?? 0) > 0)
+        list.add(_Tarif('enfant', 'Enfant', e.prixEnfant!));
+      return list;
+    }
+
+    return [_Tarif('normal', 'Normal', 0)];
   }
+
+  // ✅ FIX : afficher les tarifs pour séance ET événement
+  bool get _afficherTarifs =>
+      widget.seance != null || widget.evenement != null;
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +177,6 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        // ✅ FIX 4 : bouton rafraîchir manuel
         actions: [
           IconButton(
             icon: occupesAsync.isLoading
@@ -185,7 +227,6 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
                       Colors.amber.withOpacity(0.4), 'VIP'),
                 ]),
           ),
-          // ✅ FIX 5 : indicateur de dernière mise à jour
           occupesAsync.when(
             data: (_) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
@@ -224,7 +265,8 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
               ),
             ),
           ),
-          if (widget.seance != null) _buildTarifs(),
+          // ✅ FIX : afficher les tarifs pour séance ET événement
+          if (_afficherTarifs) _buildTarifs(),
           _buildBottomBar(context, panier),
         ],
       ),
@@ -284,8 +326,6 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
                           final selectionne = panier.sieges
                               .any((s) => s.siege.id == siege.id);
 
-                          // ✅ FIX 6 : si le siège est dans le panier
-                          // mais vient d'être occupé → le retirer automatiquement
                           if (occupe && selectionne) {
                             WidgetsBinding.instance
                                 .addPostFrameCallback((_) {
@@ -301,8 +341,8 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
                           final tarifSiege =
                               _tarifParSiege[siege.id!] ??
                                   _typeTarifSelectionne;
-                          return _buildSiege(
-                              siege, occupe, selectionne && !occupe, tarifSiege);
+                          return _buildSiege(siege, occupe,
+                              selectionne && !occupe, tarifSiege);
                         }).toList(),
                       ),
                     ),
@@ -403,6 +443,10 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
   }
 
   Widget _buildTarifs() {
+    final tarifs = _tarifsDisponibles;
+    // Ne pas afficher la section si un seul prix
+    if (tarifs.length <= 1) return const SizedBox();
+
     return Container(
       color: AppColors.cardBg.withOpacity(0.6),
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
@@ -422,7 +466,7 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: _tarifsDisponibles.map((t) {
+              children: tarifs.map((t) {
                 final sel = _typeTarifSelectionne == t.key;
                 Color chipColor;
                 switch (t.key) {
@@ -464,12 +508,9 @@ class _SeatSelectionPageState extends ConsumerState<SeatSelectionPage>
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                             )),
-                        Text(
-                            '${t.prix.toStringAsFixed(0)} MAD',
+                        Text('${t.prix.toStringAsFixed(0)} MAD',
                             style: TextStyle(
-                              color: sel
-                                  ? chipColor
-                                  : AppColors.white,
+                              color: sel ? chipColor : AppColors.white,
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                             )),

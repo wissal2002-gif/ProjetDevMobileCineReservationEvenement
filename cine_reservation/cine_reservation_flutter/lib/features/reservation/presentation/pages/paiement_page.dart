@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../providers/reservation_provider.dart';
 import '../../data/reservation_remote_datasource.dart';
 import '../../../../core/router/navigation_state_provider.dart';
+import '../../../evenements/presentation/providers/evenement_provider.dart';
 
 class _CardNumberFormatter extends TextInputFormatter {
   @override
@@ -577,12 +578,10 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
       final nav = ref.read(navigationProvider);
       final isEvenement = nav.evenement != null;
 
-      // Options : répéter chaque id selon sa quantité
       final optionsIds = panier.options
           .expand((o) => List.filled(o.quantite, o.id))
           .toList();
 
-      // Envoyer le tarif et prix de chaque siège
       final siegeTarifs =
       panier.sieges.map((s) => s.typeBillet).toList();
       final siegePrix = panier.sieges.map((s) => s.prix).toList();
@@ -598,7 +597,7 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         codePromoId: panier.codePromoId,
       );
 
-      // ✅ FIX : message clair si un siège est déjà occupé
+      // Siège déjà occupé
       if (reservation == null) {
         if (mounted) {
           showDialog(
@@ -612,17 +611,16 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                     style: TextStyle(color: Colors.white)),
               ]),
               content: const Text(
-                'Un ou plusieurs sièges que vous avez sélectionnés viennent d\'être réservés par quelqu\'un d\'autre.\n\nVeuillez retourner et choisir d\'autres sièges.',
+                'Un ou plusieurs sièges viennent d\'être réservés par quelqu\'un d\'autre.\n\nVeuillez retourner et choisir d\'autres sièges.',
                 style: TextStyle(color: Colors.white70, height: 1.5),
               ),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.pop(ctx);
-                    // Vider le panier et retourner à la sélection des sièges
                     ref.read(panierProvider.notifier).vider();
-                    context.pop(); // quitte paiement
-                    context.pop(); // quitte panier
+                    context.pop();
+                    context.pop();
                   },
                   child: const Text('CHOISIR D\'AUTRES SIÈGES',
                       style: TextStyle(color: AppColors.accent)),
@@ -650,6 +648,15 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
       final billets =
       await ds.getBilletsByReservation(reservation.id!);
       ref.read(panierProvider.notifier).vider();
+
+      // ✅ FIX 2 : invalider les providers pour mise à jour temps réel
+      // Rafraîchir les événements pour afficher les nouvelles places dispo
+      ref.invalidate(evenementsProvider);
+      // Rafraîchir les sièges occupés pour l'événement
+      if (isEvenement && nav.evenement != null) {
+        ref.invalidate(
+            siegesOccupesEvenementProvider(nav.evenement!.id!));
+      }
 
       if (mounted) {
         context.pushReplacement('/confirmation', extra: {
