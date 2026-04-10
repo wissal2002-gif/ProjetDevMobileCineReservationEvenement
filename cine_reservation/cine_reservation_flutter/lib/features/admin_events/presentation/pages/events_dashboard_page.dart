@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/events_sidebar.dart';
 import '../../../admin/presentation/providers/admin_provider.dart';
+import '../../../../main.dart'; // ✅ AJOUTER pour accéder à client
 
 class EventsDashboardPage extends ConsumerStatefulWidget {
   const EventsDashboardPage({super.key});
@@ -15,13 +16,45 @@ class EventsDashboardPage extends ConsumerStatefulWidget {
 
 class _EventsDashboardPageState extends ConsumerState<EventsDashboardPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  // ✅ AJOUTER après "final GlobalKey<ScaffoldState> _scaffoldKey..."
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      ref.invalidate(allEvenementsProvider);
+      ref.invalidate(allReservationsProvider);
+      await _supprimerEvenementsExpires();
+    });
+  }
+
+  Future<void> _supprimerEvenementsExpires() async {
+    try {
+      final events = ref.read(allEvenementsProvider).value ?? [];
+      final now = DateTime.now();
+      final expires = events.where((e) => e.dateDebut.isBefore(now)).toList();
+      for (final e in expires) {
+        await client.admin.supprimerEvenement(e.id!);
+      }
+      if (expires.isNotEmpty) {
+        ref.invalidate(allEvenementsProvider);
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Recharger si l'admin change
+    ref.listen(adminProfileProvider, (previous, next) {
+      if (previous?.value?.id != next.value?.id) {
+        ref.invalidate(allEvenementsProvider);
+        ref.invalidate(allReservationsProvider);
+      }
+    });
+
     final eventsAsync = ref.watch(allEvenementsProvider);
     final resAsync    = ref.watch(allReservationsProvider);
     final isMobile    = MediaQuery.of(context).size.width < 768;
-    final admin = ref.watch(adminProfileProvider).value;
+    final admin       = ref.watch(adminProfileProvider).value;
 
     final billetsVendus = resAsync.when(
       data: (res) {

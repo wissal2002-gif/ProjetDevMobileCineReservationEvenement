@@ -15,53 +15,66 @@ class BilletsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.go('/home'),
+        ),
+        title: const Text('MES BILLETS',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
+        centerTitle: true,
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('MES BILLETS',
-              style: TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 6),
-          const Text('Tous vos billets disponibles',
-              style: TextStyle(color: AppColors.textLight)),
-          const SizedBox(height: 24),
-          Expanded(
-            child: billetsAsync.when(
-              data: (billets) => billets.isEmpty
-                  ? const Center(
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.airplane_ticket_outlined,
-                      size: 60, color: Colors.white12),
-                  SizedBox(height: 16),
-                  Text('Aucun billet',
-                      style: TextStyle(
-                          color: AppColors.textLight, fontSize: 16)),
-                ]),
-              )
-                  : ListView.builder(
-                itemCount: billets.length,
-                itemBuilder: (ctx, i) => _card(ctx, billets[i]),
-              ),
-              loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.accent)),
-              error: (e, _) => Center(
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.wifi_off, size: 48, color: Colors.white24),
-                  const SizedBox(height: 12),
-                  Text('Erreur: $e',
-                      style: const TextStyle(color: Colors.white54)),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => ref.refresh(mesBilletsProvider),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent),
-                    child: const Text('Reessayer'),
-                  ),
-                ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Tous vos billets disponibles',
+                style: TextStyle(color: AppColors.textLight)),
+            const SizedBox(height: 24),
+            Expanded(
+              child: billetsAsync.when(
+                data: (billets) => billets.isEmpty
+                    ? const Center(
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.airplane_ticket_outlined,
+                        size: 60, color: Colors.white12),
+                    SizedBox(height: 16),
+                    Text('Aucun billet',
+                        style: TextStyle(
+                            color: AppColors.textLight, fontSize: 16)),
+                  ]),
+                )
+                    : ListView.builder(
+                  itemCount: billets.length,
+                  itemBuilder: (ctx, i) => _card(ctx, billets[i]),
+                ),
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.accent)),
+                error: (e, _) => Center(
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.wifi_off, size: 48, color: Colors.white24),
+                    const SizedBox(height: 12),
+                    Text('Erreur: $e',
+                        style: const TextStyle(color: Colors.white54)),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => ref.refresh(mesBilletsProvider),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accent),
+                      child: const Text('Reessayer'),
+                    ),
+                  ]),
+                ),
               ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }

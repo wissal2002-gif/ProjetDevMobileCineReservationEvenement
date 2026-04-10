@@ -3165,6 +3165,37 @@ class _EvenementsEndpoint {
       }
     });
   }
+
+  _i3.Future<List<_i11.Evenement>> getEvenementsByCinema(
+    _i1.TestSessionBuilder sessionBuilder,
+    int cinemaId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'evenements',
+            method: 'getEvenementsByCinema',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'evenements',
+          methodName: 'getEvenementsByCinema',
+          parameters: _i1.testObjectToJson({'cinemaId': cinemaId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i11.Evenement>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _FaqEndpoint {
@@ -3638,6 +3669,37 @@ class _OptionsEndpoint {
       }
     });
   }
+
+  _i3.Future<List<_i15.OptionSupplementaire>> getOptionsByCinema(
+    _i1.TestSessionBuilder sessionBuilder,
+    int cinemaId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'options',
+            method: 'getOptionsByCinema',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'options',
+          methodName: 'getOptionsByCinema',
+          parameters: _i1.testObjectToJson({'cinemaId': cinemaId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i15.OptionSupplementaire>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _PaiementEndpoint {
@@ -3910,6 +3972,8 @@ class _ReservationEndpoint {
     required double montantTotal,
     int? codePromoId,
     required List<int> siegeIds,
+    List<String>? siegeTarifs,
+    List<double>? siegePrix,
     List<int>? optionsIds,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -3930,6 +3994,8 @@ class _ReservationEndpoint {
             'montantTotal': montantTotal,
             'codePromoId': codePromoId,
             'siegeIds': siegeIds,
+            'siegeTarifs': siegeTarifs,
+            'siegePrix': siegePrix,
             'optionsIds': optionsIds,
           }),
           serializationManager: _serializationManager,

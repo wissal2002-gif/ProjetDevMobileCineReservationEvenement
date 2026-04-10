@@ -9,12 +9,14 @@ class NavigationState {
   final Evenement? evenement;
   final String filmTitre;
   final int salleId;
+  final int? cinemaId; // NOUVEAU : pour filtrer les options par cinéma
 
   const NavigationState({
     this.seance,
     this.evenement,
     this.filmTitre = '',
     this.salleId = 1,
+    this.cinemaId, // NOUVEAU
   });
 }
 
@@ -26,12 +28,14 @@ class NavigationNotifier extends StateNotifier<NavigationState> {
     Evenement? evenement,
     required String filmTitre,
     int salleId = 1,
+    int? cinemaId, // NOUVEAU
   }) {
     state = NavigationState(
       seance: seance,
       evenement: evenement,
       filmTitre: filmTitre,
       salleId: salleId,
+      cinemaId: cinemaId, // NOUVEAU
     );
   }
 

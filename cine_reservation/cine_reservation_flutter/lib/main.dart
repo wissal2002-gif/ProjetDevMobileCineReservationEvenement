@@ -45,28 +45,20 @@ class _CineReservationAppState extends ConsumerState<CineReservationApp> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(panierProvider.notifier).vider();
-      print('🗑️ Panier vidé au démarrage de l\'application');
-
-      // Écouter les changements d'authentification
-      _setupAuthListener();
-    });
-  }
-
-  void _setupAuthListener() {
-    // Écouter les changements d'état d'authentification
-    ref.listen(authProvider, (previous, next) {
-      if (next.isAuthenticated && !next.isLoading) {
-        // Utilisateur vient de se connecter → charger son profil
-        ref.read(profilProvider.notifier).loadProfil();
-      } else if (!next.isAuthenticated) {
-        // Utilisateur déconnecté → vider le profil
-        ref.read(profilProvider.notifier).loadProfil(); // Sera null
-      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // ✅ FIX : ref.listen utilisé dans build() et non dans initState()
+    ref.listen(authProvider, (previous, next) {
+      if (next.isAuthenticated && !next.isLoading) {
+        ref.read(profilProvider.notifier).loadProfil();
+      } else if (!next.isAuthenticated) {
+        ref.read(profilProvider.notifier).loadProfil();
+      }
+    });
+
     final router = ref.watch(appRouterProvider);
     return MaterialApp.router(
       title: 'CineReservation',

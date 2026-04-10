@@ -198,11 +198,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/panier',
         builder: (context, state) {
           final nav = ref.read(navigationProvider);
-          return AuthGuard(  // ← AJOUTER LE GUARD
+          return AuthGuard(
             child: PanierPage(
               seance: nav.seance,
               evenement: nav.evenement,
               filmTitre: nav.filmTitre,
+              cinemaId: nav.cinemaId, // NOUVEAU : passer le cinemaId pour filtrer les options
             ),
           );
         },

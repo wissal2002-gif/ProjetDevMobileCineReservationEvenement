@@ -19,7 +19,6 @@ class SiegeSelectionne {
   });
 }
 
-// ✅ FIX 1 & 2 : OptionPanier avec id
 class OptionPanier {
   final int id;
   final String nom;
@@ -38,7 +37,7 @@ class PanierState {
   final List<OptionPanier> options;
   final double reduction;
   final String? codePromo;
-  final int? codePromoId; // ✅ FIX 3 : stocker l'ID réel du promo
+  final int? codePromoId;
 
   const PanierState({
     this.sieges = const [],
@@ -81,7 +80,6 @@ class PanierNotifier extends StateNotifier<PanierState> {
     );
   }
 
-  // ✅ FIX 1 : Comparaison par id
   void ajouterOption(OptionPanier opt) {
     final idx = state.options.indexWhere((o) => o.id == opt.id);
     if (idx >= 0) {
@@ -129,7 +127,6 @@ class PanierNotifier extends StateNotifier<PanierState> {
     }
   }
 
-  // ✅ FIX 3 : Stocker l'ID réel du code promo
   void appliquerCodePromo(String code, double taux, {int? promoId}) {
     state = PanierState(
       sieges: state.sieges,
@@ -193,9 +190,19 @@ FutureProvider.family<List<Billet>, int>((ref, reservationId) async {
       .getBilletsByReservation(reservationId);
 });
 
+// Toutes les options — utilisé si pas de cinéma connu
 final optionsSupplementairesProvider =
 FutureProvider<List<OptionSupplementaire>>((ref) async {
   return await ref
       .read(reservationDatasourceProvider)
       .getOptions();
 });
+
+// Options filtrées par cinéma — NOUVEAU, utilisé dans PanierPage
+final optionsByCinemaProvider =
+FutureProvider.family<List<OptionSupplementaire>, int>(
+        (ref, cinemaId) async {
+      return await ref
+          .read(reservationDatasourceProvider)
+          .getOptionsByCinema(cinemaId);
+    });

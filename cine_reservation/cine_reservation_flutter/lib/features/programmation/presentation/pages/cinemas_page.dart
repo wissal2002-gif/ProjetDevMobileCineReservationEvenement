@@ -9,10 +9,37 @@ import '../providers/programmation_provider.dart';
 import '../../../profil/presentation/providers/favori_provider.dart';
 import '../../../../main.dart';
 
-// ─── Provider films par cinéma ──────────────────────────────────────────────
+// ─── Providers ──────────────────────────────────────────────────────────────
 final filmsByCinemaProvider =
 FutureProvider.autoDispose.family<List<Film>, int>((ref, cinemaId) async {
-  return await client.films.getFilmsByCinema(cinemaId);
+  try {
+    final films = await client.films.getFilmsByCinema(cinemaId);
+    final now = DateTime.now();
+    final List<Film> filmsActifs = [];
+    for (final film in films) {
+      if (film.id == null) continue;
+      final seances = await client.seances.getSeancesByFilm(film.id!);
+      final aSeanceValide = seances.any((s) => s.dateHeure.isAfter(now));
+      if (aSeanceValide) filmsActifs.add(film);
+    }
+    return filmsActifs;
+  } catch (e) {
+    return [];
+  }
+});
+
+final evenementsByCinemaProvider =
+FutureProvider.autoDispose.family<List<Evenement>, int>((ref, cinemaId) async {
+  try {
+    final events = await client.evenements.getEvenementsByCinema(cinemaId);
+    final now = DateTime.now();
+    return events.where((e) =>
+    e.statut == 'actif' &&
+        e.dateDebut.isAfter(now)
+    ).toList();
+  } catch (e) {
+    return [];
+  }
 });
 
 // ─── Page liste des cinémas ─────────────────────────────────────────────────
@@ -27,7 +54,6 @@ class CinemasPage extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // Header
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
@@ -58,8 +84,6 @@ class CinemasPage extends ConsumerWidget {
               ),
             ),
           ),
-
-          // Liste cinémas
           cinemasAsync.when(
             data: (cinemas) => SliverPadding(
               padding: const EdgeInsets.all(20),
@@ -74,8 +98,7 @@ class CinemasPage extends ConsumerWidget {
               child: Center(
                   child: Padding(
                     padding: EdgeInsets.all(40),
-                    child:
-                    CircularProgressIndicator(color: AppColors.accent),
+                    child: CircularProgressIndicator(color: AppColors.accent),
                   )),
             ),
             error: (e, _) => SliverToBoxAdapter(
@@ -89,16 +112,12 @@ class CinemasPage extends ConsumerWidget {
     );
   }
 
-  Widget _cinemaTile(
-      BuildContext context, WidgetRef ref, Cinema cinema) {
-    final estFavoriAsync =
-    ref.watch(estCinemaFavoriProvider(cinema.id!));
+  Widget _cinemaTile(BuildContext context, WidgetRef ref, Cinema cinema) {
+    final estFavoriAsync = ref.watch(estCinemaFavoriProvider(cinema.id!));
 
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => CinemaDetailPage(cinema: cinema),
-        ),
+        MaterialPageRoute(builder: (_) => CinemaDetailPage(cinema: cinema)),
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -108,29 +127,25 @@ class CinemasPage extends ConsumerWidget {
           border: Border.all(color: AppColors.divider),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image cinéma
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16)),
               child: Stack(
                 children: [
                   Container(
                     height: 140,
                     width: double.infinity,
                     color: AppColors.accent.withOpacity(0.15),
-                    child: cinema.photo != null &&
-                        cinema.photo!.isNotEmpty
+                    child: cinema.photo != null && cinema.photo!.isNotEmpty
                         ? Image.network(cinema.photo!,
                         fit: BoxFit.cover,
                         width: double.infinity,
@@ -139,52 +154,39 @@ class CinemasPage extends ConsumerWidget {
                         child: Icon(Icons.movie_filter,
                             color: AppColors.accent, size: 56)),
                   ),
-                  // Bouton favori
                   Positioned(
                     top: 10,
                     right: 10,
                     child: GestureDetector(
                       onTap: () async {
                         await ref
-                            .read(favoriCinemaProvider(cinema.id!)
-                            .notifier)
+                            .read(favoriCinemaProvider(cinema.id!).notifier)
                             .toggleCinema(cinema.id!, ref);
-                        ref.invalidate(
-                            mesCinemasFavorisProvider);
-                        ref.invalidate(
-                            estCinemaFavoriProvider(cinema.id!));
+                        ref.invalidate(mesCinemasFavorisProvider);
+                        ref.invalidate(estCinemaFavoriProvider(cinema.id!));
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(20)),
                         child: estFavoriAsync.when(
                           data: (estFavori) => Icon(
-                            estFavori
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: estFavori
-                                ? Colors.red
-                                : Colors.white,
+                            estFavori ? Icons.favorite : Icons.favorite_border,
+                            color: estFavori ? Colors.red : Colors.white,
                             size: 20,
                           ),
                           loading: () => const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white)),
-                          error: (_, __) => const Icon(
-                              Icons.favorite_border,
-                              color: Colors.white,
-                              size: 20),
+                                  strokeWidth: 2, color: Colors.white)),
+                          error: (_, __) => const Icon(Icons.favorite_border,
+                              color: Colors.white, size: 20),
                         ),
                       ),
                     ),
                   ),
-                  // Badge ville
                   Positioned(
                     bottom: 10,
                     left: 10,
@@ -192,9 +194,8 @@ class CinemasPage extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.accent.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                          color: AppColors.accent.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20)),
                       child: Text(cinema.ville,
                           style: const TextStyle(
                               color: Colors.white,
@@ -205,8 +206,6 @@ class CinemasPage extends ConsumerWidget {
                 ],
               ),
             ),
-
-            // Infos
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -231,8 +230,7 @@ class CinemasPage extends ConsumerWidget {
                     Expanded(
                       child: Text(cinema.adresse,
                           style: const TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 13),
+                              color: AppColors.textLight, fontSize: 13),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -245,30 +243,23 @@ class CinemasPage extends ConsumerWidget {
                       const SizedBox(width: 4),
                       Text(cinema.telephone!,
                           style: const TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 13)),
+                              color: AppColors.textLight, fontSize: 13)),
                     ]),
                   ],
                   const SizedBox(height: 12),
-                  // Bouton voir programmation
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () =>
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  CinemaDetailPage(cinema: cinema),
-                            ),
-                          ),
-                      icon: const Icon(Icons.movie_outlined,
-                          size: 16),
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => CinemaDetailPage(cinema: cinema)),
+                      ),
+                      icon: const Icon(Icons.movie_outlined, size: 16),
                       label: const Text('Voir la programmation'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accent,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                       ),
@@ -284,22 +275,43 @@ class CinemasPage extends ConsumerWidget {
   }
 }
 
-// ─── Page détail cinéma avec programmation ──────────────────────────────────
-class CinemaDetailPage extends ConsumerWidget {
+// ─── Page détail cinéma ──────────────────────────────────────────────────────
+class CinemaDetailPage extends ConsumerStatefulWidget {
   final Cinema cinema;
   const CinemaDetailPage({super.key, required this.cinema});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final filmsAsync = ref.watch(filmsByCinemaProvider(cinema.id!));
+  ConsumerState<CinemaDetailPage> createState() => _CinemaDetailPageState();
+}
+
+class _CinemaDetailPageState extends ConsumerState<CinemaDetailPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filmsAsync = ref.watch(filmsByCinemaProvider(widget.cinema.id!));
+    final evenementsAsync =
+    ref.watch(evenementsByCinemaProvider(widget.cinema.id!));
     final estFavoriAsync =
-    ref.watch(estCinemaFavoriProvider(cinema.id!));
+    ref.watch(estCinemaFavoriProvider(widget.cinema.id!));
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          // AppBar avec image
+      body: NestedScrollView(
+        headerSliverBuilder: (context, _) => [
           SliverAppBar(
             expandedHeight: 240,
             pinned: true,
@@ -309,40 +321,33 @@ class CinemaDetailPage extends ConsumerWidget {
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
-              // Bouton favori
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: GestureDetector(
                   onTap: () async {
                     await ref
-                        .read(favoriCinemaProvider(cinema.id!)
+                        .read(favoriCinemaProvider(widget.cinema.id!)
                         .notifier)
-                        .toggleCinema(cinema.id!, ref);
+                        .toggleCinema(widget.cinema.id!, ref);
                     ref.invalidate(mesCinemasFavorisProvider);
                     ref.invalidate(
-                        estCinemaFavoriProvider(cinema.id!));
+                        estCinemaFavoriProvider(widget.cinema.id!));
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     child: estFavoriAsync.when(
                       data: (estFavori) => Icon(
-                        estFavori
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color:
-                        estFavori ? Colors.red : Colors.white,
+                        estFavori ? Icons.favorite : Icons.favorite_border,
+                        color: estFavori ? Colors.red : Colors.white,
                         size: 26,
                       ),
                       loading: () => const SizedBox(
                           width: 26,
                           height: 26,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white)),
-                      error: (_, __) => const Icon(
-                          Icons.favorite_border,
-                          color: Colors.white,
-                          size: 26),
+                              strokeWidth: 2, color: Colors.white)),
+                      error: (_, __) => const Icon(Icons.favorite_border,
+                          color: Colors.white, size: 26),
                     ),
                   ),
                 ),
@@ -352,9 +357,9 @@ class CinemaDetailPage extends ConsumerWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  cinema.photo != null && cinema.photo!.isNotEmpty
-                      ? Image.network(cinema.photo!,
-                      fit: BoxFit.cover)
+                  widget.cinema.photo != null &&
+                      widget.cinema.photo!.isNotEmpty
+                      ? Image.network(widget.cinema.photo!, fit: BoxFit.cover)
                       : Container(
                     color: AppColors.accent.withOpacity(0.2),
                     child: const Center(
@@ -367,104 +372,66 @@ class CinemaDetailPage extends ConsumerWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          AppColors.background
-                        ],
+                        colors: [Colors.transparent, AppColors.background],
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-
-          // Infos cinéma
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(cinema.nom,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    const Icon(Icons.location_on,
-                        color: AppColors.accent, size: 16),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                          '${cinema.ville} — ${cinema.adresse}',
-                          style: const TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 14)),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.cinema.nom,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text(
+                            '${widget.cinema.ville} — ${widget.cinema.adresse}',
+                            style: const TextStyle(
+                                color: AppColors.textLight, fontSize: 12)),
+                      ],
                     ),
-                  ]),
-                  if (cinema.telephone != null) ...[
-                    const SizedBox(height: 6),
-                    Row(children: [
-                      const Icon(Icons.phone_outlined,
-                          color: AppColors.accent, size: 16),
-                      const SizedBox(width: 6),
-                      Text(cinema.telephone!,
-                          style: const TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 14)),
-                    ]),
-                  ],
-                  if (cinema.description != null) ...[
-                    const SizedBox(height: 12),
-                    Text(cinema.description!,
-                        style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                            height: 1.5)),
-                  ],
-                  const SizedBox(height: 24),
-
-                  // Titre programmation
-                  const Text('PROGRAMMATION',
-                      style: TextStyle(
-                          color: AppColors.accent,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          letterSpacing: 2)),
-                  const SizedBox(height: 16),
+                  ),
+                  // TabBar
+                  TabBar(
+                    controller: _tabController,
+                    indicatorColor: AppColors.accent,
+                    labelColor: AppColors.accent,
+                    unselectedLabelColor: Colors.white54,
+                    tabs: const [
+                      Tab(icon: Icon(Icons.movie_outlined, size: 18),
+                          text: 'Films'),
+                      Tab(icon: Icon(Icons.event_outlined, size: 18),
+                          text: 'Événements'),
+                    ],
+                  ),
                 ],
               ),
             ),
           ),
-
-          // Films
-          filmsAsync.when(
-            data: (films) {
-              if (films.isEmpty) {
-                return SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: Column(children: [
-                        const Icon(Icons.movie_outlined,
-                            color: Colors.white24, size: 48),
-                        const SizedBox(height: 12),
-                        const Text(
-                            'Aucun film à l\'affiche pour ce cinéma',
-                            style: TextStyle(
-                                color: AppColors.textLight,
-                                fontSize: 15),
-                            textAlign: TextAlign.center),
-                      ]),
-                    ),
-                  ),
-                );
-              }
-              return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-                sliver: SliverGrid(
+        ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // ── Onglet Films ────────────────────────────────────────────
+            filmsAsync.when(
+              data: (films) {
+                if (films.isEmpty) {
+                  return _emptyState(
+                      Icons.movie_outlined, 'Aucun film à l\'affiche');
+                }
+                return GridView.builder(
+                  padding: const EdgeInsets.all(16),
                   gridDelegate:
                   const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -472,29 +439,39 @@ class CinemaDetailPage extends ConsumerWidget {
                     mainAxisSpacing: 12,
                     childAspectRatio: 0.65,
                   ),
-                  delegate: SliverChildBuilderDelegate(
-                        (ctx, i) => _filmTile(context, films[i]),
-                    childCount: films.length,
-                  ),
-                ),
-              );
-            },
-            loading: () => const SliverToBoxAdapter(
-              child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: CircularProgressIndicator(
-                        color: AppColors.accent),
-                  )),
-            ),
-            error: (e, _) => SliverToBoxAdapter(
-              child: Center(
+                  itemCount: films.length,
+                  itemBuilder: (ctx, i) => _filmTile(context, films[i]),
+                );
+              },
+              loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.accent)),
+              error: (e, _) => Center(
                   child: Text('Erreur: $e',
-                      style:
-                      const TextStyle(color: Colors.red))),
+                      style: const TextStyle(color: Colors.red))),
             ),
-          ),
-        ],
+
+            // ── Onglet Événements ───────────────────────────────────────
+            evenementsAsync.when(
+              data: (evenements) {
+                if (evenements.isEmpty) {
+                  return _emptyState(
+                      Icons.event_outlined, 'Aucun événement prévu');
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: evenements.length,
+                  itemBuilder: (ctx, i) =>
+                      _evenementTile(context, evenements[i]),
+                );
+              },
+              loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.accent)),
+              error: (e, _) => Center(
+                  child: Text('Erreur: $e',
+                      style: const TextStyle(color: Colors.red))),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -514,16 +491,14 @@ class CinemaDetailPage extends ConsumerWidget {
                 fit: BoxFit.cover,
                 width: double.infinity,
                 errorWidget: (c, u, e) => Container(
-                  color: AppColors.cardBg,
-                  child: const Icon(Icons.movie,
-                      color: Colors.white24, size: 30),
-                ),
+                    color: AppColors.cardBg,
+                    child: const Icon(Icons.movie,
+                        color: Colors.white24, size: 30)),
               )
                   : Container(
-                color: AppColors.cardBg,
-                child: const Icon(Icons.movie,
-                    color: Colors.white24, size: 30),
-              ),
+                  color: AppColors.cardBg,
+                  child: const Icon(Icons.movie,
+                      color: Colors.white24, size: 30)),
             ),
           ),
           const SizedBox(height: 6),
@@ -540,6 +515,118 @@ class CinemaDetailPage extends ConsumerWidget {
                     color: AppColors.textLight, fontSize: 10),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis),
+        ],
+      ),
+    );
+  }
+
+  Widget _evenementTile(BuildContext context, Evenement ev) {
+    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
+    return GestureDetector(
+      onTap: () => context.push('/event-detail', extra: ev.id),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppColors.cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(14),
+                  bottomLeft: Radius.circular(14)),
+              child: SizedBox(
+                width: 90,
+                height: 90,
+                child: ev.affiche != null && ev.affiche!.isNotEmpty
+                    ? CachedNetworkImage(
+                  imageUrl: ev.affiche!,
+                  fit: BoxFit.cover,
+                  errorWidget: (c, u, e) => Container(
+                      color: AppColors.accent.withOpacity(0.2),
+                      child: const Icon(Icons.event,
+                          color: AppColors.accent, size: 30)),
+                )
+                    : Container(
+                    color: AppColors.accent.withOpacity(0.2),
+                    child: const Icon(Icons.event,
+                        color: AppColors.accent, size: 30)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Type badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.pink.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                            color: Colors.pink.withOpacity(0.5)),
+                      ),
+                      child: Text((ev.type ?? 'événement').toUpperCase(),
+                          style: const TextStyle(
+                              color: Colors.pink,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(ev.titre,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 4),
+                    Row(children: [
+                      const Icon(Icons.calendar_today,
+                          color: AppColors.accent, size: 12),
+                      const SizedBox(width: 4),
+                      Text(dateFmt.format(ev.dateDebut.toLocal()),
+                          style: const TextStyle(
+                              color: AppColors.textLight, fontSize: 11)),
+                    ]),
+                    const SizedBox(height: 4),
+                    Text('${ev.prix?.toStringAsFixed(0) ?? 0} MAD',
+                        style: const TextStyle(
+                            color: AppColors.accent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13)),
+                  ],
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: Icon(Icons.arrow_forward_ios,
+                  color: AppColors.accent, size: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _emptyState(IconData icon, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.white24, size: 56),
+          const SizedBox(height: 16),
+          Text(message,
+              style: const TextStyle(
+                  color: AppColors.textLight, fontSize: 15)),
         ],
       ),
     );

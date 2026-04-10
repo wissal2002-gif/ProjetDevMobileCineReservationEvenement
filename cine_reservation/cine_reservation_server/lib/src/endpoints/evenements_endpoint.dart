@@ -23,4 +23,13 @@ class EvenementsEndpoint extends Endpoint {
       where: (t) => t.titre.ilike('%$query%') | t.ville.ilike('%$query%'),
     );
   }
+
+  // Événements par cinéma
+  Future<List<Evenement>> getEvenementsByCinema(Session session, int cinemaId) async {
+    return await Evenement.db.find(
+      session,
+      where: (t) => t.cinemaId.equals(cinemaId) & t.statut.equals('actif'),
+      orderBy: (t) => t.dateDebut,
+    );
+  }
 }

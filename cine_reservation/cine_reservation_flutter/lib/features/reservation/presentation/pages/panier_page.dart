@@ -10,12 +10,14 @@ class PanierPage extends ConsumerStatefulWidget {
   final Seance? seance;
   final Evenement? evenement;
   final String filmTitre;
+  final int? cinemaId;
 
   const PanierPage({
     super.key,
     this.seance,
     this.evenement,
     required this.filmTitre,
+    this.cinemaId,
   });
 
   @override
@@ -27,6 +29,12 @@ class _PanierPageState extends ConsumerState<PanierPage> {
   bool _promoLoading = false;
   String? _promoError;
   CodePromo? _promoApplique;
+
+  // ✅ FIX 1 : afficher les options seulement si cinéma connu
+  // - séance → toujours afficher (cinemaId présent)
+  // - événement cinéma → afficher (cinemaId présent)
+  // - événement externe → ne pas afficher (cinemaId null)
+  bool get _afficherOptions => widget.cinemaId != null;
 
   @override
   void dispose() {
@@ -85,14 +93,12 @@ class _PanierPageState extends ConsumerState<PanierPage> {
       if (promo.typeReduction == 'pourcentage') {
         taux = promo.reduction / 100;
       } else {
-        // Réduction montant fixe → convertir en taux
         final sousTotal = panier.sousTotalSieges + panier.sousTotalOptions;
         taux = sousTotal > 0
             ? (promo.reduction / sousTotal).clamp(0.0, 1.0)
             : 0;
       }
 
-      // ✅ FIX 3 : passer l'ID réel du promo
       ref.read(panierProvider.notifier).appliquerCodePromo(
         code,
         taux,
@@ -167,8 +173,12 @@ class _PanierPageState extends ConsumerState<PanierPage> {
   Widget build(BuildContext context) {
     final panier = ref.watch(panierProvider);
     final notifier = ref.read(panierProvider.notifier);
-    final optionsAsync = ref.watch(optionsSupplementairesProvider);
     final total = _montantApresReduction(panier);
+
+    // ✅ FIX 1 : options uniquement si cinéma connu
+    final optionsAsync = _afficherOptions
+        ? ref.watch(optionsByCinemaProvider(widget.cinemaId!))
+        : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -207,56 +217,53 @@ class _PanierPageState extends ConsumerState<PanierPage> {
               if (panier.sieges.isNotEmpty) ...[
                 _sectionTitle('SIÈGES SÉLECTIONNÉS'),
                 const SizedBox(height: 12),
-                ...panier.sieges
-                    .map((s) => _siegeItem(notifier, s)),
+                ...panier.sieges.map((s) => _siegeItem(notifier, s)),
                 const SizedBox(height: 24),
               ],
-              _sectionTitle('OPTIONS SUPPLÉMENTAIRES'),
-              const SizedBox(height: 12),
-              optionsAsync.when(
-                data: (options) {
-                  if (options.isEmpty) {
-                    return const Text(
-                        'Aucune option disponible',
-                        style: TextStyle(
-                            color: AppColors.textLight));
-                  }
-                  final Map<String,
-                      List<OptionSupplementaire>> parCat =
-                  {};
-                  for (final o in options) {
-                    if (o.disponible != true) continue;
-                    parCat
-                        .putIfAbsent(
-                        o.categorie ?? 'snack', () => [])
-                        .add(o);
-                  }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: parCat.entries
-                        .expand((entry) => [
-                      _categorieTitle(entry.key),
-                      const SizedBox(height: 8),
-                      ...entry.value.map((opt) =>
-                          _optionRow(
-                              notifier, opt, panier)),
-                      const SizedBox(height: 16),
-                    ])
-                        .toList(),
-                  );
-                },
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.accent,
-                          strokeWidth: 2)),
+              // ✅ FIX 1 : section options uniquement si cinéma
+              if (_afficherOptions && optionsAsync != null) ...[
+                _sectionTitle('OPTIONS SUPPLÉMENTAIRES'),
+                const SizedBox(height: 12),
+                optionsAsync.when(
+                  data: (options) {
+                    final disponibles =
+                    options.where((o) => o.disponible == true).toList();
+                    if (disponibles.isEmpty) {
+                      return const Text('Aucune option disponible',
+                          style: TextStyle(color: AppColors.textLight));
+                    }
+                    final Map<String, List<OptionSupplementaire>>
+                    parCat = {};
+                    for (final o in disponibles) {
+                      parCat
+                          .putIfAbsent(o.categorie ?? 'snack', () => [])
+                          .add(o);
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: parCat.entries
+                          .expand((entry) => [
+                        _categorieTitle(entry.key),
+                        const SizedBox(height: 8),
+                        ...entry.value.map((opt) =>
+                            _optionRow(notifier, opt, panier)),
+                        const SizedBox(height: 16),
+                      ])
+                          .toList(),
+                    );
+                  },
+                  loading: () => const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(
+                        child: CircularProgressIndicator(
+                            color: AppColors.accent, strokeWidth: 2)),
+                  ),
+                  error: (e, _) => Text('Erreur options: $e',
+                      style:
+                      const TextStyle(color: AppColors.textLight)),
                 ),
-                error: (e, _) => Text('Erreur options: $e',
-                    style: const TextStyle(
-                        color: AppColors.textLight)),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
+              ],
               _buildCodePromo(panier),
               const SizedBox(height: 24),
               _recap(panier, total),
@@ -301,42 +308,36 @@ class _PanierPageState extends ConsumerState<PanierPage> {
               decoration: BoxDecoration(
                 color: Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
-                border:
-                Border.all(color: Colors.green.withOpacity(0.4)),
+                border: Border.all(color: Colors.green.withOpacity(0.4)),
               ),
               child: Row(children: [
-                const Icon(Icons.check_circle,
-                    color: Colors.green, size: 20),
+                const Icon(Icons.check_circle, color: Colors.green, size: 20),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '"${_promoApplique!.code}" appliqué !',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold),
-                      ),
+                      Text('"${_promoApplique!.code}" appliqué !',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
                       Text(
                         _promoApplique!.typeReduction == 'pourcentage'
                             ? '-${_promoApplique!.reduction.toStringAsFixed(0)}% de réduction'
                             : '-${_promoApplique!.reduction.toStringAsFixed(0)} MAD de réduction',
-                        style: const TextStyle(
-                            color: Colors.green, fontSize: 12),
+                        style:
+                        const TextStyle(color: Colors.green, fontSize: 12),
                       ),
                       if (_promoApplique!.description != null)
                         Text(_promoApplique!.description!,
                             style: const TextStyle(
-                                color: AppColors.textLight,
-                                fontSize: 11)),
+                                color: AppColors.textLight, fontSize: 11)),
                     ],
                   ),
                 ),
                 GestureDetector(
                   onTap: _supprimerPromo,
-                  child: const Icon(Icons.close,
-                      color: Colors.red, size: 18),
+                  child: const Icon(Icons.close, color: Colors.red, size: 18),
                 ),
               ]),
             ),
@@ -362,8 +363,7 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                     fillColor: AppColors.inputBg,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide:
-                      const BorderSide(color: AppColors.divider),
+                      borderSide: const BorderSide(color: AppColors.divider),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -372,12 +372,10 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide:
-                      const BorderSide(color: AppColors.error),
+                      borderSide: const BorderSide(color: AppColors.error),
                     ),
                     errorText: _promoError,
-                    errorStyle:
-                    const TextStyle(color: AppColors.error),
+                    errorStyle: const TextStyle(color: AppColors.error),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 12),
                   ),
@@ -388,9 +386,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                 height: 48,
                 width: 90,
                 child: ElevatedButton(
-                  onPressed: _promoLoading
-                      ? null
-                      : () => _appliquerPromo(panier),
+                  onPressed:
+                  _promoLoading ? null : () => _appliquerPromo(panier),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
@@ -410,10 +407,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
               ),
             ]),
             const SizedBox(height: 8),
-            const Text(
-                'Codes disponibles: CINE10, CINE20, REDUC50, WELCOME',
-                style: TextStyle(
-                    color: AppColors.textLight, fontSize: 10)),
+            const Text('Codes disponibles: CINE10, CINE20, REDUC50, WELCOME',
+                style: TextStyle(color: AppColors.textLight, fontSize: 10)),
           ],
         ],
       ),
@@ -437,8 +432,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
             color: AppColors.accent.withOpacity(0.2),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.event_seat,
-              color: AppColors.accent, size: 20),
+          child:
+          const Icon(Icons.event_seat, color: AppColors.accent, size: 20),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -448,8 +443,7 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                 Text(
                     'Siège ${s.siege.numero} — Rangée ${s.siege.rangee ?? "?"}',
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold)),
+                        color: Colors.white, fontWeight: FontWeight.bold)),
                 Text(s.typeBillet.toUpperCase(),
                     style: const TextStyle(
                         color: AppColors.textLight, fontSize: 11)),
@@ -488,39 +482,30 @@ class _PanierPageState extends ConsumerState<PanierPage> {
     );
   }
 
-  // ✅ FIX 1 & 2 : id dans OptionPanier + image affichée
   Widget _optionRow(
-      PanierNotifier notifier,
-      OptionSupplementaire opt,
-      PanierState panier) {
-    final existant =
-    panier.options.where((o) => o.id == opt.id).toList();
+      PanierNotifier notifier, OptionSupplementaire opt, PanierState panier) {
+    final existant = panier.options.where((o) => o.id == opt.id).toList();
     final qte = existant.isNotEmpty ? existant.first.quantite : 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding:
-      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: qte > 0
-            ? AppColors.accent.withOpacity(0.08)
-            : AppColors.cardBg,
+        color:
+        qte > 0 ? AppColors.accent.withOpacity(0.08) : AppColors.cardBg,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
             color: qte > 0 ? AppColors.accent : AppColors.divider),
       ),
       child: Row(children: [
-        // ✅ FIX 2 : Affichage image option
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: opt.image != null && opt.image!.isNotEmpty
-              ? Image.network(
-            opt.image!,
-            width: 48,
-            height: 48,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _iconOption(),
-          )
+              ? Image.network(opt.image!,
+              width: 48,
+              height: 48,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _iconOption())
               : _iconOption(),
         ),
         const SizedBox(width: 12),
@@ -530,10 +515,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
             children: [
               Text(opt.nom,
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold)),
-              if (opt.description != null &&
-                  opt.description!.isNotEmpty)
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+              if (opt.description != null && opt.description!.isNotEmpty)
                 Text(opt.description!,
                     style: const TextStyle(
                         color: AppColors.textLight, fontSize: 11),
@@ -543,8 +526,7 @@ class _PanierPageState extends ConsumerState<PanierPage> {
           ),
         ),
         Text('${opt.prix.toStringAsFixed(0)} MAD',
-            style: const TextStyle(
-                color: AppColors.textLight, fontSize: 13)),
+            style: const TextStyle(color: AppColors.textLight, fontSize: 13)),
         const SizedBox(width: 10),
         Row(mainAxisSize: MainAxisSize.min, children: [
           if (qte > 0) ...[
@@ -556,8 +538,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
                 decoration: BoxDecoration(
                     color: AppColors.divider,
                     borderRadius: BorderRadius.circular(6)),
-                child: const Icon(Icons.remove,
-                    color: Colors.white, size: 16),
+                child:
+                const Icon(Icons.remove, color: Colors.white, size: 16),
               ),
             ),
             SizedBox(
@@ -572,20 +554,15 @@ class _PanierPageState extends ConsumerState<PanierPage> {
             ),
           ],
           GestureDetector(
-            // ✅ FIX 1 : passer opt.id!
             onTap: () => notifier.ajouterOption(
-                OptionPanier(
-                    id: opt.id!,
-                    nom: opt.nom,
-                    prix: opt.prix)),
+                OptionPanier(id: opt.id!, nom: opt.nom, prix: opt.prix)),
             child: Container(
               width: 30,
               height: 30,
               decoration: BoxDecoration(
                   color: AppColors.accent,
                   borderRadius: BorderRadius.circular(6)),
-              child: const Icon(Icons.add,
-                  color: Colors.white, size: 16),
+              child: const Icon(Icons.add, color: Colors.white, size: 16),
             ),
           ),
         ]),
@@ -597,8 +574,7 @@ class _PanierPageState extends ConsumerState<PanierPage> {
     width: 48,
     height: 48,
     color: Colors.black26,
-    child: const Icon(Icons.fastfood,
-        color: Colors.white24, size: 24),
+    child: const Icon(Icons.fastfood, color: Colors.white24, size: 24),
   );
 
   Widget _recap(PanierState panier, double total) {
@@ -620,38 +596,35 @@ class _PanierPageState extends ConsumerState<PanierPage> {
           _ligne('Réduction (${_promoApplique!.code})', -reduction,
               color: Colors.green),
         const Divider(color: Colors.white12, height: 20),
-        Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('TOTAL',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16)),
-              Text('${total.toStringAsFixed(2)} MAD',
-                  style: const TextStyle(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18)),
-            ]),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          const Text('TOTAL',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16)),
+          Text('${total.toStringAsFixed(2)} MAD',
+              style: const TextStyle(
+                  color: AppColors.accent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18)),
+        ]),
       ]),
     );
   }
 
-  Widget _ligne(String label, double montant, {Color? color}) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label,
-                  style: const TextStyle(
-                      color: Colors.white60, fontSize: 13)),
-              Text('${montant.toStringAsFixed(2)} MAD',
-                  style: TextStyle(
-                      color: color ?? Colors.white, fontSize: 13)),
-            ]),
-      );
+  Widget _ligne(String label, double montant, {Color? color}) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style:
+              const TextStyle(color: Colors.white60, fontSize: 13)),
+          Text('${montant.toStringAsFixed(2)} MAD',
+              style:
+              TextStyle(color: color ?? Colors.white, fontSize: 13)),
+        ]),
+  );
 
   Widget _bottomBar(BuildContext context, double total) {
     return Container(
@@ -668,8 +641,7 @@ class _PanierPageState extends ConsumerState<PanierPage> {
             children: [
               if (_promoApplique != null)
                 const Text('Promo appliquée ✓',
-                    style:
-                    TextStyle(color: Colors.green, fontSize: 11)),
+                    style: TextStyle(color: Colors.green, fontSize: 11)),
               Text('Total : ${total.toStringAsFixed(2)} MAD',
                   style: const TextStyle(
                       color: Colors.white,
@@ -685,8 +657,7 @@ class _PanierPageState extends ConsumerState<PanierPage> {
               final panier = ref.read(panierProvider);
               if (panier.sieges.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Aucun siège sélectionné')),
+                  const SnackBar(content: Text('Aucun siège sélectionné')),
                 );
                 return;
               }
@@ -695,8 +666,8 @@ class _PanierPageState extends ConsumerState<PanierPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 16),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),

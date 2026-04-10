@@ -908,6 +908,13 @@ class EndpointEvenements extends _i2.EndpointRef {
         'searchEvenements',
         {'query': query},
       );
+
+  _i3.Future<List<_i11.Evenement>> getEvenementsByCinema(int cinemaId) =>
+      caller.callServerEndpoint<List<_i11.Evenement>>(
+        'evenements',
+        'getEvenementsByCinema',
+        {'cinemaId': cinemaId},
+      );
 }
 
 /// {@category Endpoint}
@@ -1035,6 +1042,14 @@ class EndpointOptions extends _i2.EndpointRef {
         'getOptions',
         {},
       );
+
+  _i3.Future<List<_i15.OptionSupplementaire>> getOptionsByCinema(
+    int cinemaId,
+  ) => caller.callServerEndpoint<List<_i15.OptionSupplementaire>>(
+    'options',
+    'getOptionsByCinema',
+    {'cinemaId': cinemaId},
+  );
 }
 
 /// {@category Endpoint}
@@ -1133,6 +1148,8 @@ class EndpointReservation extends _i2.EndpointRef {
     required double montantTotal,
     int? codePromoId,
     required List<int> siegeIds,
+    List<String>? siegeTarifs,
+    List<double>? siegePrix,
     List<int>? optionsIds,
   }) => caller.callServerEndpoint<_i5.Reservation?>(
     'reservation',
@@ -1144,6 +1161,8 @@ class EndpointReservation extends _i2.EndpointRef {
       'montantTotal': montantTotal,
       'codePromoId': codePromoId,
       'siegeIds': siegeIds,
+      'siegeTarifs': siegeTarifs,
+      'siegePrix': siegePrix,
       'optionsIds': optionsIds,
     },
   );

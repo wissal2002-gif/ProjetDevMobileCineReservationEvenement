@@ -26,7 +26,8 @@ class _ManageSeancesLocalPageState
     final cinemaId = admin?.cinemaId;
 
     final seancesAsync = ref.watch(allSeancesProvider);
-    final filmsAsync = ref.watch(prog.filmsProvider);
+    final filmsAsync = ref.watch(allFilmsProvider);
+
     final sallesAsync = cinemaId != null
         ? ref.watch(sallesProvider(cinemaId))
         : const AsyncValue<List<Salle>>.loading();
@@ -69,12 +70,12 @@ class _ManageSeancesLocalPageState
                             final salleIds =
                             salles.map((s) => s.id).toSet();
                             // FILTRAGE DYNAMIQUE PAR CINÉMA
+                            final now = DateTime.now();
                             final localSeances = seances
                                 .where((s) =>
-                            s.cinemaId == cinemaId ||
-                                salleIds.contains(s.salleId))
+                            (s.cinemaId == cinemaId || salleIds.contains(s.salleId)) &&
+                                s.dateHeure.isAfter(now))
                                 .toList();
-
                             if (localSeances.isEmpty) {
                               return const Center(
                                 child: Text(
@@ -91,8 +92,7 @@ class _ManageSeancesLocalPageState
                                 final seance = localSeances[index];
                                 final film = films.firstWhere(
                                       (f) => f.id == seance.filmId,
-                                  orElse: () =>
-                                      Film(titre: "Film inconnu"),
+                                  orElse: () => Film(titre: "Film #${seance.filmId}"),
                                 );
                                 final salle = salles.firstWhere(
                                       (s) => s.id == seance.salleId,
@@ -179,7 +179,7 @@ class _ManageSeancesLocalPageState
               const TextStyle(color: Colors.white70, fontSize: 12),
             ),
             Text(
-              _dateFormat.format(seance.dateHeure),
+              _dateFormat.format(seance.dateHeure.toLocal()),
               style: const TextStyle(
                   color: Colors.amber,
                   fontSize: 13,
@@ -248,7 +248,7 @@ class _ManageSeancesLocalPageState
               mainAxisSize: MainAxisSize.min,
               children: [
                 // ── FILM ─────────────────────────────────────────
-                ref.watch(prog.filmsProvider).when(
+                ref.watch(allFilmsProvider).when(
                   data: (films) {
                     final localFilms = films
                         .where((f) => f.cinemaId == cinemaId)
