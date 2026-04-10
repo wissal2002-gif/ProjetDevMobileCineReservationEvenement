@@ -33,7 +33,7 @@ final dashboardDataProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   return await client.admin.getDashboardData();
 });
 
-final adminStatsProvider = FutureProvider<Map<String, int>>((ref) async {
+final adminStatsProvider = FutureProvider.autoDispose<Map<String, int>>((ref) async {
   return await client.admin.getAdminStats();
 });
 
@@ -73,7 +73,7 @@ final allEvenementsProvider = FutureProvider<List<Evenement>>((ref) async {
 });
 
 // --- Utilisateurs & Réservations ---
-final allUtilisateursProvider = FutureProvider<List<Utilisateur>>((ref) async {
+final allUtilisateursProvider = FutureProvider.autoDispose<List<Utilisateur>>((ref) async {
   return await client.admin.getManagedUsers();
 });
 
