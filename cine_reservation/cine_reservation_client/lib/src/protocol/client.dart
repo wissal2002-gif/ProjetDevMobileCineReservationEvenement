@@ -33,9 +33,10 @@ import 'package:cine_reservation_client/src/protocol/code_promo.dart' as _i16;
 import 'package:cine_reservation_client/src/protocol/avis.dart' as _i17;
 import 'package:cine_reservation_client/src/protocol/billet.dart' as _i18;
 import 'package:cine_reservation_client/src/protocol/paiement.dart' as _i19;
+import 'package:cine_reservation_client/src/protocol/fidelite.dart' as _i20;
 import 'package:cine_reservation_client/src/protocol/greetings/greeting.dart'
-    as _i20;
-import 'protocol.dart' as _i21;
+    as _i21;
+import 'protocol.dart' as _i22;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -816,6 +817,12 @@ class EndpointAvis extends _i2.EndpointRef {
     },
   );
 
+  _i3.Future<bool> peutNoter(int filmId) => caller.callServerEndpoint<bool>(
+    'avis',
+    'peutNoter',
+    {'filmId': filmId},
+  );
+
   _i3.Future<int?> getMonAvis(int filmId) => caller.callServerEndpoint<int?>(
     'avis',
     'getMonAvis',
@@ -1132,6 +1139,45 @@ class EndpointProfil extends _i2.EndpointRef {
     'supprimerCompte',
     {},
   );
+
+  /// Récupère ou crée la fiche fidélité de l'utilisateur connecté.
+  _i3.Future<_i20.Fidelite?> getFidelite() =>
+      caller.callServerEndpoint<_i20.Fidelite?>(
+        'profil',
+        'getFidelite',
+        {},
+      );
+
+  /// Ajoute des points après un paiement (1 pt / 10 MAD).
+  /// Génère le code promo + envoie l'email badge si nouveau niveau atteint.
+  /// Lance les rappels quotidiens en arrière-plan.
+  _i3.Future<_i20.Fidelite?> ajouterPoints(
+    int utilisateurId,
+    double montantPaye,
+  ) => caller.callServerEndpoint<_i20.Fidelite?>(
+    'profil',
+    'ajouterPoints',
+    {
+      'utilisateurId': utilisateurId,
+      'montantPaye': montantPaye,
+    },
+  );
+
+  /// Retourne le code promo fidélité actif de l'utilisateur connecté.
+  _i3.Future<_i16.CodePromo?> getCodePromoFidelite() =>
+      caller.callServerEndpoint<_i16.CodePromo?>(
+        'profil',
+        'getCodePromoFidelite',
+        {},
+      );
+
+  /// Retourne les avantages du niveau actuel (pour paiement_page).
+  _i3.Future<Map<String, dynamic>?> getAvantagesFidelite() =>
+      caller.callServerEndpoint<Map<String, dynamic>?>(
+        'profil',
+        'getAvantagesFidelite',
+        {},
+      );
 }
 
 /// {@category Endpoint}
@@ -1320,8 +1366,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i20.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i20.Greeting>(
+  _i3.Future<_i21.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i21.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -1359,7 +1405,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i21.Protocol(),
+         _i22.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
