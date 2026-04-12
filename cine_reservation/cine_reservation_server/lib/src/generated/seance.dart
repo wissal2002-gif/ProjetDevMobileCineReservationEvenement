@@ -507,7 +507,7 @@ class SeanceRepository {
   /// );
   /// ```
   Future<List<Seance>> find(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<SeanceTable>? where,
     int? limit,
     int? offset,
@@ -515,6 +515,8 @@ class SeanceRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<SeanceTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Seance>(
       where: where?.call(Seance.t),
@@ -524,6 +526,8 @@ class SeanceRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -545,13 +549,15 @@ class SeanceRepository {
   /// );
   /// ```
   Future<Seance?> findFirstRow(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<SeanceTable>? where,
     int? offset,
     _i1.OrderByBuilder<SeanceTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<SeanceTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Seance>(
       where: where?.call(Seance.t),
@@ -560,18 +566,24 @@ class SeanceRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Seance] by its [id] or null if no such row exists.
   Future<Seance?> findById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Seance>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -581,14 +593,20 @@ class SeanceRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<Seance>> insert(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Seance> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Seance>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -596,7 +614,7 @@ class SeanceRepository {
   ///
   /// The returned [Seance] will have its `id` field set.
   Future<Seance> insertRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Seance row, {
     _i1.Transaction? transaction,
   }) async {
@@ -612,7 +630,7 @@ class SeanceRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Seance>> update(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Seance> rows, {
     _i1.ColumnSelections<SeanceTable>? columns,
     _i1.Transaction? transaction,
@@ -628,7 +646,7 @@ class SeanceRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Seance> updateRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Seance row, {
     _i1.ColumnSelections<SeanceTable>? columns,
     _i1.Transaction? transaction,
@@ -643,7 +661,7 @@ class SeanceRepository {
   /// Updates a single [Seance] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Seance?> updateById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     required _i1.ColumnValueListBuilder<SeanceUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -658,7 +676,7 @@ class SeanceRepository {
   /// Updates all [Seance]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Seance>> updateWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.ColumnValueListBuilder<SeanceUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<SeanceTable> where,
     int? limit,
@@ -684,7 +702,7 @@ class SeanceRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Seance>> delete(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Seance> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -696,7 +714,7 @@ class SeanceRepository {
 
   /// Deletes a single [Seance].
   Future<Seance> deleteRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Seance row, {
     _i1.Transaction? transaction,
   }) async {
@@ -708,7 +726,7 @@ class SeanceRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Seance>> deleteWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.WhereExpressionBuilder<SeanceTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -721,7 +739,7 @@ class SeanceRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<SeanceTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -729,6 +747,22 @@ class SeanceRepository {
     return session.db.count<Seance>(
       where: where?.call(Seance.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [Seance] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<SeanceTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<Seance>(
+      where: where(Seance.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

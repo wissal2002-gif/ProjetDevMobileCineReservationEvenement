@@ -559,7 +559,7 @@ class FilmRepository {
   /// );
   /// ```
   Future<List<Film>> find(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<FilmTable>? where,
     int? limit,
     int? offset,
@@ -567,6 +567,8 @@ class FilmRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<FilmTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Film>(
       where: where?.call(Film.t),
@@ -576,6 +578,8 @@ class FilmRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -597,13 +601,15 @@ class FilmRepository {
   /// );
   /// ```
   Future<Film?> findFirstRow(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<FilmTable>? where,
     int? offset,
     _i1.OrderByBuilder<FilmTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<FilmTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Film>(
       where: where?.call(Film.t),
@@ -612,18 +618,24 @@ class FilmRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Film] by its [id] or null if no such row exists.
   Future<Film?> findById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Film>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -633,14 +645,20 @@ class FilmRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<Film>> insert(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Film> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Film>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -648,7 +666,7 @@ class FilmRepository {
   ///
   /// The returned [Film] will have its `id` field set.
   Future<Film> insertRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Film row, {
     _i1.Transaction? transaction,
   }) async {
@@ -664,7 +682,7 @@ class FilmRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Film>> update(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Film> rows, {
     _i1.ColumnSelections<FilmTable>? columns,
     _i1.Transaction? transaction,
@@ -680,7 +698,7 @@ class FilmRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Film> updateRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Film row, {
     _i1.ColumnSelections<FilmTable>? columns,
     _i1.Transaction? transaction,
@@ -695,7 +713,7 @@ class FilmRepository {
   /// Updates a single [Film] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Film?> updateById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     required _i1.ColumnValueListBuilder<FilmUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -710,7 +728,7 @@ class FilmRepository {
   /// Updates all [Film]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Film>> updateWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.ColumnValueListBuilder<FilmUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<FilmTable> where,
     int? limit,
@@ -736,7 +754,7 @@ class FilmRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Film>> delete(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<Film> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -748,7 +766,7 @@ class FilmRepository {
 
   /// Deletes a single [Film].
   Future<Film> deleteRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     Film row, {
     _i1.Transaction? transaction,
   }) async {
@@ -760,7 +778,7 @@ class FilmRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Film>> deleteWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.WhereExpressionBuilder<FilmTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -773,7 +791,7 @@ class FilmRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<FilmTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -781,6 +799,22 @@ class FilmRepository {
     return session.db.count<Film>(
       where: where?.call(Film.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [Film] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<FilmTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<Film>(
+      where: where(Film.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

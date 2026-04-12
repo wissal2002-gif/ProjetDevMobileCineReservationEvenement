@@ -284,7 +284,7 @@ class ReservationSiegeRepository {
   /// );
   /// ```
   Future<List<ReservationSiege>> find(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<ReservationSiegeTable>? where,
     int? limit,
     int? offset,
@@ -292,6 +292,8 @@ class ReservationSiegeRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<ReservationSiegeTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<ReservationSiege>(
       where: where?.call(ReservationSiege.t),
@@ -301,6 +303,8 @@ class ReservationSiegeRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -322,13 +326,15 @@ class ReservationSiegeRepository {
   /// );
   /// ```
   Future<ReservationSiege?> findFirstRow(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<ReservationSiegeTable>? where,
     int? offset,
     _i1.OrderByBuilder<ReservationSiegeTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<ReservationSiegeTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<ReservationSiege>(
       where: where?.call(ReservationSiege.t),
@@ -337,18 +343,24 @@ class ReservationSiegeRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [ReservationSiege] by its [id] or null if no such row exists.
   Future<ReservationSiege?> findById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<ReservationSiege>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -358,14 +370,20 @@ class ReservationSiegeRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<ReservationSiege>> insert(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<ReservationSiege> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<ReservationSiege>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -373,7 +391,7 @@ class ReservationSiegeRepository {
   ///
   /// The returned [ReservationSiege] will have its `id` field set.
   Future<ReservationSiege> insertRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     ReservationSiege row, {
     _i1.Transaction? transaction,
   }) async {
@@ -389,7 +407,7 @@ class ReservationSiegeRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<ReservationSiege>> update(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<ReservationSiege> rows, {
     _i1.ColumnSelections<ReservationSiegeTable>? columns,
     _i1.Transaction? transaction,
@@ -405,7 +423,7 @@ class ReservationSiegeRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<ReservationSiege> updateRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     ReservationSiege row, {
     _i1.ColumnSelections<ReservationSiegeTable>? columns,
     _i1.Transaction? transaction,
@@ -420,7 +438,7 @@ class ReservationSiegeRepository {
   /// Updates a single [ReservationSiege] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<ReservationSiege?> updateById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     required _i1.ColumnValueListBuilder<ReservationSiegeUpdateTable>
     columnValues,
@@ -436,7 +454,7 @@ class ReservationSiegeRepository {
   /// Updates all [ReservationSiege]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<ReservationSiege>> updateWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.ColumnValueListBuilder<ReservationSiegeUpdateTable>
     columnValues,
     required _i1.WhereExpressionBuilder<ReservationSiegeTable> where,
@@ -463,7 +481,7 @@ class ReservationSiegeRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<ReservationSiege>> delete(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<ReservationSiege> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -475,7 +493,7 @@ class ReservationSiegeRepository {
 
   /// Deletes a single [ReservationSiege].
   Future<ReservationSiege> deleteRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     ReservationSiege row, {
     _i1.Transaction? transaction,
   }) async {
@@ -487,7 +505,7 @@ class ReservationSiegeRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<ReservationSiege>> deleteWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.WhereExpressionBuilder<ReservationSiegeTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -500,7 +518,7 @@ class ReservationSiegeRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<ReservationSiegeTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -508,6 +526,22 @@ class ReservationSiegeRepository {
     return session.db.count<ReservationSiege>(
       where: where?.call(ReservationSiege.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [ReservationSiege] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<ReservationSiegeTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<ReservationSiege>(
+      where: where(ReservationSiege.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }
