@@ -82,6 +82,7 @@ admin:
   - getStatistiquesDetaillees:
 avis:
   - soumettreAvis:
+  - peutNoter:
   - getMonAvis:
   - getStatsFilm:
 billet:

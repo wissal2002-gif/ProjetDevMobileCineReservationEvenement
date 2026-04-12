@@ -1576,6 +1576,24 @@ class Endpoints extends _i1.EndpointDispatch {
                 params['note'],
               ),
         ),
+        'peutNoter': _i1.MethodConnector(
+          name: 'peutNoter',
+          params: {
+            'filmId': _i1.ParameterDescription(
+              name: 'filmId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['avis'] as _i5.AvisEndpoint).peutNoter(
+                session,
+                params['filmId'],
+              ),
+        ),
         'getMonAvis': _i1.MethodConnector(
           name: 'getMonAvis',
           params: {

@@ -816,6 +816,12 @@ class EndpointAvis extends _i2.EndpointRef {
     },
   );
 
+  _i3.Future<bool> peutNoter(int filmId) => caller.callServerEndpoint<bool>(
+    'avis',
+    'peutNoter',
+    {'filmId': filmId},
+  );
+
   _i3.Future<int?> getMonAvis(int filmId) => caller.callServerEndpoint<int?>(
     'avis',
     'getMonAvis',

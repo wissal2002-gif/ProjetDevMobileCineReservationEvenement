@@ -2826,6 +2826,37 @@ class _AvisEndpoint {
     });
   }
 
+  _i3.Future<bool> peutNoter(
+    _i1.TestSessionBuilder sessionBuilder,
+    int filmId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'avis',
+            method: 'peutNoter',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'avis',
+          methodName: 'peutNoter',
+          parameters: _i1.testObjectToJson({'filmId': filmId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<int?> getMonAvis(
     _i1.TestSessionBuilder sessionBuilder,
     int filmId,
