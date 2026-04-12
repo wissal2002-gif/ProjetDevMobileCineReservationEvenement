@@ -1,87 +1,150 @@
-# 🎬 CineReservation — Guide de démarrage complet
+# 🎬 CinéVent — Réservation Cinéma & Événements
 
-Projet de réservation de billets de cinéma — Flutter + Serverpod + PostgreSQL
+<div align="center">
+
+![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)
+![Serverpod](https://img.shields.io/badge/Serverpod-3.4.3-22C55E?style=for-the-badge&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![Riverpod](https://img.shields.io/badge/Riverpod-2.6-764ABC?style=for-the-badge&logoColor=white)
+![GoRouter](https://img.shields.io/badge/GoRouter-14.x-FF6B35?style=for-the-badge&logoColor=white)
+
+**Application mobile full-stack de réservation de billets de cinéma et d'événements culturels**
+
+*Projet de fin d'année — Module Développement Mobile | ENSA Tétouan 2025-2026*
+
+</div>
 
 ---
 
-## 👥 Équipe
-
-| Personne | Tâches |
-|----------|--------|
-| **Wissal** | Auth, Profil, Réservation, Paiement, Billets |
-| **Binôme** | Films, Séances, Cinémas, Salles, Admin, Support |
+## 🇫🇷 Français | 🇬🇧 [English below](#-english)
 
 ---
 
-## 📋 Prérequis
+## 📱 Aperçu
 
-Avant de commencer, installe ces outils :
+CinéVent est une application multi-plateforme (Android, iOS, Web) permettant aux utilisateurs de consulter les programmes de cinéma, réserver leurs places, assister à des événements culturels et gérer leurs billets numériques.
 
-- [Flutter](https://flutter.dev/docs/get-started/install) (version stable)
-- [Dart](https://dart.dev/get-dart)
-- [PostgreSQL](https://www.postgresql.org/download/) (version 14+)
-- [Git](https://git-scm.com/)
-- [VS Code](https://code.visualstudio.com/) ou Android Studio
-- Serverpod CLI :
+---
 
-```powershell
-dart pub global activate serverpod_cli
+## ✨ Fonctionnalités principales
+
+### 👤 Espace Client
+- 🏠 **Accueil personnalisé** — films à l'affiche, événements, recommandations selon l'historique, offres promotionnelles
+- 🎬 **Catalogue films** — recherche, filtrage par genre, notation et avis
+- 🎭 **Événements** — deux types : dans un cinéma (sélection de siège) et extérieurs (choix du nombre de tickets)
+- 🪑 **Réservation interactive** — plan de salle avec sièges Standard et VIP
+- 🛒 **Panier** — ajout d'options supplémentaires (snacks, boissons), codes promotionnels
+- 💳 **Paiement multi-modes** — carte bancaire, PayPal, espèces
+- 🎫 **Billets numériques** — QR code généré après paiement
+- 🏆 **Programme de fidélité** — 3 niveaux : Bronze / Argent / Or avec avantages exclusifs
+- ❤️ **Favoris** — films et cinémas sauvegardés
+- ⭐ **Notation** — noter les films de 1 à 5 étoiles
+
+### 🔐 Authentification & Sécurité
+- Inscription avec vérification email (code OTP)
+- Mot de passe oublié avec code de confirmation
+- Protection anti-brute force (limitation des tentatives)
+- Désactivation et suppression de compte sécurisées
+
+### 👑 Espace Super Admin
+- Tableau de bord global (films, événements, réservations, utilisateurs)
+- Gestion des cinémas et salles
+- Gestion des rôles utilisateurs (super_admin, admin_local, respo_evenements, client)
+- Codes promotionnels avec statistiques d'utilisation
+- FAQ et support client
+- Rapports d'activité et revenus globaux
+
+### 🏢 Espace Admin Local
+- Tableau de bord du cinema assigné
+- Gestion des films, séances et sièges
+- Snacks et options supplémentaires
+- Revenus et réservations du cinema
+
+### 🎪 Espace Responsable Événements
+- Création et gestion d'événements (dans cinema ou extérieurs)
+- Suivi des réservations et revenues
+- Statistiques de remplissage
+
+---
+
+## 🏗️ Architecture
+
+```
+ProjetDevMobileCineReservationEvenement/
+└── cine_reservation/
+    ├── cine_reservation_server/      ← Backend Serverpod (Dart)
+    │   ├── lib/src/endpoints/        ← API endpoints
+    │   ├── lib/src/models/           ← Modèles de données (.yaml)
+    │   ├── lib/src/generated/        ← Code auto-généré
+    │   └── migrations/               ← Migrations PostgreSQL
+    ├── cine_reservation_client/      ← Client généré automatiquement
+    └── cine_reservation_flutter/     ← Application Flutter
+        └── lib/
+            ├── core/                 ← Thème, routing, constantes
+            └── features/             ← Modules par fonctionnalité
+                ├── auth/
+                ├── home/
+                ├── programmation/
+                ├── evenements/
+                ├── reservation/
+                ├── paiement/
+                ├── billets/
+                ├── profil/
+                ├── admin/
+                ├── admin_tanger/
+                ├── admin_events/
+                ├── faq/
+                └── support/
 ```
 
-Vérifie les installations :
+---
 
-```powershell
-flutter --version
-dart --version
-psql --version
-serverpod version
-```
+## 🛠️ Stack technique
+
+| Couche | Technologie |
+|--------|-------------|
+| Frontend | Flutter 3.x |
+| State Management | Riverpod 2.6 |
+| Navigation | GoRouter 14.x |
+| Backend | Serverpod 3.4.3 (Dart) |
+| Base de données | PostgreSQL 14+ |
+| Authentification | Serverpod Auth (JWT + OTP) |
+| Images | CachedNetworkImage |
+| Versioning | Git (workflow multi-branches) |
 
 ---
 
-## 🚀 Étape 1 — Cloner le projet
+## 🚀 Installation et démarrage
 
-```powershell
-cd C:\Users\TON_NOM\StudioProjects
+### Prérequis
+
+- Flutter SDK 3.x
+- Dart SDK 3.x
+- Serverpod CLI 3.4.x — `dart pub global activate serverpod_cli`
+- PostgreSQL 14+
+- Git
+
+### 1. Cloner le projet
+
+```bash
 git clone https://github.com/wissal2002-gif/ProjetDevMobileCineReservationEvenement.git
-cd ProjetDevMobileCineReservationEvenement
+cd ProjetDevMobileCineReservationEvenement/cine_reservation
 ```
 
----
+### 2. Installer les dépendances
 
-## 🗄️ Étape 2 — Créer la base de données
-
-```powershell
-psql -U postgres -c "CREATE DATABASE cine_reservation;"
+```bash
+dart pub get
 ```
 
----
+### 3. Configurer PostgreSQL
 
-## ⚙️ Étape 3 — Configurer les fichiers de config
-
-### 3.1 — Créer `passwords.yaml`
-
-```powershell
-cd cine_reservation\cine_reservation_server
-code config\passwords.yaml
+```sql
+CREATE DATABASE cine_reservation;
 ```
 
-Colle ce contenu (remplace `TON_MOT_DE_PASSE` par ton mot de passe PostgreSQL) :
-
-```yaml
-development:
-  database: 'TON_MOT_DE_PASSE'
-  serviceSecret: 'myServiceSecret12345678901234567890'
-  jwtRefreshTokenHashPepper: 'myJwtRefreshTokenHashPepper1234567890'
-  jwtHmacSha512PrivateKey: 'myJwtHmacSha512PrivateKey1234567890abcdefghijklmnopqrstuvwxyz12345'
-  emailSecretHashPepper: 'myEmailSecretHashPepper1234567890'
-```
-
-> ⚠️ **IMPORTANT** : Ne jamais commiter ce fichier sur GitHub ! Il est déjà dans `.gitignore`.
-
-### 3.2 — Vérifier `development.yaml`
-
-Ouvre `config\development.yaml` et vérifie que la section `database` est :
+Modifier `cine_reservation_server/config/development.yaml` :
 
 ```yaml
 database:
@@ -89,182 +152,175 @@ database:
   port: 5432
   name: cine_reservation
   user: postgres
+  password: votre_mot_de_passe
 ```
 
-> ⚠️ Le port doit être **5432** (PostgreSQL), pas 8080 ou 8090.
+### 4. Générer le code Serverpod
 
----
-
-## 📦 Étape 4 — Installer les dépendances
-
-```powershell
-# Server
-cd cine_reservation\cine_reservation_server
-dart pub get
-
-# Client
-cd ..\cine_reservation_client
-dart pub get
-
-# Flutter
-cd ..\cine_reservation_flutter
-flutter pub get
+```bash
+cd cine_reservation_server
+serverpod generate
 ```
 
----
+### 5. Appliquer les migrations
 
-## 🗃️ Étape 5 — Appliquer les migrations
-
-```powershell
-cd cine_reservation\cine_reservation_server
+```bash
 dart run bin/main.dart --apply-migrations
 ```
 
-Tu devrais voir :
-```
-Applied database migration: XXXXXXXXXXXX
-Webserver listening on http://localhost:8082
-```
+### 6. Démarrer le serveur
 
-Stoppe avec **Ctrl+C**.
-
----
-
-## ▶️ Étape 6 — Lancer le serveur
-
-```powershell
-cd cine_reservation\cine_reservation_server
+```bash
 dart run bin/main.dart
 ```
 
-Serveur disponible sur :
-- **API** : http://localhost:8080
-- **Web** : http://localhost:8082
+### 7. Lancer l'application Flutter
 
----
+```bash
+cd ../cine_reservation_flutter
 
-## 📱 Étape 7 — Lancer l'app Flutter
+# Web
+flutter run -d chrome
 
-Dans un **nouveau terminal** :
-
-```powershell
-cd cine_reservation\cine_reservation_flutter
+# Android / iOS
 flutter run
 ```
 
----
+### 8. Créer un compte administrateur
 
-## 🏗️ Architecture du projet
+Après inscription dans l'app :
 
-```
-ProjetDevMobileCineReservationEvenement/
-└── cine_reservation/
-    ├── cine_reservation_server/     ← Backend Serverpod
-    │   ├── bin/main.dart
-    │   ├── config/
-    │   │   ├── development.yaml
-    │   │   └── passwords.yaml       ← NE PAS commiter !
-    │   ├── lib/src/
-    │   │   ├── endpoints/
-    │   │   ├── models/
-    │   │   └── generated/           ← NE PAS modifier !
-    │   └── migrations/
-    ├── cine_reservation_client/     ← NE PAS modifier !
-    └── cine_reservation_flutter/
-        └── lib/
-            ├── core/
-            └── features/
-                ├── auth/
-                ├── profil/
-                ├── programmation/
-                ├── reservation/
-                ├── paiement/
-                ├── billets/
-                ├── admin/
-                └── support/
-```
-
-### Structure d'une feature (Clean Architecture)
-
-```
-features/auth/
-├── data/
-│   ├── datasources/        ← Appels API Serverpod
-│   └── repositories/       ← Implémentation
-├── domain/
-│   ├── entities/           ← Classes métier
-│   ├── repositories/       ← Interfaces
-│   └── usecases/           ← Logique métier
-└── presentation/
-    ├── pages/              ← Écrans
-    ├── widgets/            ← Composants
-    └── providers/          ← État Riverpod
+```sql
+UPDATE utilisateurs SET role = 'super_admin' WHERE email = 'votre@email.com';
 ```
 
 ---
 
-## 🔄 Workflow quotidien
+## 👥 Équipe
 
-### Modifier un modèle `.spy.yaml`
+| Développeuse | Modules |
+|---|---|
+| **Wissal Khalid** | Auth, Profil, Réservation, Paiement, Billets, Fidélité, Favoris |
+| **Imane El Bouzidi** | Films, Séances, Cinémas, Événements, Admin, Support, FAQ |
 
-```powershell
-cd cine_reservation\cine_reservation_server
-serverpod generate
-serverpod create-migration
+**Encadrant :** Pr. El Hajjamy
+**Établissement :** ENSA Tétouan — 2025/2026
+
+---
+
+---
+
+## 🇬🇧 English
+
+## 📱 Overview
+
+CinéVent is a cross-platform (Android, iOS, Web) application for booking cinema tickets and attending cultural events. Users can browse programs, reserve seats, manage their digital tickets, and benefit from a loyalty program.
+
+---
+
+## ✨ Key Features
+
+### 👤 Client Space
+- 🏠 **Personalized home** — featured films, events, recommendations based on history, promo offers
+- 🎬 **Film catalog** — search, genre filtering, ratings and reviews
+- 🎭 **Events** — two types: in-cinema (seat selection) and outdoor (ticket quantity)
+- 🪑 **Interactive booking** — seat map with Standard and VIP seats
+- 🛒 **Cart** — add extras (snacks, drinks), promo codes
+- 💳 **Multi-payment** — credit card, PayPal, cash
+- 🎫 **Digital tickets** — QR code generated after payment
+- 🏆 **Loyalty program** — 3 levels: Bronze / Silver / Gold with exclusive perks
+- ❤️ **Favorites** — saved films and cinemas
+- ⭐ **Ratings** — rate films from 1 to 5 stars
+
+### 🔐 Authentication & Security
+- Registration with email verification (OTP code)
+- Password reset with confirmation code
+- Brute force protection (attempt limiting)
+- Secure account deactivation and deletion
+
+### 👑 Super Admin Space
+- Global dashboard (films, events, bookings, users)
+- Cinema and hall management
+- User role management (super_admin, admin_local, respo_evenements, client)
+- Promo codes with usage statistics
+- FAQ and customer support
+- Activity reports and global revenue
+
+### 🏢 Local Admin Space
+- Dashboard for assigned cinema
+- Film, screening and seat management
+- Snacks and extras management
+- Revenue and booking tracking
+
+### 🎪 Events Manager Space
+- Create and manage events (in-cinema or outdoor)
+- Booking and revenue tracking
+- Capacity statistics
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Flutter 3.x |
+| State Management | Riverpod 2.6 |
+| Navigation | GoRouter 14.x |
+| Backend | Serverpod 3.4.3 (Dart) |
+| Database | PostgreSQL 14+ |
+| Auth | Serverpod Auth (JWT + OTP) |
+| Versioning | Git (multi-branch workflow) |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Flutter SDK 3.x
+- Dart SDK 3.x
+- Serverpod CLI — `dart pub global activate serverpod_cli`
+- PostgreSQL 14+
+
+### Quick Start
+
+```bash
+# Clone
+git clone https://github.com/wissal2002-gif/ProjetDevMobileCineReservationEvenement.git
+cd ProjetDevMobileCineReservationEvenement/cine_reservation
+
+# Install dependencies
+dart pub get
+
+# Generate Serverpod code
+cd cine_reservation_server && serverpod generate
+
+# Apply migrations
 dart run bin/main.dart --apply-migrations
-```
 
-### Git quotidien
+# Start backend
+dart run bin/main.dart
 
-```powershell
-git pull origin main
-git checkout -b feature/nom-de-ta-feature
-# ... coder ...
-git add .
-git commit -m "feat: description"
-git push origin feature/nom-de-ta-feature
-# Créer une Pull Request sur GitHub
+# Start Flutter app
+cd ../cine_reservation_flutter && flutter run -d chrome
 ```
 
 ---
 
-## 📊 Tables de la base de données
+## 👥 Team
 
-| Table | Description |
-|-------|-------------|
-| `utilisateurs` | Comptes utilisateurs |
-| `films` | Films en programmation |
-| `cinemas` | Cinémas |
-| `salles` | Salles de cinéma |
-| `seances` | Séances |
-| `sieges` | Sièges par salle |
-| `reservations` | Réservations |
-| `reservation_sieges` | Sièges réservés |
-| `paiements` | Paiements |
-| `billets` | E-billets |
-| `favoris` | Cinémas favoris |
-| `codes_promo` | Codes de réduction |
-| `faqs` | FAQ |
-| `demandes_support` | Support utilisateurs |
+| Developer | Modules |
+|---|---|
+| **Wissal Khalid** | Auth, Profile, Booking, Payment, Tickets, Loyalty, Favorites |
+| **Imane El Bouzidi** | Films, Screenings, Cinemas, Events, Admin, Support, FAQ |
+
+**Supervisor:** Pr. El Hajjamy
+**Institution:** ENSA Tétouan — 2025/2026
 
 ---
 
-## ⚠️ Règles importantes
+<div align="center">
 
-1. **Ne jamais modifier** `generated/` et `cine_reservation_client/`
-2. **Toujours lancer** `serverpod generate` après modification d'un `.spy.yaml`
-3. **Ne jamais commiter** `config/passwords.yaml`
-4. **Toujours faire** `git pull` avant de commencer
-5. **Travailler sur des branches** — jamais directement sur `main`
+Made with ❤️ at ENSA Tétouan
 
----
-
-## 🐛 Problèmes fréquents
-
-**"Missing password"** → Vérifier `config/passwords.yaml` avec la clé `development:`
-
-**Erreur connexion BD** → Vérifier que PostgreSQL tourne + mot de passe correct + BD existe
-
-**Port 8080 occupé** → Changer dans `development.yaml` : `port: 8090`
-
-**`serverpod generate` échoue** → Vérifier que la version CLI = version packages `pubspec.yaml`
+</div>
