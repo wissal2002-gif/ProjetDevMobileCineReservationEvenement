@@ -333,17 +333,10 @@ class AdminEndpoint extends Endpoint {
   // ✅ MODIFIÉ : force cinemaId pour resp_evenements
   Future<Evenement> ajouterEvenement(Session session, Evenement ev) async {
     final user = await _getRequiredUser(session);
-
-    if (user.role == 'resp_evenements') {
-      if (ev.cinemaId != null) {
-        final evAvecCinema = ev.copyWith(cinemaId: user.cinemaId);
-        return await Evenement.db.insertRow(session, evAvecCinema);
-      } else {
-        final evSansCinema = ev.copyWith(cinemaId: null);
-        return await Evenement.db.insertRow(session, evSansCinema);
-      }
+    if (user.role == 'resp_evenements' && user.cinemaId != null) {
+      final evAvecCinema = ev.copyWith(cinemaId: user.cinemaId);
+      return await Evenement.db.insertRow(session, evAvecCinema);
     }
-
     return await Evenement.db.insertRow(session, ev);
   }
 

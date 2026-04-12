@@ -336,7 +336,7 @@ class _ManageReservationsEventsPageState
               ),
             ),
             Text(
-              "${DateFormat('dd/MM HH:mm').format(res.dateReservation.toLocal())} • ${res.montantTotal} DH",
+              "${DateFormat('dd/MM HH:mm').format(res.dateReservation)} • ${res.montantTotal} DH",
               style: const TextStyle(color: Colors.white54, fontSize: 11),
             ),
           ],
@@ -364,7 +364,7 @@ class _ManageReservationsEventsPageState
                 _infoRow("Titre :", ev.titre, isMobile),
                 _infoRow("Type :", (ev.type ?? "N/A").toUpperCase(), isMobile),
                 _infoRow("Date :",
-                    DateFormat('dd/MM/yyyy HH:mm').format(ev.dateDebut.toLocal()),
+                    DateFormat('dd/MM/yyyy HH:mm').format(ev.dateDebut),
                     isMobile),
 
                 // CAS 1 : Dans le cinéma

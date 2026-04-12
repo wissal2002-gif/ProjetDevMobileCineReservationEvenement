@@ -4,18 +4,7 @@ import 'package:cine_reservation_client/cine_reservation_client.dart';
 
 final filmsProvider = FutureProvider.autoDispose<List<Film>>((ref) async {
   try {
-    final films = await client.films.getFilms();
-    final now = DateTime.now();
-    final List<Film> filmsActifs = [];
-    for (final film in films) {
-      if (film.id == null) continue;
-      final seances = await client.seances.getSeancesByFilm(film.id!);
-      final aSeanceValide = seances.any((s) =>
-      s.dateHeure.isAfter(now) &&
-          (s.placesDisponibles ?? 0) > 0);
-      if (aSeanceValide) filmsActifs.add(film);
-    }
-    return filmsActifs;
+    return await client.films.getFilms();
   } catch (e) {
     return [];
   }
@@ -27,11 +16,9 @@ FutureProvider.family<Film?, int>((ref, id) async {
 });
 
 final seancesFilmProvider =
-FutureProvider.autoDispose.family<List<Seance>, int>((ref, filmId) async {
+FutureProvider.family<List<Seance>, int>((ref, filmId) async {
   try {
-    final seances = await client.seances.getSeancesByFilm(filmId);
-    final now = DateTime.now();
-    return seances.where((s) => s.dateHeure.isAfter(now)).toList();
+    return await client.seances.getSeancesByFilm(filmId);
   } catch (e) {
     return [];
   }

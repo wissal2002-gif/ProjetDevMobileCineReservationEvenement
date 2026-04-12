@@ -82,7 +82,6 @@ admin:
   - getStatistiquesDetaillees:
 avis:
   - soumettreAvis:
-  - peutNoter:
   - getMonAvis:
   - getStatsFilm:
 billet:
@@ -125,10 +124,6 @@ profil:
   - updatePhotoProfil:
   - desactiverCompte:
   - supprimerCompte:
-  - getFidelite:
-  - ajouterPoints:
-  - getCodePromoFidelite:
-  - getAvantagesFidelite:
 reservation:
   - creerReservation:
   - getSiegesReservesBySeance:

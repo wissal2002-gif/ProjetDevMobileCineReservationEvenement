@@ -43,7 +43,8 @@ class EvenementDetailPage extends ConsumerWidget {
               salleId = salle.id ?? 0;
             } catch (_) {}
           }
-          if (event.cinemaId != null && cinemas.isNotEmpty && salleId > 0) {
+
+          if (event.cinemaId != null && cinemas.isNotEmpty) {
             try {
               final cinema =
               cinemas.firstWhere((c) => c.id == event.cinemaId);

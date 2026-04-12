@@ -2451,15 +2451,6 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data as List).map((e) => deserialize<_i38.Billet>(e)).toList()
           as T;
     }
-    if (t == _i1.getType<Map<String, dynamic>?>()) {
-      return (data != null
-              ? (data as Map).map(
-                  (k, v) =>
-                      MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
-                )
-              : null)
-          as T;
-    }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }

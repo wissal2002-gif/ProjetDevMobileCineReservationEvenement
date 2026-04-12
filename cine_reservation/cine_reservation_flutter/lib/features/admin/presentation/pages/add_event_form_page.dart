@@ -26,8 +26,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
 
   // ── État ─────────────────────────────────────────────────────────────────
   String _type = 'concert';
-  final List<String> _validTypes = [
-    'theatre',
+  final List<String> _validTypes = ['theatre',
     'sketch',
     'danse',
     'soiree_musicale',
@@ -39,8 +38,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
     'exposition',
     'sport_live',
     'tournoi',
-    'autre',
-  ];
+    'autre',];
   String _statut = 'actif';
   int? _selectedCinemaId;
   int? _selectedSalleId;
@@ -48,7 +46,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
   bool _isAtCinema = false;
   bool _annulationGratuite = true;
   bool _isUploading = false;
-  bool _hasSiegesVip = false;
+  bool _hasSiegesVip = false; // true si la salle sélectionnée a des sièges VIP
 
   DateTime _dateDebut = DateTime.now().add(const Duration(days: 1));
   DateTime? _dateFin;
@@ -58,35 +56,34 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
     super.initState();
     final e = widget.event;
 
-    _titreCtrl       = TextEditingController(text: e?.titre);
-    _descCtrl        = TextEditingController(text: e?.description);
-    // ✅ FIX : si événement cinéma, _lieuCtrl vide (lieu = salleName, pas lieuCtrl)
-    _lieuCtrl        = TextEditingController(text: e?.cinemaId != null ? '' : e?.lieu);
-    _villeCtrl       = TextEditingController(text: e?.ville);
-    _prixCtrl        = TextEditingController(text: (e?.prix ?? 0.0).toString());
-    _prixVipCtrl     = TextEditingController(text: (e?.prixVip ?? 0.0).toString());
-    _prixReduitCtrl  = TextEditingController(text: (e?.prixReduit ?? 0.0).toString());
-    _prixSeniorCtrl  = TextEditingController(text: (e?.prixSenior ?? 0.0).toString());
-    _prixEnfantCtrl  = TextEditingController(text: (e?.prixEnfant ?? 0.0).toString());
-    _placesTotalCtrl = TextEditingController(text: (e?.placesTotales ?? 100).toString());
-    _afficheCtrl     = TextEditingController(text: e?.affiche ?? '');
-    _baCtrl          = TextEditingController(text: e?.bandeAnnonce);
-    _orgaCtrl        = TextEditingController(text: e?.organisateur);
-    _delaiAnnulCtrl  = TextEditingController(text: (e?.delaiAnnulation ?? 48).toString());
-    _fraisAnnulCtrl  = TextEditingController(text: (e?.fraisAnnulation ?? 0.0).toString());
+    _titreCtrl        = TextEditingController(text: e?.titre);
+    _descCtrl         = TextEditingController(text: e?.description);
+    _lieuCtrl         = TextEditingController(text: e?.lieu);
+    _villeCtrl        = TextEditingController(text: e?.ville);
+    _prixCtrl         = TextEditingController(text: (e?.prix ?? 0.0).toString());
+    _prixVipCtrl      = TextEditingController(text: (e?.prixVip    ?? 0.0).toString());
+    _prixReduitCtrl   = TextEditingController(text: (e?.prixReduit ?? 0.0).toString());
+    _prixSeniorCtrl   = TextEditingController(text: (e?.prixSenior ?? 0.0).toString());
+    _prixEnfantCtrl   = TextEditingController(text: (e?.prixEnfant ?? 0.0).toString());
+    _placesTotalCtrl  = TextEditingController(text: (e?.placesTotales ?? 100).toString());
+    _afficheCtrl      = TextEditingController(text: e?.affiche ?? '');
+    _baCtrl           = TextEditingController(text: e?.bandeAnnonce);
+    _orgaCtrl         = TextEditingController(text: e?.organisateur);
+    _delaiAnnulCtrl   = TextEditingController(text: (e?.delaiAnnulation ?? 48).toString());
+    _fraisAnnulCtrl   = TextEditingController(text: (e?.fraisAnnulation ?? 0.0).toString());
 
     if (e != null) {
       final String incomingType = (e.type ?? 'concert').toLowerCase();
-      _type               = _validTypes.contains(incomingType) ? incomingType : 'autre';
-      _statut             = e.statut ?? 'actif';
-      _isAtCinema         = e.cinemaId != null;
-      _selectedCinemaId   = e.cinemaId;
-      _dateDebut          = e.dateDebut;
-      _dateFin            = e.dateFin;
+      _type    = _validTypes.contains(incomingType) ? incomingType : 'autre';
+      _statut  = e.statut ?? 'actif';
+      _isAtCinema       = e.cinemaId != null;
+      _selectedCinemaId = e.cinemaId;
+      _dateDebut        = e.dateDebut;
+      _dateFin          = e.dateFin;
       _annulationGratuite = e.annulationGratuite ?? true;
       _selectedSalleName  = e.lieu;
 
-      // Récupérer la salle si événement dans un cinéma
+      // ← AJOUTER : récupérer la salle si événement dans un cinéma
       if (e.cinemaId != null && e.lieu != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           try {
@@ -106,25 +103,13 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
       }
     }
 
-    // ✅ FIX : Auto-remplir la ville uniquement (PAS le cinemaId)
-    // Le cinemaId ne sera assigné que si _isAtCinema est activé via le toggle
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    // ✅ Auto-remplir cinemaId si resp_evenements
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final admin = ref.read(adminProfileProvider).value;
       if (admin?.role == 'resp_evenements' && admin?.cinemaId != null) {
-        // ✅ NE PAS auto-assigner _selectedCinemaId ici
-        // Il sera assigné uniquement via le SwitchListTile onChanged
-
-        // Auto-remplir la ville depuis le cinéma (pour événement hors cinéma aussi)
-        try {
-          final cinemas = ref.read(allCinemasProvider).value ?? [];
-          final cinema = cinemas.firstWhere(
-                (c) => c.id == admin!.cinemaId,
-            orElse: () => Cinema(nom: '', adresse: '', ville: ''),
-          );
-          if (cinema.ville.isNotEmpty && _villeCtrl.text.isEmpty) {
-            setState(() => _villeCtrl.text = cinema.ville);
-          }
-        } catch (_) {}
+        setState(() {
+          _selectedCinemaId = admin!.cinemaId;
+        });
       }
     });
   }
@@ -170,7 +155,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final admin        = ref.watch(adminProfileProvider).value;
+    final admin       = ref.watch(adminProfileProvider).value;
     final cinemasAsync = ref.watch(allCinemasProvider);
     final isRespEvent  = admin?.role == 'resp_evenements';
 
@@ -178,10 +163,8 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
-        title: Text(
-          widget.event == null ? "NOUVEL ÉVÉNEMENT" : "MODIFIER L'ÉVÉNEMENT",
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: Text(widget.event == null ? "NOUVEL ÉVÉNEMENT" : "MODIFIER L'ÉVÉNEMENT",
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -204,6 +187,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                 const SizedBox(height: 15),
                 _field(_descCtrl, "Description", Icons.description, maxLines: 3),
                 const SizedBox(height: 15),
+                // Statut
                 DropdownButtonFormField<String>(
                   value: _statut,
                   dropdownColor: AppColors.cardBg,
@@ -223,6 +207,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
               // ── 2. LOCALISATION ─────────────────────────────────────────
               _sectionTitle("Localisation"),
               _card([
+                // Toggle cinéma
                 SwitchListTile(
                   title: const Text("Se déroule dans un Cinéma ?",
                       style: TextStyle(color: Colors.white)),
@@ -235,38 +220,21 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                   ),
                   value: _isAtCinema,
                   activeColor: AppColors.accent,
-                  // ✅ FIX : gestion correcte du cinemaId selon le toggle
-                  onChanged: (val) {
-                    final admin = ref.read(adminProfileProvider).value;
-                    setState(() {
-                      _isAtCinema = val;
-                      if (val) {
-                        // Active cinéma → assigner cinemaId de l'admin si resp_evenements
-                        if (admin?.role == 'resp_evenements' && admin?.cinemaId != null) {
-                          _selectedCinemaId = admin!.cinemaId;
-                        }
-                        // Vider les champs hors-cinéma
-                        _lieuCtrl.clear();
-                      } else {
-                        // ✅ Désactive cinéma → VIDER tous les champs cinéma sans exception
-                        _selectedCinemaId  = null;
-                        _selectedSalleId   = null;
-                        _selectedSalleName = null;
-                        _hasSiegesVip      = false;
-                        // ✅ VIDER aussi _lieuCtrl pour éviter qu'il garde
-                        // le nom de salle de l'ancien événement cinéma
-                        _lieuCtrl.clear();
-                        // Remettre la ville depuis le cinéma de l'admin si dispo
-                        if (admin?.role == 'resp_evenements' && admin?.cinemaId != null) {
-                          final cinemas = ref.read(allCinemasProvider).value ?? [];
-                          try {
-                            final cinema = cinemas.firstWhere((c) => c.id == admin!.cinemaId);
-                            if (cinema.ville.isNotEmpty) _villeCtrl.text = cinema.ville;
-                          } catch (_) {}
-                        }
-                      }
-                    });
-                  },
+          // ✅ APRÈS
+          onChanged: (val) {
+            setState(() {
+              _isAtCinema = val;
+              if (!val) {
+                _selectedSalleId   = null;
+                _selectedSalleName = null;
+                _hasSiegesVip      = false;
+                final admin = ref.read(adminProfileProvider).value;
+                if (admin?.role != 'resp_evenements') {
+                  _selectedCinemaId = null;
+                }
+              }
+            });
+          },
                 ),
                 if (_isAtCinema) ...[
                   const SizedBox(height: 12),
@@ -276,15 +244,16 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                     cinemasAsync.when(
                       data: (cinemas) {
                         final c = cinemas.firstWhere(
-                              (c) => c.id == _selectedCinemaId,
-                          orElse: () => Cinema(nom: 'Cinéma', adresse: '', ville: ''),
-                        );
+                                (c) => c.id == _selectedCinemaId,
+                            orElse: () => Cinema(
+                                nom: 'Cinéma', adresse: '', ville: ''));
                         return Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: AppColors.accent.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                            border: Border.all(
+                                color: AppColors.accent.withOpacity(0.3)),
                           ),
                           child: Row(
                             children: [
@@ -322,14 +291,15 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                             value: c.id, child: Text(c.nom)))
                             .toList(),
                         onChanged: (val) => setState(() {
-                          _selectedCinemaId  = val;
-                          _selectedSalleId   = null;
+                          _selectedCinemaId = val;
+                          _selectedSalleId = null;
                           _selectedSalleName = null;
-                          _hasSiegesVip      = false;
+                          _hasSiegesVip = false;
                         }),
                       ),
                       loading: () => const LinearProgressIndicator(),
-                      error: (_, __) => const Text("Erreur cinémas",
+                      error: (_, __) =>
+                      const Text("Erreur cinémas",
                           style: TextStyle(color: Colors.redAccent)),
                     ),
 
@@ -340,7 +310,8 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                       future: client.admin.getSallesByCinema(_selectedCinemaId!),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
-                          return const LinearProgressIndicator(color: AppColors.accent);
+                          return const LinearProgressIndicator(
+                              color: AppColors.accent);
                         }
                         return DropdownButtonFormField<int>(
                           value: _selectedSalleId,
@@ -360,11 +331,13 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                           ))
                               .toList(),
                           onChanged: (val) async {
-                            final salle =
-                            snapshot.data!.firstWhere((s) => s.id == val);
-                            final sieges =
-                            await client.admin.getSiegesBySalle(val!);
-                            final hasVip = sieges.any((s) => s.type == 'vip');
+                            final salle = snapshot.data!
+                                .firstWhere((s) => s.id == val);
+                            // Vérifier si la salle a des sièges VIP
+                            final sieges = await client.admin
+                                .getSiegesBySalle(val!);
+                            final hasVip =
+                            sieges.any((s) => s.type == 'vip');
                             setState(() {
                               _selectedSalleId   = val;
                               _selectedSalleName = "Salle ${salle.codeSalle}";
@@ -382,7 +355,8 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                   _field(_lieuCtrl, "Nom du Lieu (Théâtre, Stade...)",
                       Icons.place, required: true),
                   const SizedBox(height: 15),
-                  _field(_villeCtrl, "Ville", Icons.location_city, required: true),
+                  _field(_villeCtrl, "Ville", Icons.location_city,
+                      required: true),
                 ],
               ]),
 
@@ -391,7 +365,8 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
               _card([
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.calendar_today, color: AppColors.accent),
+                  leading: const Icon(Icons.calendar_today,
+                      color: AppColors.accent),
                   title: const Text("Date de début",
                       style: TextStyle(color: Colors.white70, fontSize: 13)),
                   subtitle: Text(
@@ -399,12 +374,14 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                     style: const TextStyle(
                         color: AppColors.accent, fontWeight: FontWeight.bold),
                   ),
-                  trailing: const Icon(Icons.edit, color: Colors.white38, size: 18),
+                  trailing:
+                  const Icon(Icons.edit, color: Colors.white38, size: 18),
                   onTap: () => _pickDateTime(true),
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.calendar_month, color: Colors.white38),
+                  leading: const Icon(Icons.calendar_month,
+                      color: Colors.white38),
                   title: const Text("Date de fin (optionnel)",
                       style: TextStyle(color: Colors.white70, fontSize: 13)),
                   subtitle: Text(
@@ -412,9 +389,12 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                         ? DateFormat('dd/MM/yyyy HH:mm').format(_dateFin!)
                         : "Non définie",
                     style: TextStyle(
-                        color: _dateFin != null ? AppColors.accent : Colors.white38),
+                        color: _dateFin != null
+                            ? AppColors.accent
+                            : Colors.white38),
                   ),
-                  trailing: const Icon(Icons.edit, color: Colors.white38, size: 18),
+                  trailing:
+                  const Icon(Icons.edit, color: Colors.white38, size: 18),
                   onTap: () => _pickDateTime(false),
                 ),
               ]),
@@ -422,22 +402,26 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
               // ── 4. PRIX & PLACES ────────────────────────────────────────
               _sectionTitle("Prix & Places"),
               _card([
+                // Places totales
                 _field(_placesTotalCtrl, "Places totales *",
                     Icons.event_seat, isNumber: true, required: true),
                 const SizedBox(height: 16),
 
                 if (_isAtCinema && _selectedSalleId != null) ...[
+                  // Prix dans un cinéma avec salle sélectionnée
                   Container(
                     padding: const EdgeInsets.all(10),
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
                       color: AppColors.accent.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+                      border: Border.all(
+                          color: AppColors.accent.withOpacity(0.2)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info_outline, color: AppColors.accent, size: 16),
+                        const Icon(Icons.info_outline,
+                            color: AppColors.accent, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -451,12 +435,16 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                       ],
                     ),
                   ),
+
                   _field(_prixCtrl, "Prix Normal (DH) *",
                       Icons.money, isNumber: true, required: true),
+
                   if (_hasSiegesVip) ...[
                     const SizedBox(height: 12),
-                    _field(_prixVipCtrl, "Prix VIP (DH)", Icons.star, isNumber: true),
+                    _field(_prixVipCtrl, "Prix VIP (DH)",
+                        Icons.star, isNumber: true),
                   ],
+
                   const SizedBox(height: 12),
                   Row(children: [
                     Expanded(
@@ -473,6 +461,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                   _field(_prixEnfantCtrl, "Prix Enfant (DH)",
                       Icons.child_care, isNumber: true),
                 ] else ...[
+                  // Prix unique hors cinéma
                   _field(_prixCtrl, "Prix du billet (DH) *",
                       Icons.money, isNumber: true, required: true),
                 ],
@@ -486,7 +475,8 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                       style: TextStyle(color: Colors.white)),
                   value: _annulationGratuite,
                   activeColor: AppColors.accent,
-                  onChanged: (val) => setState(() => _annulationGratuite = val),
+                  onChanged: (val) =>
+                      setState(() => _annulationGratuite = val),
                 ),
                 if (!_annulationGratuite) ...[
                   const SizedBox(height: 10),
@@ -501,6 +491,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
               // ── 6. MÉDIAS ───────────────────────────────────────────────
               _sectionTitle("Médias"),
               _card([
+                // Aperçu affiche
                 if (_afficheCtrl.text.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
@@ -524,7 +515,8 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                         Positioned(
                           top: 6, right: 6,
                           child: GestureDetector(
-                            onTap: () => setState(() => _afficheCtrl.text = ''),
+                            onTap: () =>
+                                setState(() => _afficheCtrl.text = ''),
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
@@ -538,10 +530,13 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                       ],
                     ),
                   ),
+
+                // Bouton upload affiche
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48),
-                    side: BorderSide(color: AppColors.accent.withOpacity(0.5)),
+                    side: BorderSide(
+                        color: AppColors.accent.withOpacity(0.5)),
                     foregroundColor: AppColors.accent,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
@@ -559,8 +554,10 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
                       ? "Changer l'affiche"
                       : "Importer affiche depuis PC"),
                 ),
+
                 const SizedBox(height: 12),
-                _field(_baCtrl, "URL Bande Annonce (YouTube/MP4)", Icons.movie),
+                _field(_baCtrl, "URL Bande Annonce (YouTube/MP4)",
+                    Icons.movie),
               ]),
 
               // ── BOUTON ENREGISTRER ───────────────────────────────────────
@@ -606,7 +603,9 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
       setState(() => _isUploading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur upload: $e"), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text("Erreur upload: $e"),
+              backgroundColor: Colors.red),
         );
       }
     }
@@ -616,79 +615,55 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // ✅ FIX PRINCIPAL : forcer le reset de tous les champs cinéma si toggle désactivé
-    // Cela garantit qu'aucune valeur résiduelle en mémoire ne fuite dans l'objet Evenement
-    if (!_isAtCinema) {
-      _selectedCinemaId  = null;
-      _selectedSalleId   = null;
-      _selectedSalleName = null;
-      _hasSiegesVip      = false;
-    }
+    final double prixNormal   = double.tryParse(_prixCtrl.text) ?? 0.0;
+    final int    places       = int.tryParse(_placesTotalCtrl.text) ?? 0;
+    final int    delai        = int.tryParse(_delaiAnnulCtrl.text) ?? 48;
+    final double frais        = double.tryParse(_fraisAnnulCtrl.text) ?? 0.0;
 
-    final double prixNormal = double.tryParse(_prixCtrl.text) ?? 0.0;
-    final int    places     = int.tryParse(_placesTotalCtrl.text) ?? 0;
-    final int    delai      = int.tryParse(_delaiAnnulCtrl.text) ?? 48;
-    final double frais      = double.tryParse(_fraisAnnulCtrl.text) ?? 0.0;
-
-    final bool saveInCinema =
-        _isAtCinema == true &&
-            _selectedCinemaId != null &&
-            _selectedSalleId != null;
-    debugPrint("🔥 isAtCinema: $_isAtCinema");
-    debugPrint("🔥 selectedCinemaId: $_selectedCinemaId");
-    debugPrint("🔥 selectedSalleId: $_selectedSalleId");
-    debugPrint("🔥 saveInCinema: $saveInCinema");
     // Lieu final
-    final String lieu = saveInCinema
+    final String lieu = _isAtCinema
         ? (_selectedSalleName ?? '')
         : _lieuCtrl.text.trim();
+
     // Ville : si cinéma, récupérer depuis la liste
     String ville = _villeCtrl.text.trim();
-    if (saveInCinema && _selectedCinemaId != null){
+    if (_isAtCinema && _selectedCinemaId != null) {
       final cinemas = ref.read(allCinemasProvider).value ?? [];
-      final cinema = cinemas.firstWhere(
-            (c) => c.id == _selectedCinemaId,
-        orElse: () => Cinema(nom: '', adresse: '', ville: ''),
-      );
+      final cinema  = cinemas.firstWhere(
+              (c) => c.id == _selectedCinemaId,
+          orElse: () => Cinema(nom: '', adresse: '', ville: ''));
       if (cinema.ville.isNotEmpty) ville = cinema.ville;
     }
 
-
-    // ✅ cinemaId est null si _isAtCinema est false, garanti par le reset ci-dessus
-    final int? cinemaId =
-    (_isAtCinema && _selectedCinemaId != null)
-        ? _selectedCinemaId
-        : null;
-    debugPrint("🔍 isAtCinema: $_isAtCinema | cinemaId: $cinemaId | lieu: $lieu | ville: $ville");
-
     final ev = Evenement(
-      id:                widget.event?.id,
-      titre:             _titreCtrl.text.trim(),
-      description:       _descCtrl.text.trim(),
-      type:              _type,
-      cinemaId:          cinemaId,
-      lieu:              lieu,
-      ville:             ville,
-      dateDebut:         _dateDebut,
-      dateFin:           _dateFin,
-      prix:              prixNormal,
-      prixVip:           double.tryParse(_prixVipCtrl.text)   ?? 0.0,
-      prixReduit:        double.tryParse(_prixReduitCtrl.text) ?? 0.0,
-      prixSenior:        double.tryParse(_prixSeniorCtrl.text) ?? 0.0,
-      prixEnfant:        double.tryParse(_prixEnfantCtrl.text) ?? 0.0,
-      placesTotales:     places,
+      id:               widget.event?.id,
+      titre:            _titreCtrl.text.trim(),
+      description:      _descCtrl.text.trim(),
+      type:             _type,
+      cinemaId:         _isAtCinema ? _selectedCinemaId : null,
+      lieu:             lieu,
+      ville:            ville,
+      dateDebut:        _dateDebut,
+      dateFin:          _dateFin,
+      prix:             prixNormal,
+      prixVip:          double.tryParse(_prixVipCtrl.text)    ?? 0.0,  // ← AJOUTER
+      prixReduit:       double.tryParse(_prixReduitCtrl.text)  ?? 0.0,  // ← AJOUTER
+      prixSenior:       double.tryParse(_prixSeniorCtrl.text)  ?? 0.0,  // ← AJOUTER
+      prixEnfant:       double.tryParse(_prixEnfantCtrl.text)  ?? 0.0,  // ← AJOUTER
+      placesTotales:    places,
+
       placesDisponibles: widget.event == null
           ? places
           : widget.event!.placesDisponibles,
-      affiche:           _afficheCtrl.text.trim(),
-      bandeAnnonce:      _baCtrl.text.trim(),
-      organisateur:      _orgaCtrl.text.trim(),
-      statut:            _statut,
+      affiche:          _afficheCtrl.text.trim(),
+      bandeAnnonce:     _baCtrl.text.trim(),
+      organisateur:     _orgaCtrl.text.trim(),
+      statut:           _statut,
       annulationGratuite: _annulationGratuite,
-      delaiAnnulation:   delai,
-      fraisAnnulation:   frais,
-      noteMoyenne:       widget.event?.noteMoyenne ?? 0.0,
-      nombreAvis:        widget.event?.nombreAvis  ?? 0,
+      delaiAnnulation:  delai,
+      fraisAnnulation:  frais,
+      noteMoyenne:      widget.event?.noteMoyenne ?? 0.0,
+      nombreAvis:       widget.event?.nombreAvis  ?? 0,
     );
 
     try {
@@ -709,7 +684,9 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur : $e"), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text("Erreur : $e"),
+              backgroundColor: Colors.red),
         );
       }
     }
@@ -765,7 +742,7 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
         prefixIcon: Icon(icon, size: 20, color: Colors.white38),
         filled:     true,
         fillColor:  Colors.white.withOpacity(0.03),
-        border: OutlineInputBorder(
+        border:     OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
@@ -778,20 +755,21 @@ class _AddEventFormPageState extends ConsumerState<AddEventFormPage> {
 
   Widget _buildDropdownType() {
     return DropdownButtonFormField<String>(
-      value:         _type,
+      value:        _type,
       dropdownColor: AppColors.cardBg,
-      style:         const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
+      style:        const TextStyle(color: Colors.white),
+      decoration:   InputDecoration(
         labelText:  "Type d'événement",
         prefixIcon: const Icon(Icons.category, color: Colors.white38, size: 20),
         filled:     true,
         fillColor:  Colors.white.withOpacity(0.03),
-        border: OutlineInputBorder(
+        border:     OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none),
       ),
       items: _validTypes
-          .map((t) => DropdownMenuItem(value: t, child: Text(t.toUpperCase())))
+          .map((t) => DropdownMenuItem(
+          value: t, child: Text(t.toUpperCase())))
           .toList(),
       onChanged: (v) => setState(() => _type = v!),
     );

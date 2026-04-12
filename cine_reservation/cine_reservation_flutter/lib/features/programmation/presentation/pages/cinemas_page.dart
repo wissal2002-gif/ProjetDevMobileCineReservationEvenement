@@ -12,34 +12,7 @@ import '../../../../main.dart';
 // ─── Providers ──────────────────────────────────────────────────────────────
 final filmsByCinemaProvider =
 FutureProvider.autoDispose.family<List<Film>, int>((ref, cinemaId) async {
-  try {
-    final films = await client.films.getFilmsByCinema(cinemaId);
-    final now = DateTime.now();
-    final List<Film> filmsActifs = [];
-    for (final film in films) {
-      if (film.id == null) continue;
-      final seances = await client.seances.getSeancesByFilm(film.id!);
-      final aSeanceValide = seances.any((s) => s.dateHeure.isAfter(now));
-      if (aSeanceValide) filmsActifs.add(film);
-    }
-    return filmsActifs;
-  } catch (e) {
-    return [];
-  }
-});
-
-final evenementsByCinemaProvider =
-FutureProvider.autoDispose.family<List<Evenement>, int>((ref, cinemaId) async {
-  try {
-    final events = await client.evenements.getEvenementsByCinema(cinemaId);
-    final now = DateTime.now();
-    return events.where((e) =>
-    e.statut == 'actif' &&
-        e.dateDebut.isAfter(now)
-    ).toList();
-  } catch (e) {
-    return [];
-  }
+  return await client.films.getFilmsByCinema(cinemaId);
 });
 
 final evenementsByCinemaProvider =
