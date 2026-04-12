@@ -58,9 +58,7 @@ abstract class CodePromo implements _i1.SerializableModel {
             ),
       utilisationsMax: jsonSerialization['utilisationsMax'] as int?,
       utilisationsActuelles: jsonSerialization['utilisationsActuelles'] as int?,
-      actif: jsonSerialization['actif'] == null
-          ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['actif']),
+      actif: jsonSerialization['actif'] as bool?,
     );
   }
 

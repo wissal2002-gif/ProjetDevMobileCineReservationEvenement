@@ -48,9 +48,7 @@ abstract class Billet implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       dateEmission: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['dateEmission'],
       ),
-      estValide: jsonSerialization['estValide'] == null
-          ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['estValide']),
+      estValide: jsonSerialization['estValide'] as bool?,
       typeBillet: jsonSerialization['typeBillet'] as String?,
       qrCode: jsonSerialization['qrCode'] as String?,
       dateValidation: jsonSerialization['dateValidation'] == null
@@ -396,7 +394,7 @@ class BilletRepository {
   /// );
   /// ```
   Future<List<Billet>> find(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<BilletTable>? where,
     int? limit,
     int? offset,
@@ -404,8 +402,6 @@ class BilletRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<BilletTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Billet>(
       where: where?.call(Billet.t),
@@ -415,8 +411,6 @@ class BilletRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -438,15 +432,13 @@ class BilletRepository {
   /// );
   /// ```
   Future<Billet?> findFirstRow(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<BilletTable>? where,
     int? offset,
     _i1.OrderByBuilder<BilletTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<BilletTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Billet>(
       where: where?.call(Billet.t),
@@ -455,24 +447,18 @@ class BilletRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Billet] by its [id] or null if no such row exists.
   Future<Billet?> findById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Billet>(
       id,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -482,20 +468,14 @@ class BilletRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
-  ///
-  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
-  /// rows are silently skipped, and only the successfully inserted rows are
-  /// returned.
   Future<List<Billet>> insert(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Billet> rows, {
     _i1.Transaction? transaction,
-    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Billet>(
       rows,
       transaction: transaction,
-      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -503,7 +483,7 @@ class BilletRepository {
   ///
   /// The returned [Billet] will have its `id` field set.
   Future<Billet> insertRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Billet row, {
     _i1.Transaction? transaction,
   }) async {
@@ -519,7 +499,7 @@ class BilletRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Billet>> update(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Billet> rows, {
     _i1.ColumnSelections<BilletTable>? columns,
     _i1.Transaction? transaction,
@@ -535,7 +515,7 @@ class BilletRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Billet> updateRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Billet row, {
     _i1.ColumnSelections<BilletTable>? columns,
     _i1.Transaction? transaction,
@@ -550,7 +530,7 @@ class BilletRepository {
   /// Updates a single [Billet] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Billet?> updateById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     required _i1.ColumnValueListBuilder<BilletUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -565,7 +545,7 @@ class BilletRepository {
   /// Updates all [Billet]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Billet>> updateWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.ColumnValueListBuilder<BilletUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<BilletTable> where,
     int? limit,
@@ -591,7 +571,7 @@ class BilletRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Billet>> delete(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Billet> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -603,7 +583,7 @@ class BilletRepository {
 
   /// Deletes a single [Billet].
   Future<Billet> deleteRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Billet row, {
     _i1.Transaction? transaction,
   }) async {
@@ -615,7 +595,7 @@ class BilletRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Billet>> deleteWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.WhereExpressionBuilder<BilletTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -628,7 +608,7 @@ class BilletRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<BilletTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -636,22 +616,6 @@ class BilletRepository {
     return session.db.count<Billet>(
       where: where?.call(Billet.t),
       limit: limit,
-      transaction: transaction,
-    );
-  }
-
-  /// Acquires row-level locks on [Billet] rows matching the [where] expression.
-  Future<void> lockRows(
-    _i1.DatabaseSession session, {
-    required _i1.WhereExpressionBuilder<BilletTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
-  }) async {
-    return session.db.lockRows<Billet>(
-      where: where(Billet.t),
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

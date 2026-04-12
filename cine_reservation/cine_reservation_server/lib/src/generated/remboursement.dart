@@ -444,7 +444,7 @@ class RemboursementRepository {
   /// );
   /// ```
   Future<List<Remboursement>> find(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<RemboursementTable>? where,
     int? limit,
     int? offset,
@@ -452,8 +452,6 @@ class RemboursementRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<RemboursementTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Remboursement>(
       where: where?.call(Remboursement.t),
@@ -463,8 +461,6 @@ class RemboursementRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -486,15 +482,13 @@ class RemboursementRepository {
   /// );
   /// ```
   Future<Remboursement?> findFirstRow(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<RemboursementTable>? where,
     int? offset,
     _i1.OrderByBuilder<RemboursementTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<RemboursementTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Remboursement>(
       where: where?.call(Remboursement.t),
@@ -503,24 +497,18 @@ class RemboursementRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Remboursement] by its [id] or null if no such row exists.
   Future<Remboursement?> findById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Remboursement>(
       id,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -530,20 +518,14 @@ class RemboursementRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
-  ///
-  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
-  /// rows are silently skipped, and only the successfully inserted rows are
-  /// returned.
   Future<List<Remboursement>> insert(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Remboursement> rows, {
     _i1.Transaction? transaction,
-    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Remboursement>(
       rows,
       transaction: transaction,
-      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -551,7 +533,7 @@ class RemboursementRepository {
   ///
   /// The returned [Remboursement] will have its `id` field set.
   Future<Remboursement> insertRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Remboursement row, {
     _i1.Transaction? transaction,
   }) async {
@@ -567,7 +549,7 @@ class RemboursementRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Remboursement>> update(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Remboursement> rows, {
     _i1.ColumnSelections<RemboursementTable>? columns,
     _i1.Transaction? transaction,
@@ -583,7 +565,7 @@ class RemboursementRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Remboursement> updateRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Remboursement row, {
     _i1.ColumnSelections<RemboursementTable>? columns,
     _i1.Transaction? transaction,
@@ -598,7 +580,7 @@ class RemboursementRepository {
   /// Updates a single [Remboursement] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Remboursement?> updateById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     required _i1.ColumnValueListBuilder<RemboursementUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -613,7 +595,7 @@ class RemboursementRepository {
   /// Updates all [Remboursement]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Remboursement>> updateWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.ColumnValueListBuilder<RemboursementUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<RemboursementTable> where,
     int? limit,
@@ -639,7 +621,7 @@ class RemboursementRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Remboursement>> delete(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Remboursement> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -651,7 +633,7 @@ class RemboursementRepository {
 
   /// Deletes a single [Remboursement].
   Future<Remboursement> deleteRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Remboursement row, {
     _i1.Transaction? transaction,
   }) async {
@@ -663,7 +645,7 @@ class RemboursementRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Remboursement>> deleteWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.WhereExpressionBuilder<RemboursementTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -676,7 +658,7 @@ class RemboursementRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<RemboursementTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -684,22 +666,6 @@ class RemboursementRepository {
     return session.db.count<Remboursement>(
       where: where?.call(Remboursement.t),
       limit: limit,
-      transaction: transaction,
-    );
-  }
-
-  /// Acquires row-level locks on [Remboursement] rows matching the [where] expression.
-  Future<void> lockRows(
-    _i1.DatabaseSession session, {
-    required _i1.WhereExpressionBuilder<RemboursementTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
-  }) async {
-    return session.db.lockRows<Remboursement>(
-      where: where(Remboursement.t),
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

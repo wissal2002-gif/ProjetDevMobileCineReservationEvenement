@@ -189,8 +189,7 @@ class FilmDetailPage extends ConsumerWidget {
                 seancesAsync.when(
                   data: (list) => list.isEmpty
                       ? const Text('Aucune seance disponible',
-                      style:
-                      TextStyle(color: AppColors.textLight))
+                      style: TextStyle(color: AppColors.textLight))
                       : Column(
                     children: list
                         .map((s) => _buildSeanceItem(
@@ -218,15 +217,13 @@ class FilmDetailPage extends ConsumerWidget {
   }
 
   // ═══════════════════════════════════════════════════════
-  // SECTION NOTATION — avec vérification réservation
+  // SECTION NOTATION
   // ═══════════════════════════════════════════════════════
 
   Widget _buildNotationSection(
       BuildContext context, WidgetRef ref, Film film) {
     final statsAsync = ref.watch(statsFilmProvider(film.id!));
     final monAvisAsync = ref.watch(monAvisProvider(film.id!));
-    // ✅ NOUVEAU : vérifier si l'utilisateur peut noter
-    final peutNoterAsync = ref.watch(peutNoterProvider(film.id!));
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -238,7 +235,6 @@ class FilmDetailPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Note moyenne ──
           statsAsync.when(
             data: (stats) {
               final moyenne = (stats['moyenne'] as num).toDouble();
@@ -280,11 +276,9 @@ class FilmDetailPage extends ConsumerWidget {
                     strokeWidth: 2, color: AppColors.accent)),
             error: (_, __) => const SizedBox(),
           ),
-
           const SizedBox(height: 16),
           const Divider(color: AppColors.divider),
           const SizedBox(height: 12),
-
           const Text('VOTRE NOTE',
               style: TextStyle(
                   color: AppColors.accent,
@@ -292,74 +286,20 @@ class FilmDetailPage extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2)),
           const SizedBox(height: 10),
-
-          // ✅ Afficher le widget selon peutNoter
-          peutNoterAsync.when(
-            data: (peutNoter) {
-              if (!peutNoter) {
-                // ── Utilisateur n'a pas réservé ce film ──
-                return _buildNonAutoriseWidget(context, film.id!);
-              }
-              // ── Utilisateur a réservé → afficher les étoiles ──
-              return monAvisAsync.when(
-                data: (noteActuelle) => _StarRatingWidget(
-                  filmId: film.id!,
-                  noteInitiale: noteActuelle,
-                ),
-                loading: () => const SizedBox(
-                    height: 36,
-                    width: 36,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.accent)),
-                error: (_, __) => _StarRatingWidget(
-                  filmId: film.id!,
-                  noteInitiale: null,
-                ),
-              );
-            },
+          monAvisAsync.when(
+            data: (noteActuelle) => _StarRatingWidget(
+              filmId: film.id!,
+              noteInitiale: noteActuelle,
+            ),
             loading: () => const SizedBox(
                 height: 36,
                 width: 36,
                 child: CircularProgressIndicator(
                     strokeWidth: 2, color: AppColors.accent)),
-            error: (_, __) => _buildNonAutoriseWidget(context, film.id!),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Widget affiché quand l'utilisateur ne peut pas noter ──
-  Widget _buildNonAutoriseWidget(BuildContext context, int filmId) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.lock_outline, color: Colors.white38, size: 20),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Réservation requise',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Vous devez avoir une réservation confirmée pour ce film afin de le noter.',
-                  style: TextStyle(color: Colors.white54, fontSize: 11),
-                ),
-              ],
-            ),
+            error: (_, __) => const Text(
+                'Connectez-vous pour noter ce film',
+                style:
+                TextStyle(color: AppColors.textLight, fontSize: 12)),
           ),
         ],
       ),
@@ -367,7 +307,7 @@ class FilmDetailPage extends ConsumerWidget {
   }
 
   // ═══════════════════════════════════════════════════════
-  // SÉANCE ITEM
+  // SÉANCE ITEM — cinemaId passé au navigationProvider
   // ═══════════════════════════════════════════════════════
 
   Widget _buildSeanceItem(
@@ -381,6 +321,7 @@ class FilmDetailPage extends ConsumerWidget {
       ) {
     final int salleId = seance.salleId;
 
+    // ✅ FIX : résoudre cinemaId depuis la salle
     int? cinemaId;
     String cinemaName = 'CINEMA';
     String salleName = '';
@@ -390,7 +331,7 @@ class FilmDetailPage extends ConsumerWidget {
       try {
         final salle = salles.firstWhere((s) => s.id == seance.salleId);
         salleName = ' — ${salle.codeSalle}';
-        cinemaId = salle.cinemaId;
+        cinemaId = salle.cinemaId; // ✅ récupérer cinemaId
         cinemasAsync.whenData((cinemas) {
           try {
             final cinema =
@@ -464,15 +405,15 @@ class FilmDetailPage extends ConsumerWidget {
             onPressed: seance.placesDisponibles <= 0
                 ? null
                 : () {
-              ref
-                  .read(navigationProvider.notifier)
-                  .setContext(
+              // ✅ FIX : passer cinemaId dans setContext
+              ref.read(navigationProvider.notifier).setContext(
                 seance: seance,
                 evenement: null,
                 filmTitre: filmTitre,
                 salleId: salleId,
-                cinemaId: cinemaId,
+                cinemaId: cinemaId, // ✅ NOUVEAU
               );
+              // ✅ FIX : vider le panier avant de choisir les sièges
               ref.read(panierProvider.notifier).vider();
               Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
@@ -599,11 +540,10 @@ class _StarRatingWidgetState extends ConsumerState<_StarRatingWidget> {
             const SizedBox(width: 8),
             Text(ok
                 ? 'Note $note/5 enregistrée !'
-            // ✅ Message clair si pas de réservation
-                : 'Vous devez avoir réservé ce film pour le noter.'),
+                : 'Erreur — connectez-vous pour noter'),
           ]),
           backgroundColor: ok ? AppColors.success : AppColors.error,
-          duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 2),
         ),
       );
 

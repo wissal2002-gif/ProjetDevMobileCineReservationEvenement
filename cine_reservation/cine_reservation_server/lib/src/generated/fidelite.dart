@@ -318,7 +318,7 @@ class FideliteRepository {
   /// );
   /// ```
   Future<List<Fidelite>> find(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<FideliteTable>? where,
     int? limit,
     int? offset,
@@ -326,8 +326,6 @@ class FideliteRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<FideliteTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Fidelite>(
       where: where?.call(Fidelite.t),
@@ -337,8 +335,6 @@ class FideliteRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -360,15 +356,13 @@ class FideliteRepository {
   /// );
   /// ```
   Future<Fidelite?> findFirstRow(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<FideliteTable>? where,
     int? offset,
     _i1.OrderByBuilder<FideliteTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<FideliteTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Fidelite>(
       where: where?.call(Fidelite.t),
@@ -377,24 +371,18 @@ class FideliteRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Fidelite] by its [id] or null if no such row exists.
   Future<Fidelite?> findById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Fidelite>(
       id,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -404,20 +392,14 @@ class FideliteRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
-  ///
-  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
-  /// rows are silently skipped, and only the successfully inserted rows are
-  /// returned.
   Future<List<Fidelite>> insert(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Fidelite> rows, {
     _i1.Transaction? transaction,
-    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Fidelite>(
       rows,
       transaction: transaction,
-      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -425,7 +407,7 @@ class FideliteRepository {
   ///
   /// The returned [Fidelite] will have its `id` field set.
   Future<Fidelite> insertRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Fidelite row, {
     _i1.Transaction? transaction,
   }) async {
@@ -441,7 +423,7 @@ class FideliteRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Fidelite>> update(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Fidelite> rows, {
     _i1.ColumnSelections<FideliteTable>? columns,
     _i1.Transaction? transaction,
@@ -457,7 +439,7 @@ class FideliteRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Fidelite> updateRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Fidelite row, {
     _i1.ColumnSelections<FideliteTable>? columns,
     _i1.Transaction? transaction,
@@ -472,7 +454,7 @@ class FideliteRepository {
   /// Updates a single [Fidelite] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Fidelite?> updateById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     required _i1.ColumnValueListBuilder<FideliteUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -487,7 +469,7 @@ class FideliteRepository {
   /// Updates all [Fidelite]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Fidelite>> updateWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.ColumnValueListBuilder<FideliteUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<FideliteTable> where,
     int? limit,
@@ -513,7 +495,7 @@ class FideliteRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Fidelite>> delete(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Fidelite> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -525,7 +507,7 @@ class FideliteRepository {
 
   /// Deletes a single [Fidelite].
   Future<Fidelite> deleteRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Fidelite row, {
     _i1.Transaction? transaction,
   }) async {
@@ -537,7 +519,7 @@ class FideliteRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Fidelite>> deleteWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.WhereExpressionBuilder<FideliteTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -550,7 +532,7 @@ class FideliteRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<FideliteTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -558,22 +540,6 @@ class FideliteRepository {
     return session.db.count<Fidelite>(
       where: where?.call(Fidelite.t),
       limit: limit,
-      transaction: transaction,
-    );
-  }
-
-  /// Acquires row-level locks on [Fidelite] rows matching the [where] expression.
-  Future<void> lockRows(
-    _i1.DatabaseSession session, {
-    required _i1.WhereExpressionBuilder<FideliteTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
-  }) async {
-    return session.db.lockRows<Fidelite>(
-      where: where(Fidelite.t),
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

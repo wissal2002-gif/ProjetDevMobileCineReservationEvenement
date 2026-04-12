@@ -1576,24 +1576,6 @@ class Endpoints extends _i1.EndpointDispatch {
                 params['note'],
               ),
         ),
-        'peutNoter': _i1.MethodConnector(
-          name: 'peutNoter',
-          params: {
-            'filmId': _i1.ParameterDescription(
-              name: 'filmId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['avis'] as _i5.AvisEndpoint).peutNoter(
-                session,
-                params['filmId'],
-              ),
-        ),
         'getMonAvis': _i1.MethodConnector(
           name: 'getMonAvis',
           params: {
@@ -2202,61 +2184,6 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['profil'] as _i14.ProfilEndpoint)
                   .supprimerCompte(session),
-        ),
-        'getFidelite': _i1.MethodConnector(
-          name: 'getFidelite',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['profil'] as _i14.ProfilEndpoint)
-                  .getFidelite(session),
-        ),
-        'ajouterPoints': _i1.MethodConnector(
-          name: 'ajouterPoints',
-          params: {
-            'utilisateurId': _i1.ParameterDescription(
-              name: 'utilisateurId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'montantPaye': _i1.ParameterDescription(
-              name: 'montantPaye',
-              type: _i1.getType<double>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['profil'] as _i14.ProfilEndpoint).ajouterPoints(
-                    session,
-                    params['utilisateurId'],
-                    params['montantPaye'],
-                  ),
-        ),
-        'getCodePromoFidelite': _i1.MethodConnector(
-          name: 'getCodePromoFidelite',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['profil'] as _i14.ProfilEndpoint)
-                  .getCodePromoFidelite(session),
-        ),
-        'getAvantagesFidelite': _i1.MethodConnector(
-          name: 'getAvantagesFidelite',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['profil'] as _i14.ProfilEndpoint)
-                  .getAvantagesFidelite(session),
         ),
       },
     );

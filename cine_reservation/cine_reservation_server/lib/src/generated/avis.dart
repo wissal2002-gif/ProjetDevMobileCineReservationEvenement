@@ -283,7 +283,7 @@ class AvisRepository {
   /// );
   /// ```
   Future<List<Avis>> find(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<AvisTable>? where,
     int? limit,
     int? offset,
@@ -291,8 +291,6 @@ class AvisRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<AvisTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Avis>(
       where: where?.call(Avis.t),
@@ -302,8 +300,6 @@ class AvisRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -325,15 +321,13 @@ class AvisRepository {
   /// );
   /// ```
   Future<Avis?> findFirstRow(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<AvisTable>? where,
     int? offset,
     _i1.OrderByBuilder<AvisTable>? orderBy,
     bool orderDescending = false,
     _i1.OrderByListBuilder<AvisTable>? orderByList,
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Avis>(
       where: where?.call(Avis.t),
@@ -342,24 +336,18 @@ class AvisRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [Avis] by its [id] or null if no such row exists.
   Future<Avis?> findById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Avis>(
       id,
       transaction: transaction,
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
     );
   }
 
@@ -369,20 +357,14 @@ class AvisRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
-  ///
-  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
-  /// rows are silently skipped, and only the successfully inserted rows are
-  /// returned.
   Future<List<Avis>> insert(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Avis> rows, {
     _i1.Transaction? transaction,
-    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<Avis>(
       rows,
       transaction: transaction,
-      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -390,7 +372,7 @@ class AvisRepository {
   ///
   /// The returned [Avis] will have its `id` field set.
   Future<Avis> insertRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Avis row, {
     _i1.Transaction? transaction,
   }) async {
@@ -406,7 +388,7 @@ class AvisRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<Avis>> update(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Avis> rows, {
     _i1.ColumnSelections<AvisTable>? columns,
     _i1.Transaction? transaction,
@@ -422,7 +404,7 @@ class AvisRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Avis> updateRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Avis row, {
     _i1.ColumnSelections<AvisTable>? columns,
     _i1.Transaction? transaction,
@@ -437,7 +419,7 @@ class AvisRepository {
   /// Updates a single [Avis] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Avis?> updateById(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     int id, {
     required _i1.ColumnValueListBuilder<AvisUpdateTable> columnValues,
     _i1.Transaction? transaction,
@@ -452,7 +434,7 @@ class AvisRepository {
   /// Updates all [Avis]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
   Future<List<Avis>> updateWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.ColumnValueListBuilder<AvisUpdateTable> columnValues,
     required _i1.WhereExpressionBuilder<AvisTable> where,
     int? limit,
@@ -478,7 +460,7 @@ class AvisRepository {
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<Avis>> delete(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     List<Avis> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -490,7 +472,7 @@ class AvisRepository {
 
   /// Deletes a single [Avis].
   Future<Avis> deleteRow(
-    _i1.DatabaseSession session,
+    _i1.Session session,
     Avis row, {
     _i1.Transaction? transaction,
   }) async {
@@ -502,7 +484,7 @@ class AvisRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<Avis>> deleteWhere(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     required _i1.WhereExpressionBuilder<AvisTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -515,7 +497,7 @@ class AvisRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.DatabaseSession session, {
+    _i1.Session session, {
     _i1.WhereExpressionBuilder<AvisTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -523,22 +505,6 @@ class AvisRepository {
     return session.db.count<Avis>(
       where: where?.call(Avis.t),
       limit: limit,
-      transaction: transaction,
-    );
-  }
-
-  /// Acquires row-level locks on [Avis] rows matching the [where] expression.
-  Future<void> lockRows(
-    _i1.DatabaseSession session, {
-    required _i1.WhereExpressionBuilder<AvisTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
-  }) async {
-    return session.db.lockRows<Avis>(
-      where: where(Avis.t),
-      lockMode: lockMode,
-      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

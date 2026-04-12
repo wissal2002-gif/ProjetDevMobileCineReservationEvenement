@@ -9,7 +9,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/reservation_provider.dart';
-import '../../../programmation/presentation/providers/avis_provider.dart';
 
 class ConfirmationPage extends ConsumerStatefulWidget {
   final Reservation reservation;
@@ -36,25 +35,9 @@ class ConfirmationPage extends ConsumerStatefulWidget {
 }
 
 class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
-  @override
-  void initState() {
-    super.initState();
-    // Après confirmation de réservation, invalider peutNoterProvider
-    // pour que la notation soit disponible en temps réel sans rechargement.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Incrémente le compteur global → tous les peutNoterProvider actifs
-      // se rafraîchissent automatiquement.
-      ref.read(peutNoterRefreshProvider.notifier).state++;
-
-      // Invalider aussi les providers spécifiques au film si séance connue
-      if (widget.seance?.filmId != null) {
-        final filmId = widget.seance!.filmId;
-        ref.invalidate(peutNoterProvider(filmId));
-        ref.invalidate(monAvisProvider(filmId));
-        ref.invalidate(statsFilmProvider(filmId));
-      }
-    });
-  }
+  // ✅ FIX : supprimé le vider() ici — le panier est déjà vidé dans paiement_page.dart
+  // et dans main.dart au démarrage. Appeler vider() ici causait une race condition
+  // qui réinitialisait le state pendant que la page se construisait.
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +146,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: color.withOpacity(0.5)),
+                  border:
+                  Border.all(color: color.withOpacity(0.5)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +155,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.event_seat, color: color, size: 14),
+                        Icon(Icons.event_seat,
+                            color: color, size: 14),
                         const SizedBox(width: 4),
                         Text(label,
                             style: TextStyle(
@@ -185,11 +170,13 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                       spacing: 4,
                       children: sieges
                           .map((s) => Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding:
+                        const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: color.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius:
+                          BorderRadius.circular(4),
                         ),
                         child: Text(
                           s.siege.numero,
@@ -308,8 +295,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                             widget.seance!.typeProjection ?? '2D'),
                       const SizedBox(height: 10),
                       if (siege != null)
-                        _infoChip(
-                            Icons.event_seat, 'Siège ${siege.siege.numero}'),
+                        _infoChip(Icons.event_seat,
+                            'Siège ${siege.siege.numero}'),
                       const SizedBox(height: 16),
                       Row(children: [
                         const Text('Réf: ',
@@ -341,7 +328,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                         border: Border.all(color: Colors.black12),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: _buildQRSimule(b.qrCode ?? '${b.id}'),
+                      child:
+                      _buildQRSimule(b.qrCode ?? '${b.id}'),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -395,8 +383,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
           onPressed: () => _telechargerPDF(context),
           icon: const Icon(Icons.download, size: 20),
           label: const Text('TÉLÉCHARGER LE BILLET PDF',
-              style:
-              TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 14)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.accent,
             foregroundColor: Colors.white,
@@ -411,7 +399,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
         width: double.infinity,
         child: OutlinedButton.icon(
           onPressed: () => context.go('/mes-billets'),
-          icon: const Icon(Icons.confirmation_number_outlined, size: 18),
+          icon: const Icon(Icons.confirmation_number_outlined,
+              size: 18),
           label: const Text('VOIR MES BILLETS',
               style: TextStyle(fontWeight: FontWeight.bold)),
           style: OutlinedButton.styleFrom(
@@ -447,7 +436,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
       final pdf = await _genererPDF();
       await Printing.sharePdf(
         bytes: pdf,
-        filename: 'billet_cineevent_${widget.reservation.id}.pdf',
+        filename:
+        'billet_cineevent_${widget.reservation.id}.pdf',
       );
     } catch (e) {
       if (context.mounted) {
@@ -553,8 +543,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                         ]),
                         pw.SizedBox(height: 16),
                         if (siege != null)
-                          _pdfInfoBox(
-                              ctx, 'SIÈGE', siege.siege.numero, accentColor),
+                          _pdfInfoBox(ctx, 'SIÈGE',
+                              siege.siege.numero, accentColor),
                         pw.SizedBox(height: 16),
                         pw.Divider(color: PdfColors.grey800),
                         pw.SizedBox(height: 12),
@@ -568,7 +558,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                               children: [
                                 pw.Text('RÉFÉRENCE',
                                     style: const pw.TextStyle(
-                                        color: PdfColors.grey, fontSize: 9)),
+                                        color: PdfColors.grey,
+                                        fontSize: 9)),
                                 pw.Text(
                                     '#${billet.id ?? widget.reservation.id}',
                                     style: pw.TextStyle(
@@ -583,7 +574,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                               children: [
                                 pw.Text('MONTANT',
                                     style: const pw.TextStyle(
-                                        color: PdfColors.grey, fontSize: 9)),
+                                        color: PdfColors.grey,
+                                        fontSize: 9)),
                                 pw.Text(
                                     '${widget.paiement.montant.toStringAsFixed(2)} MAD',
                                     style: pw.TextStyle(
@@ -598,7 +590,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                               children: [
                                 pw.Text('PAIEMENT',
                                     style: const pw.TextStyle(
-                                        color: PdfColors.grey, fontSize: 9)),
+                                        color: PdfColors.grey,
+                                        fontSize: 9)),
                                 pw.Text(
                                     (widget.paiement.methode ?? 'carte')
                                         .toUpperCase(),
@@ -636,7 +629,9 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                       ),
                       pw.SizedBox(height: 10),
                       pw.Text(
-                        siege != null ? 'Siège ${siege.siege.numero}' : '',
+                        siege != null
+                            ? 'Siège ${siege.siege.numero}'
+                            : '',
                         style: pw.TextStyle(
                             color: PdfColor.fromHex('#4A3728'),
                             fontSize: 9,
@@ -668,7 +663,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text(label, style: pw.TextStyle(color: accent, fontSize: 9)),
+        pw.Text(label,
+            style: pw.TextStyle(color: accent, fontSize: 9)),
         pw.SizedBox(height: 2),
         pw.Text(value,
             style: pw.TextStyle(

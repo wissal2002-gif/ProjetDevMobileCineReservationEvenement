@@ -45,9 +45,7 @@ abstract class OptionSupplementaire implements _i1.SerializableModel {
       description: jsonSerialization['description'] as String?,
       prix: (jsonSerialization['prix'] as num).toDouble(),
       categorie: jsonSerialization['categorie'] as String?,
-      disponible: jsonSerialization['disponible'] == null
-          ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['disponible']),
+      disponible: jsonSerialization['disponible'] as bool?,
       image: jsonSerialization['image'] as String?,
       cinemaId: jsonSerialization['cinemaId'] as int?,
     );
