@@ -2,7 +2,7 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
 class EmailService {
-  static const String _gmailUser = 'khalid.wissal@etu.uae.ac.ma';
+  static const String _gmailUser = 'Votre-email';
   static const String _gmailPassword = 'xxct wqbk xzwi scbs';
   static const String _appName = 'CineReservation';
 
