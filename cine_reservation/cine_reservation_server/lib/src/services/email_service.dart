@@ -3,7 +3,7 @@ import 'package:mailer/smtp_server.dart';
 
 class EmailService {
   static const String _gmailUser = 'Votre-email';
-  static const String _gmailPassword = 'xxct wqbk xzwi scbs';
+'  static const String _gmailPassword = ';
   static const String _appName = 'CineReservation';
 
   static SmtpServer get _smtpServer => gmail(_gmailUser, _gmailPassword.replaceAll(' ', ''));
